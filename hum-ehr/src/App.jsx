@@ -33,7 +33,7 @@ const App = ({ userLoginDetails, environment, content, userFullName, productCode
   const location = useLocation();
 
   // Global variables
-  const url = window.location.origin;
+  const url = window.location.origin; 
 
   useEffect(() => {
     // Update time every second
