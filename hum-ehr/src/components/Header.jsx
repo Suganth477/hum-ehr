@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Header = ({ currentTime, userLoginDetails, productCode, baseUrl }) => {
+const Header = ({ currentTime, productCode, baseUrl }) => {
   return (
     <header className="navbar p-0 hh-ehr-bg-color2" id="application_main_header">
       <div className="container-fluid p-0" style={{ height: 'inherit' }}>

@@ -11,26 +11,25 @@ import QuickAccessNav from './components/QuickAccessNav';
 import FilterOffcanvas from './components/FilterOffCanvas';
 
 // Styles
-import './assets/css/hum-css/ehr-theme-style.css';
+import './App.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@eonasdan/tempus-dominus/dist/css/tempus-dominus.min.css';
 import 'bootstrap-daterangepicker/daterangepicker.css';
 import 'datatables.net-bs5/css/dataTables.bootstrap5.css';
 import 'jquery-confirm/dist/jquery-confirm.min.css';
-import ActivePatientsList from './components/ActivePatientsList';
-import ActivePatientsList1 from './components/ActivePatientList1';
-import ActivePatientsList2 from './components/ActivePatientsList2';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
-import 'primeflex/primeflex.css'; // Optional for layout utility classes
+import 'primeflex/primeflex.css';
+
+//List
 import ActivePatientsList3 from './components/ActivePatientsList3';
+import ActivePatientsList1 from './components/ActivePatientList1';
 
-
-const App = ({ userLoginDetails, environment, content, userFullName, productCode, baseUrl }) => {
+const App = ({ userLoginDetails, userFullName, productCode}) => {
   const [currentTime, setCurrentTime] = useState(moment());
-  const location = useLocation();
+  const [component, setComponent] = useState([]);
 
   // Global variables
   const url = window.location.origin;
@@ -43,6 +42,21 @@ const App = ({ userLoginDetails, environment, content, userFullName, productCode
 
     return () => clearInterval(timer);
   }, []);
+
+   const handleMenuClick = (componentName) => {
+    let components;
+    switch (componentName) {
+      case "messageCenter":
+        components = <ActivePatientsList3/>
+        break;
+      case "patientList":
+        components = <ActivePatientsList1/>
+        break;
+      default:
+        break;
+    }
+    setComponent([components]);
+  }
 
   return (
     <div className="application">
@@ -65,16 +79,10 @@ const App = ({ userLoginDetails, environment, content, userFullName, productCode
       {/* Sidebar and Main Content */}
       <div className="container-fluid p-0">
         <div className="row">
-          <Sidebar 
-            userLoginDetails={userLoginDetails}
-            userFullName={userFullName}
-            baseUrl="https://releasetestapi.humhealth.com/HumHealthTestingAPI"
-          />
-          
-          {/* Main Content */}
-          <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
-            <ActivePatientsList3 baseUrl={"https://releasetestapi.humhealth.com/HumHealthTestingAPI"} productCode={"ccm"} />
-          </div>
+          <Sidebar onmenuClick={handleMenuClick}/>
+        <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
+          {component}
+        </div>
         </div>
       </div>
       {/* Filter Offcanvas */}

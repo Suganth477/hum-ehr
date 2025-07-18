@@ -2,23 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import AdminMenu from './AdminMenu';
 
-const Sidebar = ({ userLoginDetails, userFullName, baseUrl }) => {
+const Sidebar = ({onmenuClick }) => {
   return (
     <div id="application_side_navigation_menu_container" className="toggled-2 row">
       <div id="sidebar_wrapper" className="hh-ehr-bg-color3 pe-0">
         <ul className="sidebar-nav nav-stacked" id="application_menu_list_container">
-          <AdminMenu baseUrl={baseUrl} productCode="ccm" />
+          <AdminMenu onmenuClick={onmenuClick} />
         </ul>
         <ul className="sidebar-nav m-0" id="application_menu_settings_container">
           <li className="application-menu-list">
             <Link to="#" className="parent-link user-details-link">
               <span className="app-menu-icon user-profile-icon">
-                <img className="profile-image user-profile" src={`${baseUrl}assets/images/hum-images/doctor.jpeg`} alt="User Profile" />
+                <img className="profile-image user-profile" src="/src/assets/images/doctor.jpeg" alt="User Profile" />
               </span> 
               <ul className="user-details-list">
                 <li className="user-desc">
                   <span className="app-menu-description ms-0 user-name text-truncate text-capitalize">
-                    {userFullName} <b>(EST)</b>
+                    <b>(EST)</b>
                   </span> 
                   <span className="app-menu-description ms-0 user-role text-truncate">Admin</span>
                 </li>
