@@ -26,6 +26,7 @@ import 'primeflex/primeflex.css';
 //List
 import ActivePatientsList3 from './components/ActivePatientsList3';
 import ActivePatientsList1 from './components/ActivePatientList1';
+import Administration from './components/Administration';
 
 const App = ({ userLoginDetails, userFullName, productCode}) => {
   const [currentTime, setCurrentTime] = useState(moment());
@@ -52,6 +53,9 @@ const App = ({ userLoginDetails, userFullName, productCode}) => {
       case "patientList":
         components = <ActivePatientsList1/>
         break;
+      case "administration":
+        components = <Administration/>
+        break
       default:
         break;
     }

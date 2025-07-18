@@ -43,7 +43,7 @@ const AdminMenu = ({onmenuClick}) => {
         <span className="app-menu-description">Billing</span>
       </li>
 
-      <li className="application-menu-list" role="button" tabIndex={0}>
+      <li className="application-menu-list" data-section="patients" role="button" tabIndex={0} onClick={() => onmenuClick('administration')}>
         <span className="app-menu-icon mdi mdi-account-multiple-plus-outline"></span>
         <span className="app-menu-description wrapped-text">User Management</span>
       </li>
