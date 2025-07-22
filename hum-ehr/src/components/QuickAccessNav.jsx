@@ -1,5 +1,3 @@
-import React from 'react';
-
 const QuickAccessNav = () => {
   return (
     <header className="navbar p-0 hh-ehr-bg-color4" id="application_quick_access_side_nav_container">

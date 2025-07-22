@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import moment from 'moment-timezone';
 import 'moment-timezone';
 
@@ -8,7 +7,6 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import QuickAccessNav from './components/QuickAccessNav';
-import FilterOffcanvas from './components/FilterOffCanvas';
 
 // Styles
 import './App.css';
@@ -24,15 +22,13 @@ import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
 
 //List
-import ActivePatientsList3 from './components/ActivePatientsList3';
-import ActivePatientsList1 from './components/ActivePatientList1';
+import ActivePatientsList from './js/patientlist/ActivePatientsList';
 
-const App = ({ userLoginDetails, userFullName, productCode}) => {
+import ActivePatientsList3 from './js/patientlist/ActivePatientsList3';
+
+const App = ({ userLoginDetails, productCode}) => {
   const [currentTime, setCurrentTime] = useState(moment());
   const [component, setComponent] = useState([]);
-
-  // Global variables
-  const url = window.location.origin;
 
   useEffect(() => {
     // Update time every second
@@ -46,11 +42,11 @@ const App = ({ userLoginDetails, userFullName, productCode}) => {
    const handleMenuClick = (componentName) => {
     let components;
     switch (componentName) {
-      case "messageCenter":
-        components = <ActivePatientsList3/>
-        break;
       case "patientList":
-        components = <ActivePatientsList1/>
+        components = <ActivePatientsList/>
+        break;
+      case "messageCenter":
+        components = <ActivePatientsList3 />;
         break;
       default:
         break;
@@ -80,13 +76,11 @@ const App = ({ userLoginDetails, userFullName, productCode}) => {
       <div className="container-fluid p-0">
         <div className="row">
           <Sidebar onmenuClick={handleMenuClick}/>
-        <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
-          {component}
-        </div>
+          <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
+            {component}
+          </div>
         </div>
       </div>
-      {/* Filter Offcanvas */}
-      <FilterOffcanvas />
       {/* Footer */}
       <Footer />
     </div>

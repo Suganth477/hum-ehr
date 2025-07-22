@@ -995,10 +995,13 @@ body.expanded-view #application_side_navigation_menu_container.toggled-2 #sideba
    line-height: 40px;
 }
 
-#sidebar_wrapper .sidebar-nav li a {
+#sidebar_wrapper .sidebar-nav li  span{
+   color: #999999;
+}
+
+#sidebar_wrapper .sidebar-nav li {
    display: flex;
    text-decoration: none;
-   color: #999999;
    align-items: center;
 }
 
@@ -1062,7 +1065,10 @@ body.expanded-view #application_side_navigation_menu_container.toggled-2 #sideba
    position: relative;
    right: 5px;
 }
-
+#sidebar_wrapper #application_menu_list_container .application-menu-list {
+   position: relative;
+   top: 50px;
+}
 #sidebar_wrapper #application_menu_list_container .application-menu-list .sub-menu-1 {
    display: none;
    transition: all 2.5s ease;

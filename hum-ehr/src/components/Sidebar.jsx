@@ -1,5 +1,3 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
 import AdminMenu from './AdminMenu';
 
 const Sidebar = ({onmenuClick }) => {
@@ -11,15 +9,15 @@ const Sidebar = ({onmenuClick }) => {
         </ul>
         <ul className="sidebar-nav m-0" id="application_menu_settings_container">
           <li className="application-menu-list">
-            <Link to="#" className="parent-link user-details-link">
+            <a href="#" onClick={(e) => e.preventDefault()} className="parent-link user-details-link">
               <span className="app-menu-icon user-profile-icon">
-                <img className="profile-image user-profile" src="/src/assets/images/doctor.jpeg" alt="User Profile" />
-              </span> 
+                <img className="profile-image user-profile" src="/src/assets/images/doctor.jpeg" alt="User Profile"/>
+              </span>
               <ul className="user-details-list">
                 <li className="user-desc">
                   <span className="app-menu-description ms-0 user-name text-truncate text-capitalize">
                     <b>(EST)</b>
-                  </span> 
+                  </span>
                   <span className="app-menu-description ms-0 user-role text-truncate">Admin</span>
                 </li>
                 <li className="user-profile-icons">
@@ -27,7 +25,7 @@ const Sidebar = ({onmenuClick }) => {
                   <span className="app-menu-icon me-0 mdi mdi-logout" data-bs-toggle="tooltip" data-bs-placement="top" title="Logout"></span>
                 </li>
               </ul>
-            </Link>
+            </a>
           </li>
         </ul>
       </div>

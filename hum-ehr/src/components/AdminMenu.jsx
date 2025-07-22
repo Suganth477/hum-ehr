@@ -5,7 +5,7 @@ import React, { useRef, useEffect } from 'react';
 const AdminMenu = ({onmenuClick}) => {
   return (
     <>
-      <li className="active application-menu-list" data-section="dashboard" role="button" tabIndex={0}>
+      <li className="active application-menu-list" role="button" tabIndex={0}>
         <span className="app-menu-icon mdi mdi-view-dashboard"></span>
         <span className="app-menu-description">Dashboard</span>
       </li>

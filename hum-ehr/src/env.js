@@ -1,0 +1,30 @@
+const env = {
+  APP_ENV: 'production',
+  APP_DEBUG: true,
+  APP_KEY: 'AGZcsE6xbXkRgSwT2W6PatBYbmx0C9Ax',
+  APP_URL: 'http://localhost',
+  APP_VERSION: '021201',
+  JAVA_URL: 'https://dev-api.humhealth.com/HumHealthDevAPI',
+  HOST_URL: 'https://dev-api.humhealth.com/',
+  EMAIL_URL: 'http://localhost:8080/HumHealthDevAPI',
+  WRIGHT_CENTER_ID: 1,
+  RPM_DEVICE_ENV: 'TEST',
+  CHIME_URL: 'https://testvideo.humhealth.com',
+  SIGNAL_URL: 'https://devsignal.humhealth.com',
+  EAST_ALABAMA_CARE_GROUP_ID: [83, 150],
+  DEVICE_ORDER_PILOT_CAREGROUP: [1, 83, 164, 194],
+  EHR_ELIGIBLE_CARE_GROUP: [1, 41, 39, 83, 231, 150, 86],
+  PATIENT_DIAGNOSTICS_CAREGROUP_ID: [1, 83],
+  SCHEME: 'http',
+  BASE_URL: 'https://dev-api.humhealth.com/HumHealthDevAPI',
+  RD: 'UHIwJEh1bUhlYWx0aCQlUkRTREIybzIx',
+  CACHE_DRIVER: 'file',
+  SESSION_DRIVER: 'file',
+  QUEUE_DRIVER: 'sync',
+  REDIS_HOST: '127.0.0.1',
+  REDIS_PASSWORD: null,
+  REDIS_PORT: 6379,
+  BUGSNAG_API_KEY: '9a4f1dd405e7ff0acea7eadb51427058'
+};
+
+export default env;
