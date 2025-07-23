@@ -4,7 +4,7 @@ const QuickAccessNav = () => {
       <div id="application_quick_access_nav_container" className="container-fluid p-0">
         <div id="application_quick_access_nav_container_1"></div>
         <div id="application_quick_access_nav_container_2">
-          <div className="list-filter-access-icon d-none">
+          <div className="list-filter-access-icon">
             <ul className="list-unstyled m-0 me-1 hh-ehr-color1">
               <li className="app-quick-access-icon-list" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
                   aria-controls="offcanvasRight">

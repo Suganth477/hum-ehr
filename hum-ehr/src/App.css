@@ -510,7 +510,7 @@ table tbody tr td {
 
 .action-group-icon {
    border-radius: var(--app-border-radius20);
-   padding: 3px 4px;
+   padding: 0px 5px !important;
    box-shadow: 0px 2px 5px var(--app-color7);
    cursor: pointer;
    color: var(--app-color2);
@@ -926,7 +926,7 @@ Start of application side navbar styles
    position: absolute;
    top: 0px;
    z-index: 1000;
-   height: calc(100vh - 50px);
+   height: calc(100vh - 1px);
 }
 
 body.app-info-hided #application_side_navigation_menu_container {
@@ -1471,4 +1471,30 @@ body.expanded-view.ignore-menu-icon-view #application_body_container {
   color: #526172;
   font-size: 15px;
   font-weight: bold;
+}
+
+.p-card-content {
+   padding: 0px !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+   padding: 5px 5px;
+}
+
+.p-card-body {
+   padding: 15px 25px;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+   padding: 10px 5px;
+}
+
+.p-paginator-bottom {
+   position: sticky !important;
+   bottom: 0 !important;
+   background-color: var(--app-color9) !important;
+}
+
+.p-paginator-bottom button {
+   background-color: var(--app-color9);
 }

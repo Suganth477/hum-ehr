@@ -2,7 +2,7 @@ import AdminMenu from './AdminMenu';
 
 const Sidebar = ({onmenuClick }) => {
   return (
-    <div id="application_side_navigation_menu_container" className="toggled-2 row">
+    <div id="application_side_navigation_menu_container" className="toggled-2 row" style={{width: '15%',}}>
       <div id="sidebar_wrapper" className="hh-ehr-bg-color3 pe-0">
         <ul className="sidebar-nav nav-stacked" id="application_menu_list_container">
           <AdminMenu onmenuClick={onmenuClick} />

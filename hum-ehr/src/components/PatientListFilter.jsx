@@ -1,4 +1,4 @@
-const FilterOffcanvas = () => {
+const PatientListFilter = () => {
   return (
     <div className="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
       <div className="offcanvas-header py-1">
@@ -49,4 +49,4 @@ const FilterOffcanvas = () => {
   );
 };
 
-export default FilterOffcanvas;
+export default PatientListFilter;

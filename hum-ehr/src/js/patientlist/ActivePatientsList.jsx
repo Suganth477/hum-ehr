@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSelector,useDispatch } from 'react-redux';
 import { 
   DataTable, 
   Column, 
@@ -20,6 +21,8 @@ import {
 import env from '../../env';
 
 const ActivePatientsList = () => {
+  const patientDetails = useSelector((state) => state.userInfo.patientDetails);
+  console.log("Patient Details:", patientDetails);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [first, setFirst] = useState(0);
@@ -77,7 +80,7 @@ const ActivePatientsList = () => {
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX3N1cHJpeWFhIiwidGltZW91dFNjcmVlbiI6IiIsInRpbWV6b25lIjoiVVMvRWFzdGVybiIsImlzV2ViTG9naW4iOiJZIiwidGltZW91dER1cmF0aW9uIjo2MC4wLCJ1c2VySWQiOjMzNjg5LCJsb2dnZWRJbkNsaW5pY2lhbklkIjotMSwibG9nZ2VkSW5QaHlzaWNpYW5JZCI6LTEsImF1ZCI6IndlYiIsImNsaW5pY2lhbkFkbWluRmxhZyI6IlkiLCJhdWRpdExvZ1VVSUQiOiIxZDJhM2Q3Ni05YmRiLTRiYTEtOWNiYS03M2Q5ZmI3NGVjMTgtMjAyNC0wNC0wOC0xOS00MS0yMSIsInBoeXNpY2lhbkFkbWluRmxhZyI6Ik4iLCJyb2xlQ29kZSI6IkNNU0NMSU5JQ0kiLCJpc1RpbWVvdXQiOiJOIiwiY2xpbmljaWFuU3VwZXJ2aXNvckZsYWciOiJZIiwiZXhwIjoxNzUzMTg1NzU0LCJpYXQiOjE3NTMwOTkzNTQ5NzksImp0aSI6IjZkMDRjOTQ4LWM1NTgtNGQxNS05NDk4LTBjMzE3YzFlYTMyNyJ9.UkbUAqvGy5piola2LZ1mDI70gkB4LHmCEyZ_pvWCNXM';
+      const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX3N1cHJpeWFhIiwidGltZW91dFNjcmVlbiI6IiIsInRpbWV6b25lIjoiVVMvRWFzdGVybiIsImlzV2ViTG9naW4iOiJZIiwidGltZW91dER1cmF0aW9uIjo2MC4wLCJ1c2VySWQiOjMzNjg5LCJsb2dnZWRJbkNsaW5pY2lhbklkIjotMSwibG9nZ2VkSW5QaHlzaWNpYW5JZCI6LTEsImF1ZCI6IndlYiIsImNsaW5pY2lhbkFkbWluRmxhZyI6IlkiLCJhdWRpdExvZ1VVSUQiOiIxZDJhM2Q3Ni05YmRiLTRiYTEtOWNiYS03M2Q5ZmI3NGVjMTgtMjAyNC0wNC0wOC0xOS00MS0yMSIsInBoeXNpY2lhbkFkbWluRmxhZyI6Ik4iLCJyb2xlQ29kZSI6IkNNU0NMSU5JQ0kiLCJpc1RpbWVvdXQiOiJOIiwiY2xpbmljaWFuU3VwZXJ2aXNvckZsYWciOiJZIiwiZXhwIjoxNzUzMzcxNDc0LCJpYXQiOjE3NTMyODUwNzQ4NjgsImp0aSI6IjgyM2ZhMDBkLTU1OTctNGIwOS1hZTI2LTM2MzA0MjQ0MDJjOSJ9.SaVL3Wq3QBMBxCTVuUh0jahMah7rl4rbniH9BKa31Yk";
       const response = await fetch(`${env.BASE_URL}/patient/list/all`, {
         method: 'POST',
         headers: {
@@ -113,7 +116,7 @@ const ActivePatientsList = () => {
         setTotalRecords(responseData.recordsFiltered);
         const formattedPatients = responseData.data.map((patient, index) => ({
           id: patient.patientId,
-          sno: index + 1,
+          sno: patient.sno,
           fullName: patient.fullName,
           gender: patient.genderDesc,
           dob: patient.dob,
@@ -162,10 +165,10 @@ const ActivePatientsList = () => {
         type="button"
         className="action-group-icon btn btn-default"
         onClick={() => displayPatientProfile(rowData.id, rowData.fullName)}
-        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', borderRadius: '50%' }}
+        style={{ background: 'none',border:'none',cursor:'pointer',borderRadius:'50%'}}
         title="View Actions"
       >
-        <span className="mdi mdi-dots-vertical" style={{ fontSize: 30, color: '--app-color2' }}></span>
+        <span className="mdi mdi-dots-vertical" style={{ fontSize: 25, color: '--app-color2' }}></span>
       </button>
     );
   };
@@ -215,12 +218,13 @@ const ActivePatientsList = () => {
           onPage={onPage}
           loading={loading}
           rowsPerPageOptions={[5, 10, 25]}
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} patients"
           emptyMessage="No patients found."
           scrollable
           scrollHeight="flex"
-          className="p-datatable-striped"
+          className="p-datatable-striped scroll_table sticky-paginator-table"
+          tableClassName="dataTable border table-hover rounded-3"
         >
           <Column field="sno" header="S.No" style={{ width: '70px' }} />
           <Column field="fullName" header="Name" style={{ width: '180px' }} />

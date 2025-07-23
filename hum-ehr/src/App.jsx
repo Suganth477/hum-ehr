@@ -7,6 +7,7 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import QuickAccessNav from './components/QuickAccessNav';
+import PatientListFilter from './components/PatientListFilter';
 
 // Styles
 import './App.css';
@@ -71,6 +72,8 @@ const App = ({ userLoginDetails, productCode}) => {
 
       {/* Quick Access Side Nav */}
       <QuickAccessNav />
+      <PatientListFilter />
+      {/* Offcanvas for Filters */}
 
       {/* Sidebar and Main Content */}
       <div className="container-fluid p-0">
@@ -79,6 +82,7 @@ const App = ({ userLoginDetails, productCode}) => {
           <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
             {component}
           </div>
+
         </div>
       </div>
       {/* Footer */}
