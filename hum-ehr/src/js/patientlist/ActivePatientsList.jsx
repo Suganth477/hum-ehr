@@ -1,24 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useSelector,useDispatch } from 'react-redux';
-import { 
-  DataTable, 
-  Column, 
-  TabView, 
-  TabPanel,
-  Chip,
+import {
   Button,
-  InputText,
-  Dropdown,
-  Calendar,
-  Badge,
-  Tooltip
+  Card,
+  Column,
+  DataTable
 } from 'primereact';
-import { 
-  Avatar,
-  Card
-} from 'primereact';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 import env from '../../env';
+
+import Cookies from 'js-cookie';
 
 const ActivePatientsList = () => {
   const patientDetails = useSelector((state) => state.userInfo.patientDetails);
@@ -80,7 +71,7 @@ const ActivePatientsList = () => {
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX3N1cHJpeWFhIiwidGltZW91dFNjcmVlbiI6IiIsInRpbWV6b25lIjoiVVMvRWFzdGVybiIsImlzV2ViTG9naW4iOiJZIiwidGltZW91dER1cmF0aW9uIjo2MC4wLCJ1c2VySWQiOjMzNjg5LCJsb2dnZWRJbkNsaW5pY2lhbklkIjotMSwibG9nZ2VkSW5QaHlzaWNpYW5JZCI6LTEsImF1ZCI6IndlYiIsImNsaW5pY2lhbkFkbWluRmxhZyI6IlkiLCJhdWRpdExvZ1VVSUQiOiIxZDJhM2Q3Ni05YmRiLTRiYTEtOWNiYS03M2Q5ZmI3NGVjMTgtMjAyNC0wNC0wOC0xOS00MS0yMSIsInBoeXNpY2lhbkFkbWluRmxhZyI6Ik4iLCJyb2xlQ29kZSI6IkNNU0NMSU5JQ0kiLCJpc1RpbWVvdXQiOiJOIiwiY2xpbmljaWFuU3VwZXJ2aXNvckZsYWciOiJZIiwiZXhwIjoxNzUzMzcxNDc0LCJpYXQiOjE3NTMyODUwNzQ4NjgsImp0aSI6IjgyM2ZhMDBkLTU1OTctNGIwOS1hZTI2LTM2MzA0MjQ0MDJjOSJ9.SaVL3Wq3QBMBxCTVuUh0jahMah7rl4rbniH9BKa31Yk";
+      const token = Cookies.get('X-Auth-Token');
       const response = await fetch(`${env.BASE_URL}/patient/list/all`, {
         method: 'POST',
         headers: {
