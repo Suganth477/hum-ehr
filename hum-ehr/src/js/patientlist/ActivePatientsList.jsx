@@ -1,28 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useSelector,useDispatch } from 'react-redux';
-import { 
-  DataTable, 
-  Column, 
-  TabView, 
-  TabPanel,
-  Chip,
-  Button,
-  InputText,
-  Dropdown,
-  Calendar,
-  Badge,
-  Tooltip
-} from 'primereact';
-import { 
-  Avatar,
-  Card
-} from 'primereact';
-
-import env from '../../env';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Card } from 'primereact/card';
+import env from "./../../env";
+import { displayPatientNameInNewTab } from '../../components/QuickAccessNav';
+import "./../../assets/css/patientChartStyles.css";
 
 const ActivePatientsList = () => {
-  const patientDetails = useSelector((state) => state.userInfo.patientDetails);
-  console.log("Patient Details:", patientDetails);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [first, setFirst] = useState(0);
@@ -80,7 +64,7 @@ const ActivePatientsList = () => {
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX3N1cHJpeWFhIiwidGltZW91dFNjcmVlbiI6IiIsInRpbWV6b25lIjoiVVMvRWFzdGVybiIsImlzV2ViTG9naW4iOiJZIiwidGltZW91dER1cmF0aW9uIjo2MC4wLCJ1c2VySWQiOjMzNjg5LCJsb2dnZWRJbkNsaW5pY2lhbklkIjotMSwibG9nZ2VkSW5QaHlzaWNpYW5JZCI6LTEsImF1ZCI6IndlYiIsImNsaW5pY2lhbkFkbWluRmxhZyI6IlkiLCJhdWRpdExvZ1VVSUQiOiIxZDJhM2Q3Ni05YmRiLTRiYTEtOWNiYS03M2Q5ZmI3NGVjMTgtMjAyNC0wNC0wOC0xOS00MS0yMSIsInBoeXNpY2lhbkFkbWluRmxhZyI6Ik4iLCJyb2xlQ29kZSI6IkNNU0NMSU5JQ0kiLCJpc1RpbWVvdXQiOiJOIiwiY2xpbmljaWFuU3VwZXJ2aXNvckZsYWciOiJZIiwiZXhwIjoxNzUzMzcxNDc0LCJpYXQiOjE3NTMyODUwNzQ4NjgsImp0aSI6IjgyM2ZhMDBkLTU1OTctNGIwOS1hZTI2LTM2MzA0MjQ0MDJjOSJ9.SaVL3Wq3QBMBxCTVuUh0jahMah7rl4rbniH9BKa31Yk";
+      const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX3N1cHJpeWFhIiwidGltZW91dFNjcmVlbiI6IiIsInRpbWV6b25lIjoiVVMvRWFzdGVybiIsImlzV2ViTG9naW4iOiJZIiwidGltZW91dER1cmF0aW9uIjo2MC4wLCJ1c2VySWQiOjMzNjg5LCJsb2dnZWRJbkNsaW5pY2lhbklkIjotMSwibG9nZ2VkSW5QaHlzaWNpYW5JZCI6LTEsImF1ZCI6IndlYiIsImNsaW5pY2lhbkFkbWluRmxhZyI6IlkiLCJhdWRpdExvZ1VVSUQiOiIxZDJhM2Q3Ni05YmRiLTRiYTEtOWNiYS03M2Q5ZmI3NGVjMTgtMjAyNC0wNC0wOC0xOS00MS0yMSIsInBoeXNpY2lhbkFkbWluRmxhZyI6Ik4iLCJyb2xlQ29kZSI6IkNNU0NMSU5JQ0kiLCJpc1RpbWVvdXQiOiJOIiwiY2xpbmljaWFuU3VwZXJ2aXNvckZsYWciOiJZIiwiZXhwIjoxNzUzNDU4NDY2LCJpYXQiOjE3NTMzNzIwNjYxNTAsImp0aSI6IjVjMDQ1ODcyLWZjYjgtNGI3Zi1iMzMyLTMxMmVkZjIwZjRiNCJ9.LpjORpHhq2iziK3jnyojBuYvECfSZRGHWX5yK2mTAgw";
       const response = await fetch(`${env.BASE_URL}/patient/list/all`, {
         method: 'POST',
         headers: {
@@ -175,12 +159,19 @@ const ActivePatientsList = () => {
 
   const nameBodyTemplate = (rowData) => {
     return (
-      <Button 
-        label={rowData.fullName} 
-        className="p-button-text p-button-plain" 
+      <span
         onClick={() => displayPatientNameInNewTab(rowData.id, rowData.fullName)}
-        style={{ color: '#286090' }}
-      />
+        style={{
+          color: '#000',
+          backgroundColor: '#fff',
+          cursor: 'pointer',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          display: 'inline-block',
+        }}
+      >
+        {rowData.fullName}
+      </span>
     );
   };
 
@@ -194,10 +185,6 @@ const ActivePatientsList = () => {
 
   const closePatientChart = (patientId, e) => {
     e.stopPropagation();
-  };
-
-  const displayPatientNameInNewTab = (patientId, patientName) => {
-    // Implementation remains the same
   };
 
   const onPage = (event) => {
@@ -227,7 +214,12 @@ const ActivePatientsList = () => {
           tableClassName="dataTable border table-hover rounded-3"
         >
           <Column field="sno" header="S.No" style={{ width: '70px' }} />
-          <Column field="fullName" header="Name" style={{ width: '180px' }} />
+          <Column 
+            field="fullName" 
+            header="Name" 
+            style={{ width: '180px' }} 
+            body={nameBodyTemplate}
+          />
           <Column field="gender" header="Gender" style={{ width: '100px' }} />
           <Column field="dob" header="Date of Birth" style={{ width: '120px' }} />
           <Column field="phone" header="Phone Number" style={{ width: '200px' }} />

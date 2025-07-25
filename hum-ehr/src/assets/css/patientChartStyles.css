@@ -1,0 +1,201 @@
+#application_quick_access_nav_container_1 .patient-list-nav-tabs {
+    display: flex;
+    align-items: flex-start;
+    height: 100%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item {
+    height: 100%;
+    width: 9%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group {
+    width: auto !important;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group #pc_patient_tab_dropdown_list_group .patient-list-nav-item { 
+    .patient-name {
+        background-color: var(--app-color9) !important; 
+        color: var(--app-color6) !important;
+    }
+    .patient-list-nav-item-close-icon {
+        color: var(--app-color6) !important;
+    }
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group #pc_patient_tab_dropdown_list_group .patient-list-nav-item {
+    width: 100%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group .dropdown-menu-list-btn {
+    width: auto !important;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active {
+    background-color: var(--app-color9);
+    color: var(--app-color6);
+    .badge {
+        background-color: var(--app-color2) !important;
+        color: #fff !important; 
+    }
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link {
+    padding: 0px 8px;
+    border-radius: var(--app-border-radius0);
+    display: flex;
+    align-items: center;
+    height: 100%;
+    background-color: inherit;
+    color: var(--app-color9);
+    justify-content: space-between;
+    width: 100%;
+    .badge {
+        color: var(--app-color2) !important;
+        background-color: #fff !important; 
+    }
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-name:not(.patient-list-label) {
+    max-width: 70px;
+    display: inline-block;
+    color: var(--app-color9);
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active .patient-name,
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active .patient-list-nav-item-close-icon {
+    font-weight: 600;
+    color: var(--app-color6);
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-list-nav-item-close-icon {
+    font-size: var(--app-font18);
+}
+
+#patient_chart_container {
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+    background-color: var(--app-color9);
+}
+
+patient-chart .pc-patient-chart-body-container {
+    display: flex;
+    justify-content: space-between;
+}
+patient-chart .pc-patient-chart-side-menu-contents {
+    flex-grow: 1;
+    padding: 10px 20px;
+    margin-left: 70px;
+}
+
+patient-chart .pc-patient-chart-side-menu {
+    position: fixed;
+}
+
+pc-patient-demographics .pd-patient-demographics-main-container {
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0px 0 5px var(--app-color14);
+    padding: 10px 20px;
+    align-items: center;
+}
+pc-patient-demographics .pd-patient-profile-picture .mdi {
+    font-size: 30px
+}
+pc-patient-demographics .pd-patient-demographics-details {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+pc-patient-demographics .pd-patient-demographics-list {
+    display: flex;
+    flex-wrap: wrap;
+    width: 80%;
+}
+pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item {
+    border-right: 2px solid var(--app-color13);
+    padding: 0px 10px;
+    display: flex;
+    align-items: center;
+}
+pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
+    font-size: var(--app-font18);
+    padding: 0px 5px;
+}
+pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data {
+    font-size: var(--app-font14);
+    color: var(--app-color11);
+}
+pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
+    font-weight: bold !important;
+    color: var(--app-color6);
+}
+
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list {
+    list-style-type: none;
+    padding: 0px;
+    box-shadow: 2px 5px 10px var(--app-color14);
+    width: 75px;
+    margin: 0px;
+    max-height: calc(100vh - 190px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+}
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link.active {
+    font-weight: bold;
+    color: var(--app-color4);
+}
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item:hover  {
+    background-color: var(--app-color13);
+}
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item  {
+    padding: 10px 5px;
+    border-bottom: 2px solid var(--app-color13);
+}
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item svg.pcm-patient-chart-menu-icon {
+    /* color: var(--app-color6); */
+    width: 23px;
+    height: 23px;
+}
+pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-desc {
+    font-size: var(--app-font10);
+    width: 4rem;
+}
+
+#patient_list_container .dt-scroll-headInner {
+    padding-right: 0px !important;
+    width: 100% !important;
+}
+
+#patient_chart_main_container #care_group_active_patients .active-patient-name-link {
+    cursor: pointer;
+}
+
+#patient_tab_right_click_option_container {
+    position: absolute;
+    background-color: #000;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px 0;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    color: #fff;
+}
+
+.menu-option {
+    padding: 8px 15px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menu-option:hover {
+    background-color: #8080808a;
+}
