@@ -926,7 +926,7 @@ Start of application side navbar styles
    position: absolute;
    top: 0px;
    z-index: 1000;
-   height: calc(100vh - 1px);
+   height: calc(100vh - 50px);
 }
 
 body.app-info-hided #application_side_navigation_menu_container {
@@ -1064,10 +1064,6 @@ body.expanded-view #application_side_navigation_menu_container.toggled-2 #sideba
 #sidebar_wrapper #application_menu_list_container .application-menu-list .app-sub-menu-icon {
    position: relative;
    right: 5px;
-}
-#sidebar_wrapper #application_menu_list_container .application-menu-list {
-   position: relative;
-   top: 50px;
 }
 #sidebar_wrapper #application_menu_list_container .application-menu-list .sub-menu-1 {
    display: none;
@@ -1497,4 +1493,12 @@ body.expanded-view.ignore-menu-icon-view #application_body_container {
 
 .p-paginator-bottom button {
    background-color: var(--app-color9);
+}
+
+.p-datatable-wrapper {
+   border-radius: 10px;
+}
+
+.active-patient-table tbody tr {
+   background-color: #fff;
 }

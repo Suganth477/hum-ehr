@@ -1,14 +1,8 @@
-import {
-  Button,
-  Card,
-  Column,
-  DataTable
-} from 'primereact';
+import {Card, Column, DataTable} from 'primereact';
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-
+import { displayPatientNameInNewTab } from '../../components/QuickAccessNav';
+import "./../../assets/css/patientChartStyles.css";
 import env from '../../env';
-
 import Cookies from 'js-cookie';
 
 const ActivePatientsList = () => {
@@ -114,6 +108,7 @@ const ActivePatientsList = () => {
           medicareNumber: patient.medicareNumber || '',
           patientData: patient
         }));
+        document.getElementById("patient_list_filter_count").innerText = responseData.recordsFiltered;
         setPatients(formattedPatients);
       }
     } catch (error) {
@@ -197,42 +192,39 @@ const ActivePatientsList = () => {
     setRows(event.rows);
   };
 
-  return (
-    <div className="w-full">
-      <Card>
-        <DataTable
-          value={patients}
-          lazy
-          paginator
-          first={first}
-          rows={rows}
-          totalRecords={totalRecords}
-          onPage={onPage}
-          loading={loading}
-          rowsPerPageOptions={[5, 10, 25]}
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
-          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} patients"
-          emptyMessage="No patients found."
-          scrollable
-          scrollHeight="flex"
-          className="p-datatable-striped scroll_table sticky-paginator-table"
-          tableClassName="dataTable border table-hover rounded-3"
-        >
-          <Column field="sno" header="S.No" style={{ width: '70px' }} />
-          <Column 
-            field="fullName" 
-            header="Name" 
-            style={{ width: '180px' }} 
-            body={nameBodyTemplate}
-          />
-          <Column field="gender" header="Gender" style={{ width: '100px' }} />
-          <Column field="dob" header="Date of Birth" style={{ width: '120px' }} />
-          <Column field="phone" header="Phone Number" style={{ width: '200px' }} />
-          <Column field="emrId" header="EMR Id" style={{ width: '120px' }} />
-          <Column field="medicareNumber" header="Medicare Number" style={{ width: '150px' }} />
-          <Column body={actionBodyTemplate} header="Actions" style={{ width: '100px' }} />
-        </DataTable>
-      </Card>
+   return (
+    <div id="patient_chart_main_container" className="container-fluid tab-content hh-ehr-bg-color9 p-0">
+      <div className="tab-pane patient-chart-tab-pane fade show active px-3" id="patient_list_container" role="tabpanel">
+        <Card>
+          <DataTable
+            value={patients}
+            lazy
+            paginator
+            first={first}
+            rows={rows}
+            totalRecords={totalRecords}
+            onPage={onPage}
+            loading={loading}
+            rowsPerPageOptions={[5, 10, 25]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} patients"
+            emptyMessage="No patients found."
+            scrollable
+            scrollHeight="flex"
+            className="p-datatable-striped scroll_table sticky-paginator-table active-patient-table"
+            tableClassName="dataTable border table-hover rounded-3"
+          >
+            <Column field="sno" header="S.No" style={{ width: '70px' }} />
+            <Column body={nameBodyTemplate} field="fullName" header="Name" style={{ width: '180px' }} />
+            <Column field="gender" header="Gender" style={{ width: '100px' }} />
+            <Column field="dob" header="Date of Birth" style={{ width: '120px' }} />
+            <Column field="phone" header="Phone Number" style={{ width: '200px' }} />
+            <Column field="emrId" header="EMR Id" style={{ width: '120px' }} />
+            <Column field="medicareNumber" header="Medicare Number" style={{ width: '150px' }} />
+            <Column body={actionBodyTemplate} header="Actions" style={{ width: '100px' }} />
+          </DataTable>
+        </Card>
+      </div>
     </div>
   );
 };

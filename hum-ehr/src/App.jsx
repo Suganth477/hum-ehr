@@ -6,7 +6,6 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import PatientListFilter from './components/PatientListFilter';
 import QuickAccessNav from './components/QuickAccessNav';
-import Sidebar from './components/Sidebar';
 
 // Styles
 import '@eonasdan/tempus-dominus/dist/css/tempus-dominus.min.css';
@@ -31,7 +30,7 @@ import ActivePatientsList3 from './js/patientlist/ActivePatientsList3';
 const App = () => {
   const [currentTime, setCurrentTime] = useState(moment());
   const [loginData, setLoginData] = useState(null);
-  const [component, setComponent] = useState([]);
+  const [component, setComponent] = useState(<ActivePatientsList/>);
   const [loading, setLoading] = useState(true);
   const hasLoggedIn = useRef(false);
 
@@ -120,14 +119,13 @@ const App = () => {
       />
 
       {/* Quick Access Side Nav */}
-      <QuickAccessNav />
+      <QuickAccessNav onmenuClick={handleMenuClick}/>
       <PatientListFilter />
       {/* Offcanvas for Filters */}
 
       {/* Sidebar and Main Content */}
       <div className="container-fluid p-0">
         <div className="row">
-          <Sidebar onmenuClick={handleMenuClick} />
           <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
             {component}
           </div>

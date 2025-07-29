@@ -79,61 +79,61 @@
     background-color: var(--app-color9);
 }
 
-patient-chart .pc-patient-chart-body-container {
+.pc-patient-chart-body-container {
     display: flex;
     justify-content: space-between;
 }
-patient-chart .pc-patient-chart-side-menu-contents {
+.pc-patient-chart-side-menu-contents {
     flex-grow: 1;
     padding: 10px 20px;
     margin-left: 70px;
 }
 
-patient-chart .pc-patient-chart-side-menu {
+.pc-patient-chart-side-menu {
     position: fixed;
 }
 
-pc-patient-demographics .pd-patient-demographics-main-container {
+.pd-patient-demographics-main-container {
     display: flex;
     justify-content: space-between;
     box-shadow: 0px 0 5px var(--app-color14);
     padding: 10px 20px;
     align-items: center;
 }
-pc-patient-demographics .pd-patient-profile-picture .mdi {
+.pd-patient-profile-picture .mdi {
     font-size: 30px
 }
-pc-patient-demographics .pd-patient-demographics-details {
+.pd-patient-demographics-details {
     flex-grow: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-pc-patient-demographics .pd-patient-demographics-list {
+.pd-patient-demographics-list {
     display: flex;
     flex-wrap: wrap;
     width: 80%;
 }
-pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item {
+.pd-patient-demographics-list .pd-patient-demographics-list-item {
     border-right: 2px solid var(--app-color13);
     padding: 0px 10px;
     display: flex;
     align-items: center;
 }
-pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
+.pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
     font-size: var(--app-font18);
     padding: 0px 5px;
 }
-pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data {
+.pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data {
     font-size: var(--app-font14);
     color: var(--app-color11);
 }
-pc-patient-demographics .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
+.pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
     font-weight: bold !important;
     color: var(--app-color6);
 }
 
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list {
+.pcm-patient-chart-menu-list {
     list-style-type: none;
     padding: 0px;
     box-shadow: 2px 5px 10px var(--app-color14);
@@ -143,28 +143,28 @@ pc-patient-chart-side-menu .pcm-patient-chart-menu-list {
     overflow-y: auto;
     overflow-x: hidden;
 }
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link {
+.pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link {
     display: flex;
     flex-flow: column;
     align-items: center;
 }
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link.active {
+.pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link.active {
     font-weight: bold;
     color: var(--app-color4);
 }
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item:hover  {
+.pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item:hover  {
     background-color: var(--app-color13);
 }
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item  {
+.pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item  {
     padding: 10px 5px;
     border-bottom: 2px solid var(--app-color13);
 }
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item svg.pcm-patient-chart-menu-icon {
+.pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item svg.pcm-patient-chart-menu-icon {
     /* color: var(--app-color6); */
     width: 23px;
     height: 23px;
 }
-pc-patient-chart-side-menu .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-desc {
+.pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-desc {
     font-size: var(--app-font10);
     width: 4rem;
 }
