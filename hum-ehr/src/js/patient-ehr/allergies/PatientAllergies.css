@@ -1,0 +1,217 @@
+/* ==========================================================================
+   Patient Allergies Module Style Sheet (Extracted Verbatim from JSP)
+   ========================================================================== */
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-icon-type-group {
+    display: flex;
+    align-items: center;
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-icon-type-group .pa-allergy-icon { 
+    margin-right: 10px;
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-icon-type-group .pa-allergy-icon {
+   font-size: var(--app-font14);
+} 
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-subtype {  
+    color: var(--app-color20); 
+    max-width: 250px;
+    margin: 5px 0px; 
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-criticality.critl {
+    color: var(--app-color23);
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-criticality.crith {
+    color: var(--app-color19);
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-criticality.critu {
+    color: var(--app-color24);
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-severity {
+    padding: 10px;
+    border-radius: var(--app-border-radius10);
+    text-align: center;
+    font-weight: 500;
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-severity.severe {
+    background-color: var(--app-color25);
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-severity.moderate {
+    background-color: var(--app-color26);
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-patient-allergy-severity.mild {
+    background-color: var(--app-color27);
+}
+
+.pa-allergies-main-container patient-allergies-list thead tr th {
+    padding: 0px 8px !important;
+}
+
+.pa-allergy-header-recover-delete-record-group {
+    margin-top: -25px !important;
+    cursor: pointer !important;
+}
+
+.pa-allergy-header-recover-delete-record-group label,
+.pa-allergy-header-recover-delete-record-group .pa_allergy_recover_deleted_deleted_input_checkbox {
+    cursor: inherit;
+}
+
+.pa_allergy_recover_deleted_deleted_input_checkbox {
+    vertical-align: top !important;
+    margin-top: 1.5px !important;
+}
+
+.pa-allergies-header-action-icons-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Offcanvas Sidebar Form Controls Override Framework */
+[id^="pa_allergy_filter_acute_chronic_options"] .offcanvas-header {
+    border: 2px solid var(--app-color13);
+    border-top-left-radius: 9px !important;
+}
+
+[id^="pa_allergy_filter_acute_chronic_options"] .form-label {
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 100%;
+    color : #0E2C4B;
+}
+
+[id^="pa_allergy_filter_acute_chronic_options"] .bs-offcanvas-reset-btn {
+    background-color: var(--app-color) !important;
+    color: var(--app-color4);
+    width: 120px;
+    border-radius: var(--app-border-radius30) !important;
+    border-color: var(--app-color4);
+    opacity: 1;
+    height: 35px !important;
+}
+
+[id^="pa_allergy_filter_acute_chronic_options"] .bs-offcanvas-reset-btn:hover {
+    color: var(--app-color2) !important;
+}
+
+[id^="pa_allergy_filter_acute_chronic_options"] .offcanvas-close-btn {
+    width: 12.5px !important;
+    height: 18px !important;
+    color: #2E384D !important;
+    margin-top: -12px !important;
+}
+
+.pa-allergy-header-offcanvas-container .offcanvas {
+    border-top-left-radius: 10px !important;
+}
+
+/* Specific Cell Stack Reaction Width Styles */
+.pa-allergies-main-container patient-allergies-list .pa-allergy-each-reaction-severity div {
+    text-align: center;
+    color: var(--app-color26);
+    padding: 5px 5px;
+    border-radius: 5px;
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-allergy-each-reaction-severity .pa-allergy-reaction-mild {
+    background-color: var(--app-color28);
+    width: 80px;
+} 
+
+.pa-allergies-main-container patient-allergies-list .pa-allergy-each-reaction-severity .pa-allergy-reaction-moderate {
+    background-color: var(--app-color23);
+    width: 80px;
+}  
+
+.pa-allergies-main-container patient-allergies-list .pa-allergy-each-reaction-severity .pa-allergy-reaction-severe {
+    background-color: var(--app-color19);
+    width: 80px;
+}
+
+.pa-allergies-main-container patient-allergies-list .pa-allergy-description-data {
+    display: block;
+    width: 100%;
+    color: #37474F;
+    font-size: 0.875rem;
+    word-break: break-word;
+} 
+
+.pa-allergies-main-container patient-allergies-list .pa-allergy-records-data {
+    vertical-align: top;
+}
+
+.pa-allegy-header-filter-icon-container {
+    border: 1px solid #D7DDE3;
+    border-radius: 8px;
+}
+
+/* Add Edit Panel Internal Layout Chains */
+.pa-allergies-added-reaction-list {
+    padding: 5px 15px !important;
+}
+
+.pa-allergies-add-reaction-btn:not(.border-radius-button) {
+    color: #149744;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.pa-patient-selected-allergies-reaction-list-wrapper {
+    border-radius: 10px;
+    padding: 3px;
+    border: 1px solid #E0E0E0;
+    background: #FFF;
+}
+
+.pa-allergies-reaction-view-details {
+    color: #01C4D4;
+    font-size: 12px !important;
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 0px !important;
+}
+
+.pa-allergies-reaction-view-details:hover, 
+.pa-allergies-reaction-view-details:active {
+    color: #01C4D4;
+}
+
+.pa-reaction-detail-panel .label-name {
+    display: block;
+    width: 100%;
+    color: #37474F;
+    font-size: 0.875rem;
+    word-break: break-word;
+    font-weight: 600;
+}
+
+.pc-patient-selected-allergies-reaction-edit svg path {
+    fill: #01c1d1;
+}
+
+.pc-patient-selected-allergies-reaction-edit svg {
+    width: 14px;
+    height: 14px;
+}
+
+#pa_patient_allergy_warning_message_container .alert-message {
+    color: #ff7801 !important;
+    text-transform: none !important;
+    padding: 8px 0px;
+}
+
+#pa_patient_allergy_warning_message_container #pa_entered_error_warning_message {
+    color: var(--app-color19) !important;
+}

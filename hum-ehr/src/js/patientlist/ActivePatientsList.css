@@ -1,0 +1,101 @@
+#application_quick_access_nav_container_1 .patient-list-nav-tabs {
+    display: flex;
+    align-items: flex-start;
+    height: 100%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item {
+    height: 100%;
+    width: 9%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group {
+    width: auto !important;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group #pc_patient_tab_dropdown_list_group .patient-list-nav-item .patient-name {
+    background-color: var(--app-color9) !important; 
+    color: var(--app-color6) !important;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group #pc_patient_tab_dropdown_list_group .patient-list-nav-item .patient-list-nav-item-close-icon {
+    color: var(--app-color6) !important;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group #pc_patient_tab_dropdown_list_group .patient-list-nav-item {
+    width: 100%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group .dropdown-menu-list-btn {
+    width: auto !important;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active {
+    background-color: var(--app-color9);
+    color: var(--app-color6);
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active .badge {
+    background-color: var(--app-color2) !important;
+    color: #fff !important; 
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link {
+    padding: 0px 8px;
+    border-radius: var(--app-border-radius0);
+    display: flex;
+    align-items: center;
+    height: 100%;
+    background-color: inherit;
+    color: var(--app-color9);
+    justify-content: space-between;
+    width: 100%;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .badge {
+    color: var(--app-color2) !important;
+    background-color: #fff !important; 
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-name:not(.patient-list-label) {
+    max-width: 70px;
+    display: inline-block;
+    color: var(--app-color9);
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active .patient-name,
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link.active .patient-list-nav-item-close-icon {
+    font-weight: 600;
+    color: var(--app-color6);
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-list-nav-item-close-icon {
+    font-size: var(--app-font18);
+}
+
+#patient_chart_container {
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+    background-color: var(--app-color9);
+}
+
+/* Invalidated Contact Flag Text Modifier Highlighting Style Rule */
+.invalid-number {
+    text-decoration: line-through !important;
+    opacity: 0.6;
+}
+
+/* Stateful Context Menu Actions Item Spacing Custom Modifiers */
+.menu-option {
+    padding: 7px 14px;
+    transition: background-color 0.1s ease-in-out;
+}
+
+.menu-option:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.custom-pointer {
+    cursor: pointer !important;
+}

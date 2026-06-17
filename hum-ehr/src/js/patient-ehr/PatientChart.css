@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Patient Chart Custom Elements Style Matrix (Extracted from active-patient.jsp)
+   ========================================================================== */
+
+.patient-chart-container-node .pc-patient-chart-body-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.patient-chart-container-node .pc-patient-chart-side-menu-contents {
+    flex-grow: 1;
+    padding: 10px 20px;
+    margin-left: 70px;
+}
+
+.patient-chart-container-node .pc-patient-chart-side-menu {
+    position: fixed;
+}
+
+/* Patient Demographics Custom Element Selectors */
+.patient-demographics-container-node .pd-patient-demographics-main-container {
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0px 0 5px var(--app-color14);
+    padding: 10px 20px;
+    align-items: center;
+}
+
+.patient-demographics-container-node .pd-patient-profile-picture .mdi {
+    font-size: 30px;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-details {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-list {
+    display: flex;
+    flex-wrap: wrap;
+    width: 80%;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item {
+    border-right: 2px solid var(--app-color13);
+    padding: 0px 10px;
+    display: flex;
+    align-items: center;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
+    font-size: var(--app-font18);
+    padding: 0px 5px;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data {
+    font-size: var(--app-font14);
+    color: var(--app-color11);
+}
+
+.patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
+    font-weight: bold !important;
+    color: var(--app-color6);
+}
+
+/* Patient Chart Side Menu Custom Element Selectors */
+.patient-side-menu-container-node .pcm-patient-chart-menu-list {
+    list-style-type: none;
+    padding: 0px;
+    box-shadow: 2px 5px 10px var(--app-color14);
+    width: 75px;
+    margin: 0px;
+    max-height: calc(100vh - 190px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+}
+
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-nav-link.active {
+    font-weight: bold;
+    color: var(--app-color4);
+}
+
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item:hover {
+   background-color: var(--app-color13);
+}
+
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item {
+    padding: 10px 5px;
+    border-bottom: 2px solid var(--app-color13);
+}
+
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-icon {
+   width: 23px;
+   height: 23px;
+}
+
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-desc {
+   font-size: var(--app-font10);
+   width: 4rem;
+}
+
+/* Utilities, Tables & Overlays */
+#patient_list_container .dt-scroll-headInner {
+    padding-right: 0px !important;
+    width: 100% !important;
+}
+
+#patient_chart_main_container #care_group_active_patients .active-patient-name-link {
+    cursor: pointer;
+}
+
+#patient_tab_right_click_option_container {
+    position: absolute;
+    background-color: #000;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px 0;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    color: #fff;
+}
+
+.menu-option {
+    padding: 8px 15px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menu-option:hover {
+    background-color: #8080808a;
+}
+
+.patient-chart-search-input-icon-container {
+    width: 470px;
+    position: relative;
+    margin-left: 470px;
+}
+
+.patient-chart-header-search-input-group {
+    flex-grow: 1;
+}
+
+.patient-chart-search-input-icon-container .input-icon, 
+.patient-chart-search-input-icon-container .mdi-close {
+    color: var(--app-color21);
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    right: 20px;
+    margin: 0px;
+}
+
+#patient_chart_patient_list_search_input {
+    background-color: var(--app-color16);
+    border: none;
+    border-radius: var(--app-border-radius20);
+    font-size: var(--app-font16) !important;
+}
+
+.invalid-number {
+    text-decoration: line-through !important;
+    opacity: 0.6;
+}
