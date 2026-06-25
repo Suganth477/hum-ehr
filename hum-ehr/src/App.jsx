@@ -1,235 +1,157 @@
-import moment from "moment-timezone";
-import { useEffect, useRef, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import { apiPost } from "./services/apiClient";
-import {
-  getAuthToken,
-  mapLoginGlobals,
-  storeAuthToken,
-} from "./services/authService";
-
+import { useEffect, useRef, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { apiPost } from './services/apiClient';
+import { getAuthToken, storeAuthToken } from './services/authService';
 // Components
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import PatientListFilter from "./components/PatientListFilter";
-import QuickAccessNav from "./components/QuickAccessNav";
-
-// 1. THIRD-PARTY UTILITIES & FRAMEWORKS STYLES (Load these first)
-import "bootstrap/dist/css/bootstrap.min.css";
-import "material-design-icons-iconfont/dist/material-design-icons.css";
-import "primeflex/primeflex.css";
-import "primeicons/primeicons.css";
-import "primereact/resources/primereact.min.css";
-import "primereact/resources/themes/lara-light-indigo/theme.css";
-
-// 2. YOUR EXACT CUSTOM CSS BUNDLE (Must be imported LAST)
-// Place your file inside the src/ folder alongside App.jsx
-import "./App.css";
+import Footer from './components/Footer';
+import Header from './components/Header';
+import PatientListFilter from './components/PatientListFilter';
+import QuickAccessNav from './components/QuickAccessNav';
+import ErrorBoundary from './components/ErrorBoundary';
+import ActivePatientsList from './js/patientlist/ActivePatientsList';
+import { LayoutProvider } from './context/LayoutProvider';
+import { NotificationProvider } from './context/NotificationProvider';
+import { useAppDispatch } from './store/hooks';
+import { setCredentials } from './store/authSlice';
+// 1. Third-party framework styles (load first)
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'material-design-icons-iconfont/dist/material-design-icons.css';
+import 'primeflex/primeflex.css';
+import 'primeicons/primeicons.css';
+import 'primereact/resources/primereact.min.css';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';
+import 'flatpickr/dist/flatpickr.min.css';
+// 2. Custom bundle (must be imported last)
+import './App.css';
 
 import "./assets/plugins/font-awesome-pro/all.min.css";
 import "./assets/plugins/font-awesome-pro/all.min.js";
 import "./assets/css/fontawesome/css/font-awesome.css";
 
-import "flatpickr/dist/flatpickr.min.css";
+// Responsive overrides — must load after App.css so its media queries win.
+import './styles/responsive.css';
 
-// List Components
-import ActivePatientsList from "./js/patientlist/ActivePatientsList";
-// import ActivePatientsList3 from './js/patientlist/ActivePatientsList3';
-
-const App = () => {
-  const [currentTime, setCurrentTime] = useState(moment());
-  const [loginData, setLoginData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const hasLoggedIn = useRef(false);
-
-  // Shared Tab States lifted from components to sync navigation layout and viewport
-  const [openTabs, setOpenTabs] = useState([]);
-  const [activeTab, setActiveTab] = useState("patient_list");
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(moment());
-    }, 1000);
-
-    const restorePatientTabs = () => {
-      const savedTabs = sessionStorage.getItem("patientChartInformation");
-      if (!savedTabs) return;
-
-      try {
-        const parsedTabs = JSON.parse(savedTabs);
-        const tabsArr = Object.keys(parsedTabs).map((key) => parsedTabs[key]);
-        setOpenTabs(tabsArr);
-        const currentlyActive = tabsArr.find(
-          (tab) => tab.isPatientSelected === "Y",
-        );
-        if (currentlyActive) setActiveTab(currentlyActive.patientId);
-      } catch (error) {
-        console.error("Failed to restore patient chart tabs.", error);
-      }
-    };
-
-    const initializeSession = async () => {
-      console.log(import.meta.env.VITE_DEV_USERNAME);
-      if (getAuthToken() || hasLoggedIn.current) {
-        restorePatientTabs();
-        setLoading(false);
-        return;
-      }
-
-      const devUsername = import.meta.env.VITE_DEV_USERNAME;
-      const devPassword = import.meta.env.VITE_DEV_PASSWORD;
-
-      if (!devUsername || !devPassword) {
-        setLoading(false);
-        return;
-      }
-      hasLoggedIn.current = true;
-
-      try {
-        const loginResponse = await apiPost("/login-web", {
-          username: devUsername,
-          password: devPassword,
-          isWebLogin: "Y",
-        });
-
-        storeAuthToken(loginResponse?.data?.token);
-        setLoginData(loginResponse);
-        mapLoginGlobals(loginResponse);
-        restorePatientTabs();
-      } catch (error) {
-        console.error("Login initialization error.", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeSession();
-    return () => clearInterval(timer);
-  }, []);
-
-  // Central functions to modify tab states across navigation header and table grid components
-  const handleOpenPatientWorkspace = (id, name, genderCode) => {
-    let currentMemoryBlock = {};
-    const cached = sessionStorage.getItem("patientChartInformation");
-    if (cached) currentMemoryBlock = JSON.parse(cached);
-
-    Object.keys(currentMemoryBlock).forEach(
-      (key) => (currentMemoryBlock[key].isPatientSelected = "N"),
-    );
-
-    currentMemoryBlock[`${id}_patient_details`] = {
-      patientId: id,
-      patientName: name,
-      genderCode: genderCode,
-      isPatientSelected: "Y",
-      selectedMenuCode: null,
-    };
-
-    sessionStorage.setItem(
-      "patientChartInformation",
-      JSON.stringify(currentMemoryBlock),
-    );
-    setOpenTabs(
-      Object.keys(currentMemoryBlock).map((key) => currentMemoryBlock[key]),
-    );
-    setActiveTab(id);
-  };
-
-  const handleClosePatientWorkspace = (id, e) => {
-    if (e) e.stopPropagation();
-    let currentMemoryBlock = {};
-    const cached = sessionStorage.getItem("patientChartInformation");
-    if (cached) currentMemoryBlock = JSON.parse(cached);
-
-    // Delete the specific patient context block matching legacy array drop tracking rules
-    delete currentMemoryBlock[`${id}_patient_details`];
-
-    sessionStorage.setItem(
-      "patientChartInformation",
-      JSON.stringify(currentMemoryBlock),
-    );
-    const tabStateArray = Object.keys(currentMemoryBlock).map(
-      (key) => currentMemoryBlock[key],
-    );
-    setOpenTabs(tabStateArray);
-
-    // If the closed tab was the currently open active workspace view
-    if (activeTab === id) {
-      setActiveTab("patient_list");
-
-      const applicationSideNavMenuContainer = document.getElementById(
-        "application_side_navigation_menu_container",
-      );
-
-      // Remove the layout expanding tracking utility classes from body
-      document.body.classList.remove("expanded-view", "ignore-menu-icon-view");
-
-      // Unhide the primary menu bar navigation drawer shell container
-      if (applicationSideNavMenuContainer) {
-        applicationSideNavMenuContainer.classList.remove("d-none");
-      }
-      // ==========================================================================
+const readMemory = () => {
+    const cached = sessionStorage.getItem('patientChartInformation');
+    if (!cached)
+        return {};
+    try {
+        return JSON.parse(cached);
     }
-  };
+    catch {
+        return {};
+    }
+};
+const App = () => {
+    const [loading, setLoading] = useState(true);
+    const hasLoggedIn = useRef(false);
+    const dispatch = useAppDispatch();
+    const [openTabs, setOpenTabs] = useState([]);
+    const [activeTab, setActiveTab] = useState('patient_list');
+    useEffect(() => {
+        const restorePatientTabs = () => {
+            const parsedTabs = readMemory();
+            if (!Object.keys(parsedTabs).length)
+                return;
+            const tabsArr = Object.values(parsedTabs);
+            setOpenTabs(tabsArr);
+            const currentlyActive = tabsArr.find((tab) => tab.isPatientSelected === 'Y');
+            if (currentlyActive)
+                setActiveTab(currentlyActive.patientId);
+        };
+        const initializeSession = async () => {
+            if (getAuthToken() || hasLoggedIn.current) {
+                restorePatientTabs();
+                setLoading(false);
+                return;
+            }
+            // Dev-only auto-login. `import.meta.env.DEV` is statically false in
+            // production builds, so Vite strips this block entirely and the dev
+            // credentials never ship in the production bundle.
+            const devUsername = import.meta.env.DEV ? import.meta.env.VITE_DEV_USERNAME : undefined;
+            const devPassword = import.meta.env.DEV ? import.meta.env.VITE_DEV_PASSWORD : undefined;
+            if (!devUsername || !devPassword) {
+                setLoading(false);
+                return;
+            }
+            hasLoggedIn.current = true;
+            try {
+                const loginResponse = await apiPost('/login-web', {
+                    username: devUsername,
+                    password: devPassword,
+                    isWebLogin: 'Y',
+                });
+                storeAuthToken(loginResponse?.data?.token);
+                dispatch(setCredentials({ user: loginResponse?.data?.user, token: loginResponse?.data?.token }));
+                restorePatientTabs();
+            }
+            catch (error) {
+                console.error('Login initialization error.', error);
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+        initializeSession();
+    }, [dispatch]);
+    const handleOpenPatientWorkspace = (id, name, genderCode) => {
+        const memory = readMemory();
+        Object.keys(memory).forEach((key) => {
+            memory[key].isPatientSelected = 'N';
+        });
+        memory[`${id}_patient_details`] = {
+            patientId: id,
+            patientName: name,
+            genderCode,
+            isPatientSelected: 'Y',
+            selectedMenuCode: null,
+        };
+        sessionStorage.setItem('patientChartInformation', JSON.stringify(memory));
+        setOpenTabs(Object.values(memory));
+        setActiveTab(id);
+    };
+    const handleClosePatientWorkspace = (id, e) => {
+        e?.stopPropagation();
+        const memory = readMemory();
+        delete memory[`${id}_patient_details`];
+        sessionStorage.setItem('patientChartInformation', JSON.stringify(memory));
+        setOpenTabs(Object.values(memory));
+        if (activeTab === id) {
+            // Returning to the list re-triggers ActivePatientsList's layout
+            // effect, which resets the body/side-nav classes via LayoutContext.
+            setActiveTab('patient_list');
+        }
+    };
+    if (loading)
+        return <div className="text-center mt-5">Loading application framework shell...</div>;
+    return (<NotificationProvider>
+        <LayoutProvider>
+            <div className="application">
+        <Header baseUrl={window.location.origin} />
 
-  if (loading)
-    return (
-      <div className="text-center mt-5">
-        Loading application framework shell...
-      </div>
-    );
+        <QuickAccessNav openTabs={openTabs} activeTab={activeTab} setActiveTab={setActiveTab} onCloseTab={handleClosePatientWorkspace} />
 
-  return (
-    <div className="application">
-      <Header
-        currentTime={currentTime}
-        userLoginDetails={loginData?.data?.user}
-        productCode={loginData?.data?.user?.programCode || ""}
-        baseUrl={window.location.origin}
-      />
+        <PatientListFilter />
 
-      {/* Inject shared declarative tab arrays inside the Top QuickAccess nav container */}
-      <QuickAccessNav
-        openTabs={openTabs}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onCloseTab={handleClosePatientWorkspace}
-      />
+        <div className="container-fluid p-0">
+            <div className="row m-0">
+                <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
+                    <ErrorBoundary>
+                    <Routes>
+                        <Route path="/" element={<Navigate to="/patients" replace />} />
+                        <Route path="/patients" element={<ActivePatientsList activeTab={activeTab} onOpenTab={handleOpenPatientWorkspace} />} />
+                        <Route path="/dashboard" element={<div className="p-4 text-muted">Dashboard (not migrated yet).</div>} />
+                        <Route path="/messages" element={<div className="p-4 text-muted">Message Center (not migrated yet).</div>} />
+                    </Routes>
+                    </ErrorBoundary>
+                </div>
+            </div>
+        </div>
 
-      <PatientListFilter />
-
-      <div className="container-fluid p-0">
-        <div className="row m-0">
-          <div
-            id="application_body_container"
-            className="container-fluid hh-ehr-bg-color7"
-          >
-            <Routes>
-              <Route path="/" element={<Navigate to="/patients" replace />} />
-              <Route
-                path="/patients"
-                element={
-                  <ActivePatientsList
-                    openTabs={openTabs}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    onOpenTab={handleOpenPatientWorkspace}
-                    onCloseTab={handleClosePatientWorkspace}
-                  />
-                }
-              />
-              <Route path="/dashboard" element="" />
-              <Route path="/messages" element="" />
-
-              {/* <Route path="/messages" element={<ActivePatientsList3 />} /> */}
-            </Routes>
-          </div>
-		</div>
-      </div>
-
-      <Footer />
-    </div>
-  );
+        <Footer />
+            </div>
+        </LayoutProvider>
+    </NotificationProvider>);
 };
 
 export default App;

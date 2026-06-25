@@ -10,21 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ag-grid-community/react": "^32.3.5",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@eonasdan/tempus-dominus": "^6.10.4",
-    "@fortawesome/fontawesome-svg-core": "^7.0.0",
+    "@fortawesome/fontawesome-svg-core": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
-    "@fortawesome/react-fontawesome": "^0.2.3",
+    "@fortawesome/react-fontawesome": "^0.2.6",
     "@material-design-icons/font": "^0.14.15",
     "@mui/icons-material": "^7.2.0",
     "@mui/x-data-grid": "^8.8.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@tanstack/react-table": "^8.21.3",
-    "ag-grid-community": "^34.0.2",
-    "ag-grid-enterprise": "^34.0.2",
-    "ag-grid-react": "^34.0.2",
     "axios": "^1.18.0",
     "bootstrap": "^5.3.7",
     "bootstrap-daterangepicker": "^3.1.0",
@@ -45,6 +41,7 @@
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",
     "react-flatpickr": "^4.0.11",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.3"
   },
   "devDependencies": {

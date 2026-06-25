@@ -1,67 +1,57 @@
 import Cookies from 'js-cookie';
-
 const TOKEN_COOKIE_NAME = 'X-Auth-Token';
-
-export const getAuthToken = () => Cookies.get(TOKEN_COOKIE_NAME) || '';
-
+export const getAuthToken = () => Cookies.get(TOKEN_COOKIE_NAME) ?? '';
 export const clearAuthToken = () => Cookies.remove(TOKEN_COOKIE_NAME);
-
+export const storeAuthToken = (token, options = {}) => {
+	if (!token)
+		return;
+	// `sameSite`/`secure` are the hardening we can apply from JS. A true
+	// `httpOnly` cookie can only be set by the server, so XSS-proof storage
+	// remains a backend change (see review notes). `secure` is gated on HTTPS
+	// so local http dev still works.
+	Cookies.set(TOKEN_COOKIE_NAME, token, {
+		expires: 1,
+		path: '/',
+		sameSite: 'Strict',
+		secure: window.location.protocol === 'https:',
+		...options,
+	});
+};
 export const parseJwtToken = (token = getAuthToken()) => {
-	if (!token || !token.includes('.')) return null;
-
+	if (!token || !token.includes('.'))
+		return null;
 	try {
-		const base64Url = token.split('.')[1];
-		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-		const jsonPayload = decodeURIComponent(
-			window
-				.atob(base64)
-				.split('')
-				.map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
-				.join('')
-		);
-
-		return JSON.parse(jsonPayload);
-	} catch (error) {
+		const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+		const json = decodeURIComponent(window
+			.atob(base64)
+			.split('')
+			.map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+			.join(''));
+		return JSON.parse(json);
+	}
+	catch (error) {
 		console.error('Invalid auth token.', error);
 		return null;
 	}
 };
-
 export const getLoggedInUser = () => parseJwtToken();
-
 export const isTokenExpired = (token = getAuthToken()) => {
 	const payload = parseJwtToken(token);
-	if (!payload?.exp) return false;
+	if (!payload?.exp)
+		return false;
 	return Date.now() >= payload.exp * 1000;
 };
-
+// NOTE: the old `mapLoginGlobals` that wrote ~15 values onto `window` is
+// intentionally NOT ported. Carrying that pattern into React reintroduces
+// the global mutable state the migration is meant to remove. Instead, expose
+// the login data through a React context (see review notes) so components read
+// it reactively and tests can inject it.
 const authService = {
 	getAuthToken,
 	clearAuthToken,
+	storeAuthToken,
 	parseJwtToken,
 	getLoggedInUser,
 	isTokenExpired,
 };
-
 export default authService;
-
-export const storeAuthToken = (token, options = {}) => {
-	if (!token) return;
-	Cookies.set(TOKEN_COOKIE_NAME, token, { expires: 1, path: '/', ...options });
-};
-
-export const mapLoginGlobals = (loginResponse = {}) => {
-	const data = loginResponse.data || {};
-	window.url = window.location.origin;
-	window.env = data.environment?.RPM_DEVICE_ENV || 'TEST';
-	window.productUrl = `${window.location.origin}/${data.user?.programCode || ''}`;
-	window.api = data.environment?.JAVA_URL;
-	window.appVersion = data.environment?.APP_VERSION;
-	window.screenLockDuration = (data.user?.timeOutDuration || 0) * 60 * 1000;
-	window.WRIGHT_CENTER_CARE_GROUP_ID = data.environment?.WRIGHT_CENTER_ID;
-	window.EAST_ALABAMA_CARE_GROUP_ID = data.environment?.EAST_ALABAMA_CARE_GROUP_ID;
-	window.DEVICE_ORDER_PILOT_CAREGROUP = data.environment?.DEVICE_ORDER_PILOT_CAREGROUP;
-	window.EHR_ELIGIBLE_CARE_GROUP = data.environment?.EHR_ELIGIBLE_CARE_GROUP;
-	window.CARE_TEAM_COMMUNICATION = data.environment?.CARE_TEAM_COMMUNICATION;
-	window.SDOHVisitCompletedFlag = 'Y';
-};

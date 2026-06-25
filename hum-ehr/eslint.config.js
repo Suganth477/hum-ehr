@@ -5,7 +5,14 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    // Minified third-party bundle — vendor code, must not be linted.
+    'src/assets/**',
+    // Legacy hooks retained only as a migration reference (not built or imported).
+    'src/js/app/utility.js',
+    'src/js/patient-ehr/api.utility.js',
+  ]),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

@@ -1,83 +1,66 @@
 import axios from 'axios';
+import config from '../config/env';
 import { getAuthToken, clearAuthToken } from './authService';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-
 const apiClient = axios.create({
-	baseURL: API_BASE_URL,
+	baseURL: config.apiBaseUrl,
 	timeout: 60000,
 });
-
-apiClient.interceptors.request.use(
-	(config) => {
-		const token = getAuthToken();
-
-		if (token) {
-			config.headers['X-Auth-Token'] = token;
-		}
-
-		return config;
-	},
-	(error) => Promise.reject(error)
-);
-
+apiClient.interceptors.request.use((cfg) => {
+	const token = getAuthToken();
+	if (token) {
+		cfg.headers.set('X-Auth-Token', token);
+	}
+	return cfg;
+});
+// Guards against a redirect storm: when an expired session causes several
+// in-flight requests to 401 at once, only the first one drives the logout.
+let isHandlingUnauthorized = false;
 apiClient.interceptors.response.use(
-	(response) => response.data,
-	(error) => {
+	// Unwrap to the response body so callers receive the API envelope directly.
+	(response) => response.data, (error) => {
 		if (error.response?.status === 401) {
-			// clearAuthToken();
-			// window.location.href = `${env.BASE_URL || ''}/logout`;
+			if (!isHandlingUnauthorized) {
+				isHandlingUnauthorized = true;
+				clearAuthToken();
+				window.location.href = `${config.apiBaseUrl}/logout`;
+			}
 			return Promise.reject(error);
 		}
-
-		const message =
-			error.response?.data?.message ||
-			error.response?.data?.error ||
-			error.message ||
-			'Something went wrong. Please try again.';
-
-		return Promise.reject({ ...error, message });
-	}
-);
-
-export const apiGet = (url, config = {}) => apiClient.get(url, config);
-
-export const apiPost = (url, data = {}, config = {}) => apiClient.post(url, data, config);
-
-export const apiPostForm = (url, data = {}, config = {}) => {
-	const formData = new URLSearchParams();
-
-	Object.entries(data || {}).forEach(([key, value]) => {
-		if (value !== undefined && value !== null) {
-			formData.append(key, value);
-		}
+		const apiError = {
+			message: error.response?.data?.message ??
+				error.response?.data?.error ??
+				error.message ??
+				'Something went wrong. Please try again.',
+			status: error.response?.status,
+			cause: error,
+		};
+		return Promise.reject(apiError);
 	});
-
-	return apiClient.post(url, formData, {
-		...config,
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			...(config.headers || {}),
-		},
+// Because the interceptor unwraps to `response.data`, each helper resolves to T
+// (the parsed body), NOT an AxiosResponse. The cast reflects that runtime reality.
+export const apiGet = (url, cfg = {}) => apiClient.get(url, cfg);
+export const apiPost = (url, data = {}, cfg = {}) => apiClient.post(url, data, cfg);
+export const apiPut = (url, data = {}, cfg = {}) => apiClient.put(url, data, cfg);
+export const apiDelete = (url, cfg = {}) => apiClient.delete(url, cfg);
+export const apiPostForm = (url, data = {}, cfg = {}) => {
+	const form = new URLSearchParams();
+	Object.entries(data).forEach(([key, value]) => {
+		if (value !== undefined && value !== null)
+			form.append(key, String(value));
+	});
+	return apiClient.post(url, form, {
+		...cfg,
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...cfg.headers },
 	});
 };
-
-export const apiPostMultipart = (url, data = {}, config = {}) => {
-	const formData = new FormData();
-
-	Object.entries(data || {}).forEach(([key, value]) => {
-		if (Array.isArray(value)) {
-			value.forEach((item) => formData.append(key, item));
-		} else if (value !== undefined && value !== null) {
-			formData.append(key, value);
-		}
+export const apiPostMultipart = (url, data = {}, cfg = {}) => {
+	const form = new FormData();
+	Object.entries(data).forEach(([key, value]) => {
+		if (Array.isArray(value))
+			value.forEach((item) => form.append(key, item));
+		else if (value !== undefined && value !== null)
+			form.append(key, value);
 	});
-
-	return apiClient.post(url, formData, config);
+	return apiClient.post(url, form, cfg);
 };
-
-export const apiPut = (url, data = {}, config = {}) => apiClient.put(url, data, config);
-
-export const apiDelete = (url, config = {}) => apiClient.delete(url, config);
-
 export default apiClient;

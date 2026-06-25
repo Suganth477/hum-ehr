@@ -1,4 +1,4 @@
-const ENDPOINTS = Object.freeze({
+const ENDPOINTS = {
 	auth: {
 		logout: '/logout',
 	},
@@ -24,6 +24,5 @@ const ENDPOINTS = Object.freeze({
 		clinicians: '/clinicians',
 		timeZones: '/timezones',
 	},
-});
-
+};
 export default ENDPOINTS;

@@ -1,0 +1,152 @@
+/* =============================================================================
+   Responsive overrides (mobile-first additions on top of App.css).
+   Breakpoints mirror Bootstrap 5:  sm 576 · md 768 · lg 992 · xl 1200 · xxl 1400.
+   Keep ALL breakpoint-specific shell rules here so they're easy to find/extend.
+   Component-level responsiveness (table->card, etc.) lives with the component
+   and is driven by the useMediaQuery hook. See src/styles/RESPONSIVE.md.
+   ============================================================================= */
+
+/* The patient DataTable (desktop only) has fixed-width columns (~1040px) that
+   can exceed a narrow desktop/laptop width. This hard-constrained wrapper makes
+   the table scroll horizontally inside itself instead of widening the page. */
+.active-patient-table-scroll { max-width: 100%; overflow-x: auto; }
+/* Flex items default to min-width:auto and refuse to shrink below their content,
+   so a wide child (the DataTable) widens the whole page instead of scrolling in
+   its wrapper. Let the content column + its children shrink. */
+#application_body_container,
+#application_body_container > * { min-width: 0; }
+
+/* The legacy patient-list search box has a fixed ~940px width + a 470px left
+   margin sized for a very wide desktop header; it overflows every screen below
+   ~1410px. Normalize it to a sensible, responsive search box at ALL widths: no
+   stray margin, capped width, and the row wraps the action button when narrow.
+   (!important to beat the legacy stylesheet.) */
+.patient-chart-header-input-container { flex-wrap: wrap; gap: 0.5rem; }
+.patient-chart-search-input-icon-container { margin-left: 0 !important; width: 100%; }
+.patient-chart-header-search-input-group { width: 100% !important; max-width: 360px; }
+#patient_chart_patient_list_search_input { width: 100%; }
+
+/* Notifications banner: keep its centered text clear of the absolute close icon. */
+#application_info_container { padding-right: 2.5rem; }
+
+/* A shown right-offcanvas (the patient-list filter panel) must slide fully into
+   view; a legacy stylesheet keeps the hidden translateX, so force it with an
+   id-level selector (same root cause as the nav drawer). */
+#offcanvasRight.offcanvas-end.show,
+.offcanvas.offcanvas-end.show { transform: translateX(0px) !important; }
+
+/* ---------------------------------------------------------------------------
+   Tablet and below (< lg / 992px): the fixed left rail becomes an off-canvas
+   drawer and the content area goes full width.
+   --------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+   #application_body_container,
+   body.expanded-view.ignore-menu-icon-view #application_body_container {
+      padding-left: 0 !important;
+   }
+
+   /* Side nav as a slide-in drawer (Sidebar adds .app-side-nav-drawer on mobile). */
+   #application_side_navigation_menu_container.app-side-nav-drawer {
+      position: fixed;
+      top: 50px;
+      left: 0;
+      height: calc(100vh - 50px);
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      z-index: 11000;
+   }
+   body.mobile-nav-open #application_side_navigation_menu_container.app-side-nav-drawer.is-open {
+      transform: translateX(0px) !important;
+   }
+   /* Inside the drawer always show the expanded width + labels. */
+   #application_side_navigation_menu_container.app-side-nav-drawer #sidebar_wrapper,
+   #application_side_navigation_menu_container.app-side-nav-drawer.toggled-2 #sidebar_wrapper {
+      width: 240px !important;
+   }
+   .app-side-nav-backdrop {
+      position: fixed;
+      inset: 50px 0 0 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 10500;
+      border: 0;
+      padding: 0;
+   }
+
+   /* Keep the quick-access row on ONE line: the tabs area shrinks + scrolls,
+      the action icons stay fixed on the right. Without min-width:0 the tabs
+      area refuses to shrink below its content and the icon section wraps to a
+      second line, spilling below the 36px row. */
+   #application_quick_access_nav_container { flex-wrap: nowrap !important; }
+   #application_quick_access_nav_container > #application_quick_access_nav_container_1 { min-width: 0; }
+   #application_quick_access_nav_container > #application_quick_access_nav_container_2 { flex-shrink: 0; }
+
+   /* Patient tab bar: scroll horizontally instead of overflowing the row. */
+   #patient_list_nav_tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+   }
+   #patient_list_nav_tabs::-webkit-scrollbar { height: 3px; }
+   .patient-list-nav-tabs li.patient-list-nav-item:first-child { width: auto !important; }
+   /* Tabs must NOT shrink — otherwise the patient name collapses to just the
+      close icon. Keep their width; the row scrolls instead. The name span is a
+      shrinkable flex child (with max-width:70), so it also needs flex-shrink:0
+      or it truncates to nothing inside the flex button. */
+   .patient-list-nav-tabs .patient-list-nav-item { flex-shrink: 0; }
+   .patient-list-nav-tabs .patient-list-nav-item .patient-name { flex-shrink: 0; }
+
+   /* Filter / detail offcanvas: usable width on small screens. */
+   .offcanvas-end {
+      width: 85vw !important;
+      max-width: 420px;
+      top: 50px !important;
+      height: calc(100vh - 50px) !important;
+   }
+
+   /* NOTE: the patient-chart section side-menu intentionally stays VERTICAL at
+      all breakpoints (per design); the content keeps its original left margin so
+      it clears the rail. Only the demographics header below is made to wrap. */
+
+   /* Patient demographics header: wrap onto multiple rows on small screens. */
+   .patient-demographics-container-node .pd-patient-demographics-main-container { flex-wrap: wrap; }
+   .patient-demographics-container-node .pd-patient-demographics-details { flex-wrap: wrap; gap: 0.5rem; }
+   .patient-demographics-container-node .pd-patient-demographics-list { width: 100%; }
+   .patient-demographics-container-node .pd-patient-demographics-ccd-generation-container { margin-right: 0 !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   Phones (< md / 768px): the demographics header packs its fields in a row with
+   vertical separator borders (a desktop layout). Once that wraps it looks
+   messy, so stack it as a clean vertical list — one field per line, no
+   separators, image top-aligned.
+   --------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+   .patient-demographics-container-node .pd-patient-demographics-main-container { align-items: flex-start; }
+   .patient-demographics-container-node .pd-patient-demographics-list { flex-direction: column; align-items: flex-start; gap: 2px; }
+   .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item {
+      width: 100%;
+      border-right: 0;
+      padding: 3px 0;
+   }
+}
+
+/* ---------------------------------------------------------------------------
+   Phones (< sm / 576px): condense the header so it stays one row (~50px), and
+   relax dense paddings.
+   --------------------------------------------------------------------------- */
+@media (max-width: 575.98px) {
+   #application_main_header .navbar-brand.navbar-logo-group { width: auto; }
+   #application_main_header .navbar-header .application-domain-name { display: none; }
+   /* Keep the live clock time but drop the longer date on the narrowest screens. */
+   #application_main_header #app_main_header_list .date-time-section .user-date { display: none; }
+
+   .pa-allergies-main-header .pa-allergies-header-input-container { gap: 0.5rem; }
+   .patient-chart-header-main-container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+
+   /* The 6 quick-access icons are non-functional placeholders (no handlers yet)
+      and consume ~204px, squeezing the patient tabs off-screen on phones. Hide
+      them here so the patient tabs (primary nav) get the full width. Re-show /
+      revisit when those actions are wired up. */
+   #application_quick_access_nav_container .app-quick-access-icon-section { display: none; }
+}

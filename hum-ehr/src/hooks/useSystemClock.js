@@ -1,27 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import moment from 'moment-timezone';
-
 /**
- * Custom React Hook to instantiate a real-time system clock interval loop[cite: 12].
- * @param {string} userTimeZone - Explicit time zone code string constraint (e.g., "US/Eastern")[cite: 12].
- * @returns {Object} Updating system clock dimensions strings[cite: 12].
+ * Real-time clock that re-renders every second. Returns a `moment` object so
+ * the caller can format it however it needs. Pass an IANA/legacy zone code
+ * (e.g. "US/Eastern") to get zone-aware time, or omit it for local browser
+ * time. Isolate this in the smallest component that displays the time so the
+ * rest of the tree does not re-render every second.
  */
-export const useSystemClock = (userTimeZone = 'US/Eastern') => {
-  const [clock, setClock] = useState({
-    date: moment().tz(userTimeZone).format('DD MMM YYYY'),
-    time: moment().tz(userTimeZone).format('HH:mm')
-  });
-
-  useEffect(() => {
-    const ticker = setInterval(() => {
-      setClock({
-        date: moment().tz(userTimeZone).format('DD MMM YYYY'),
-        time: moment().tz(userTimeZone).format('HH:mm')
-      });
-    }, 1000);
-
-    return () => clearInterval(ticker); // Safe interval cleanup on unmount[cite: 12]
-  }, [userTimeZone]);
-
-  return clock;
+export const useSystemClock = (userTimeZone) => {
+    const [now, setNow] = useState(() => moment());
+    useEffect(() => {
+        const ticker = window.setInterval(() => setNow(moment()), 1000);
+        return () => window.clearInterval(ticker);
+    }, []);
+    return userTimeZone ? now.clone().tz(userTimeZone) : now;
 };
