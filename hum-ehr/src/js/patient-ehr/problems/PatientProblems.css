@@ -1,0 +1,17 @@
+/* Problem-specific styles (layout/header reuse PatientAllergies.css). */
+.pp-patient-problem-type {
+    padding: 4px 8px;
+    border: 1px solid var(--app-color2);
+    border-radius: var(--app-border-radius10, 10px);
+    text-align: center;
+    white-space: nowrap;
+}
+.patient-chart-diagnosis-invalid-problem-record {
+    opacity: 0.7;
+}
+.pp-problems-header-search-input-group .pa-search-problem-input {
+    padding-right: 2rem;
+}
+.pp-problem-records-data {
+    vertical-align: top;
+}

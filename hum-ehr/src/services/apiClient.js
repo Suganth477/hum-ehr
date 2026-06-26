@@ -22,7 +22,7 @@ apiClient.interceptors.response.use(
 			if (!isHandlingUnauthorized) {
 				isHandlingUnauthorized = true;
 				clearAuthToken();
-				window.location.href = `${config.apiBaseUrl}/logout`;
+				window.location.href = `${window.location.origin}/logout`;
 			}
 			return Promise.reject(error);
 		}

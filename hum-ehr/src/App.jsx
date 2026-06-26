@@ -13,10 +13,15 @@ import { LayoutProvider } from './context/LayoutProvider';
 import { NotificationProvider } from './context/NotificationProvider';
 import { useAppDispatch } from './store/hooks';
 import { setCredentials } from './store/authSlice';
-// 1. Third-party framework styles (load first)
+// 1. Third-party framework styles (load first).
+// PrimeFlex must load BEFORE Bootstrap: both define non-responsive `.col-1..12`,
+// and this app uses Bootstrap's grid (`.row` + responsive `.col-{bp}-*`). With
+// PrimeFlex loaded last, its plain `.col-12` (no media query) won the cascade over
+// Bootstrap's `.col-md-*`, collapsing multi-column form rows into a single stacked
+// column on desktop. Loading Bootstrap last makes its grid authoritative.
+import 'primeflex/primeflex.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
-import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/primereact.min.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';

@@ -4,7 +4,7 @@ import { savePatientAllergy } from '../../../services/allergyService';
 import PatientAllergyLookupInput from './PatientAllergyLookupInput';
 import PatientAllergiesReactions from './PatientAllergiesReactions';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
-import { useNotify } from '../../../context/NotificationContext';
+import { getSaveOutcome } from '../../../utils/saveResponse';
 const VERIFICATION_STATUS = {
     CONFIRMED: 'VERSTSC',
     UNCONFIRMED: 'VERSTSU',
@@ -51,10 +51,11 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
     const [reactionModal, setReactionModal] = useState(false);
     const [editingReaction, setEditingReaction] = useState(null);
     const [saving, setSaving] = useState(false);
-    // Field-level validation errors, keyed by field. Rendered inline beneath
-    // each input (server/save failures go to a toast, never the top of the form).
+    // Field-level validation errors, keyed by field, rendered inline beneath each input.
     const [errors, setErrors] = useState({});
-    const { notifyError } = useNotify();
+    // Server save outcome for a 200 response whose envelope status is
+    // warning/failure (kept separate from field validation so it can carry tone).
+    const [saveError, setSaveError] = useState(null);
     const isEditMode = !!allergyRecord?.allergyId;
     const isRecoverMode = actionType === 'recover';
     const isNKALocked = ['NKA', 'NKDA'].includes(form.allergyType);
@@ -158,6 +159,7 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
     });
     const handleFormSubmit = async (event) => {
         event.preventDefault();
+        setSaveError(null);
         const validationErrors = validateForm();
         setErrors(validationErrors);
         if (Object.keys(validationErrors).length)
@@ -165,14 +167,20 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
         setSaving(true);
         try {
             const response = await savePatientAllergy(buildSavePayload());
-            if (!response || response.status === 'success')
+            // The save endpoint returns HTTP 200 even when it rejects the record:
+            // only status === 'success' means saved. A 'warning'/'failure' body
+            // (e.g. a duplicate allergy) keeps the form open and surfaces the
+            // server message inline, rather than closing as if it succeeded.
+            const outcome = getSaveOutcome(response, 'This allergy could not be saved. Please review the details and try again.');
+            if (outcome.ok) {
                 onClose(true);
-            else
-                notifyError(response.message || 'Failed to save allergy.');
+                return;
+            }
+            setSaveError(outcome);
         }
         catch (error) {
             console.error('Failed to save allergy.', error);
-            notifyError(error?.message || 'Failed to save allergy. Please try again.');
+            setSaveError({ tone: 'error', message: error?.message || 'Failed to save allergy. Please try again.' });
         }
         finally {
             setSaving(false);
@@ -321,6 +329,14 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
             {errors.changeLogNotes && <div className="small text-danger mt-1">{errors.changeLogNotes}</div>}
           </div>
         </div>
+
+        {saveError && (<div className="row g-3 mt-2">
+            <div className="col-12">
+              <div className={`small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`} id={fieldId('pa_patient_allergy_save_error')}>
+                <i className="fa fa-exclamation-triangle me-1"/>{saveError.message}
+              </div>
+            </div>
+          </div>)}
 
         <div className="row mt-4 pt-3 border-top m-0">
           <div className="form-add-edit-button-group d-flex justify-content-end gap-2 p-0">
