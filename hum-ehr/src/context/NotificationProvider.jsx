@@ -9,7 +9,7 @@ import { NotificationContext } from './NotificationContext';
 export const NotificationProvider = ({ children }) => {
     const toastRef = useRef(null);
     const notify = useCallback((options) => {
-        toastRef.current?.show({ life: 4000, ...options });
+        toastRef.current?.show({ life: 90000, ...options });
     }, []);
     const notifyError = useCallback((detail, summary = 'Error') => {
         notify({ severity: 'error', summary, detail: detail || 'Something went wrong. Please try again.' });

@@ -86,7 +86,27 @@ const PatientDemographics = ({ patientId }) => {
         }
     };
     if (loading)
-        return <div className="p-3 text-muted small">Loading demographics...</div>;
+        return (
+            <div className="patient-demographics-container-node">
+                <div className="pd-patient-demographics-main-container">
+                    <div className="pd-patient-profile-picture me-3">
+                        <div className="pd-skeleton-circle" />
+                    </div>
+                    <div className="pd-patient-demographics-details">
+                        <div className="pd-patient-demographics-list">
+                            {[150, 110, 70, 95, 130, 160, 210].map((w, i) => (
+                                <div key={i} className="pd-patient-demographics-list-item">
+                                    <div className="pd-skeleton-bar" style={{ width: w }} />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="pd-patient-demographics-ccd-generation-container ms-auto" style={{ marginRight: '1rem' }}>
+                            <div className="pd-skeleton-btn" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     if (!patientDetails)
         return <div className="alert alert-warning m-2">Patient data unavailable.</div>;
     const age = calculateAge(patientDetails.dateOfBirth);

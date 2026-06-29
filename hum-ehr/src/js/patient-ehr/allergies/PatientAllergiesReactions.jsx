@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import PatientAllergyLookupInput from './PatientAllergyLookupInput';
+import AsyncSelect from 'react-select/async';
+import { fetchAllergyLookup } from '../../../services/lookupService';
+import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+
 const EMPTY_FORM = {
     id: '',
     reactionText: '',
@@ -9,19 +12,15 @@ const EMPTY_FORM = {
     lastOccurrence: '',
     notes: '',
 };
-const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [], editReaction = null, onSave, onCancel, }) => {
+
+const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [], editReaction = null, onSave, onCancel }) => {
     const [rxForm, setRxForm] = useState(EMPTY_FORM);
     const [errors, setErrors] = useState({});
-    const clearFieldError = (key) => setErrors((previous) => {
-        if (!previous[key])
-            return previous;
-        const next = { ...previous };
-        delete next[key];
-        return next;
-    });
+
+    const clearError = (key) => setErrors((prev) => { const next = { ...prev }; delete next[key]; return next; });
+
     useEffect(() => {
-        if (!editReaction)
-            return;
+        if (!editReaction) { setRxForm(EMPTY_FORM); return; }
         setRxForm({
             id: editReaction.id || '',
             reactionText: editReaction.reaction || '',
@@ -31,23 +30,33 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
             notes: editReaction.notes || '',
         });
     }, [editReaction]);
-    const validateForm = () => {
-        const nextErrors = {};
-        if (!rxForm.reactionText.trim())
-            nextErrors.reaction = 'Reaction is required.';
-        else if (!rxForm.reactionId)
-            nextErrors.reaction = 'Please select reaction from the lookup list.';
-        if (!rxForm.severityId)
-            nextErrors.severity = 'Severity is required.';
-        return nextErrors;
+
+    const loadReactionOptions = (inputValue) => {
+        if (!inputValue || inputValue.trim().length < LOOKUP_MIN_CHARS) return Promise.resolve([]);
+        return fetchAllergyLookup({ conceptCategory: 'ALRE', searchParameter: inputValue.trim() })
+            .then((res) => {
+                const items = res?.status === 'success' ? res.data || [] : [];
+                return items
+                    .filter((item) => !existingReactionIds.includes(String(item.id)) || String(item.id) === String(editReaction?.reactionId))
+                    .map((item) => ({ value: String(item.id), label: item.conceptName || item.value || '', code: item.code }));
+            })
+            .catch(() => []);
     };
+
+    const validate = () => {
+        const errs = {};
+        if (!rxForm.reactionText.trim()) errs.reaction = 'Reaction is required.';
+        else if (!rxForm.reactionId) errs.reaction = 'Please select reaction from the search list.';
+        if (!rxForm.severityId) errs.severity = 'Severity is required.';
+        return errs;
+    };
+
     const handleSave = (event) => {
         event.preventDefault();
-        const validationErrors = validateForm();
-        setErrors(validationErrors);
-        if (Object.keys(validationErrors).length)
-            return;
-        const matchedSeverity = lookups.severities.find((item) => String(item.id) === String(rxForm.severityId));
+        const errs = validate();
+        setErrors(errs);
+        if (Object.keys(errs).length) return;
+        const matchedSeverity = lookups.severities.find((s) => String(s.id) === String(rxForm.severityId));
         onSave({
             id: rxForm.id || '',
             reactionId: rxForm.reactionId,
@@ -58,43 +67,113 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
             notes: rxForm.notes?.trim() || '',
         });
     };
-    return (<form onSubmit={handleSave} className="p-2 bg-light-subtle rounded animate-fade-in" noValidate>
-      <div className="row g-3">
-        <div className="col-12 icon-input-group position-relative">
-          <PatientAllergyLookupInput id={`pa_patient_allergy_reaction_${patientId}`} label="Reaction" conceptCategory="ALRE" value={rxForm.reactionText} required disabled={!!editReaction?.id} excludeIds={existingReactionIds.filter((id) => String(id) !== String(editReaction?.reactionId))} placeholder="Type at least 3 characters, then choose from list" onChange={(value) => { setRxForm((previous) => ({ ...previous, reactionText: value, reactionId: '' })); clearFieldError('reaction'); }} onSelect={(selected) => { setRxForm((previous) => ({ ...previous, reactionText: selected.value, reactionId: selected.id })); clearFieldError('reaction'); }}/>
-          {errors.reaction ? (<div className="small text-danger mt-1">{errors.reaction}</div>) : (!rxForm.reactionId && rxForm.reactionText?.length >= 3 && (<div className="small text-danger mt-1">Please select reaction from the lookup list.</div>))}
-        </div>
 
-        <div className="col-md-6">
-          <label className="form-label small fw-bold" htmlFor={`pa_patient_allergy_severity_${patientId}`}>
-            Severity <span className="text-danger">*</span>
-          </label>
-          <select className="form-select" id={`pa_patient_allergy_severity_${patientId}`} value={rxForm.severityId} onChange={(event) => { setRxForm((previous) => ({ ...previous, severityId: event.target.value })); clearFieldError('severity'); }} required>
-            <option value="">Select Severity</option>
-            {lookups.severities.map((severity) => (<option key={severity.id} value={severity.id}>{severity.conceptName}</option>))}
-          </select>
-          {errors.severity && <div className="small text-danger mt-1">{errors.severity}</div>}
-        </div>
+    const reactionSelectValue = rxForm.reactionId
+        ? { value: rxForm.reactionId, label: rxForm.reactionText }
+        : null;
 
-        <div className="col-md-6">
-          <label className="form-label small fw-bold" htmlFor={`pa_patient_allergy_last_occurrence_date_${patientId}`}>
-            Last Occurrence Date
-          </label>
-          <FlatpickrDateTimeInput id={`pa_patient_allergy_last_occurrence_date_${patientId}`} value={rxForm.lastOccurrence} onChange={(value) => setRxForm((previous) => ({ ...previous, lastOccurrence: value }))} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY"/>
-        </div>
+    const selectErrorStyles = (hasError) => ({
+        control: (base, state) => ({
+            ...base,
+            borderColor: hasError ? '#dc3545' : state.isFocused ? '#1D9CA6' : '#ced4da',
+            boxShadow: hasError
+                ? '0 0 0 0.2rem rgba(220,53,69,.25)'
+                : state.isFocused ? '0 0 0 0.2rem rgba(29,156,166,.2)' : 'none',
+            '&:hover': { borderColor: hasError ? '#dc3545' : '#1D9CA6' },
+        }),
+    });
 
-        <div className="col-12">
-          <label className="form-label small fw-bold" htmlFor={`pa_patient_allergy_reaction_notes_${patientId}`}>
-            Notes
-          </label>
-          <textarea id={`pa_patient_allergy_reaction_notes_${patientId}`} className="form-control font-13" rows={2} maxLength={500} value={rxForm.notes} onChange={(event) => setRxForm((previous) => ({ ...previous, notes: event.target.value }))}/>
-        </div>
-      </div>
+    return (
+        <form onSubmit={handleSave} noValidate>
+            <div className="row g-3">
+                <div className="col-12">
+                    <label className="form-label fw-bold" htmlFor={`pa_rx_reaction_${patientId}`}>
+                        Reaction <span className="text-danger">*</span>
+                    </label>
+                    <AsyncSelect
+                        inputId={`pa_rx_reaction_${patientId}`}
+                        cacheOptions
+                        defaultOptions={false}
+                        loadOptions={loadReactionOptions}
+                        value={reactionSelectValue}
+                        onChange={(selected) => {
+                            setRxForm((prev) => ({
+                                ...prev,
+                                reactionText: selected ? selected.label : '',
+                                reactionId: selected ? selected.value : '',
+                            }));
+                            clearError('reaction');
+                        }}
+                        isDisabled={!!editReaction?.id}
+                        isClearable
+                        placeholder="Type at least 3 characters, then choose from list"
+                        noOptionsMessage={({ inputValue }) =>
+                            !inputValue || inputValue.length < LOOKUP_MIN_CHARS
+                                ? `Type at least ${LOOKUP_MIN_CHARS} characters to search`
+                                : 'No results found'
+                        }
+                        loadingMessage={() => 'Searching…'}
+                        classNamePrefix="react-select"
+                        styles={selectErrorStyles(!!errors.reaction)}
+                    />
+                    {errors.reaction && <div className="small text-danger mt-1">{errors.reaction}</div>}
+                </div>
 
-      <div className="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
-        <button type="button" className="btn btn-sm btn-outline-secondary bs-modal-cancel-btn" onClick={onCancel}>Cancel</button>
-        <button type="submit" className="btn btn-sm btn-primary pc-allergy-reaction-details-add-btn px-3">Save Reaction</button>
-      </div>
-    </form>);
+                <div className="col-md-6">
+                    <label className="form-label fw-bold" htmlFor={`pa_rx_severity_${patientId}`}>
+                        Severity <span className="text-danger">*</span>
+                    </label>
+                    <select
+                        id={`pa_rx_severity_${patientId}`}
+                        className={`form-select ${errors.severity ? 'is-invalid' : ''}`}
+                        value={rxForm.severityId}
+                        onChange={(e) => { setRxForm((prev) => ({ ...prev, severityId: e.target.value })); clearError('severity'); }}
+                    >
+                        <option value="">Select Severity</option>
+                        {lookups.severities.map((s) => (
+                            <option key={s.id} value={s.id}>{s.conceptName}</option>
+                        ))}
+                    </select>
+                    {errors.severity && <div className="small text-danger mt-1">{errors.severity}</div>}
+                </div>
+
+                <div className="col-md-6">
+                    <label className="form-label fw-bold" htmlFor={`pa_rx_last_occurrence_${patientId}`}>
+                        Last Occurrence Date &amp; Time
+                    </label>
+                    <FlatpickrDateTimeInput
+                        id={`pa_rx_last_occurrence_${patientId}`}
+                        value={rxForm.lastOccurrence}
+                        onChange={(value) => setRxForm((prev) => ({ ...prev, lastOccurrence: value }))}
+                        enableTime
+                        dateFormat="m-d-Y h:i K"
+                        placeholder="MM-DD-YYYY hh:mm AM/PM"
+                    />
+                </div>
+
+                <div className="col-12">
+                    <label className="form-label fw-bold" htmlFor={`pa_rx_notes_${patientId}`}>Notes</label>
+                    <textarea
+                        id={`pa_rx_notes_${patientId}`}
+                        className="form-control"
+                        rows={4}
+                        maxLength={500}
+                        value={rxForm.notes}
+                        onChange={(e) => setRxForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    />
+                </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2 border-top pt-3 mt-3">
+                <button type="button" className="btn btn-outline-secondary border-radius-button px-4" onClick={onCancel}>
+                    Cancel
+                </button>
+                <button type="submit" className="btn btn-primary border-radius-button px-4">
+                    {editReaction ? 'Save Reaction' : 'Add'}
+                </button>
+            </div>
+        </form>
+    );
 };
+
 export default PatientAllergiesReactions;

@@ -1,9 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
 import { buildDeletePayload, buildRecoverPayload, deletePatientAllergy, fetchPatientAllergies, recoverPatientAllergy, } from '../../../services/allergyService';
 import patientCache from '../../../utils/patientCache';
 import { DEBOUNCE_ALLERGY_LIST_MS } from '../../../constants/timing';
 import { useNotify } from '../../../context/NotificationContext';
 import { useIsTabletOrBelow } from '../../../hooks/useMediaQuery';
+import NoDataAvailable from '../../../components/NoDataAvailable';
+
+const swalTheme = Swal.mixin({
+    customClass: {
+        popup: 'pa-swal-popup',
+        title: 'pa-swal-title',
+        confirmButton: 'pa-swal-confirm',
+        cancelButton: 'pa-swal-cancel',
+        input: 'pa-swal-input',
+    },
+    buttonsStyling: false,
+    showCancelButton: true,
+    reverseButtons: false,
+    allowOutsideClick: false,
+});
 const ALLERGY_TYPE_ICONS = {
     DRUG: 'fa-prescription-bottle-medical',
     FOOD: 'fa-bowl-food',
@@ -16,12 +32,7 @@ const ALLERGY_TYPE_ICONS = {
 const AllergyTypeIcon = ({ code }) => (<i className={`fa-solid ${(code && ALLERGY_TYPE_ICONS[code]) || 'fa-hand-dots'} me-2 pa-allergy-icon`}/>);
 const NoAllergyData = ({ recordType, showDeleted }) => {
     const label = recordType === 'active' ? 'active allergies' : showDeleted ? 'deleted allergies' : 'history of allergies';
-    return (<div className="list-wrapper" style={{ border: '2px solid #ddd', padding: '30px 20px', textAlign: 'center' }}>
-      <div className="nodata">
-        <i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
-        <span style={{ fontSize: 20 }}> No {label} recorded yet!</span>
-      </div>
-    </div>);
+    return (<NoDataAvailable desc={`No ${label} recorded yet!`} />);
 };
 const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, advancedFilters, refreshKey, onEdit, onRecoverEdit, onRefresh, }) => {
     const [records, setRecords] = useState([]);
@@ -59,41 +70,41 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
         setExpandedReactions({});
         setExpandedDescription({});
     }, [patientId, recordType, showDeleted, refreshKey]);
-    const confirmThen = (message, action) => {
-        if (window.confirm(message))
-            action();
-    };
-    const handleDelete = (record) => {
-        confirmThen('Are you sure about deleting the allergy record?', async () => {
-            const changeLogNotes = window.prompt('Enter change log message for deleting this allergy record:') || '';
-            if (!changeLogNotes.trim())
-                return;
-            try {
-                await deletePatientAllergy(buildDeletePayload({ patientId, allergyRecord: record, changeLogNotes }));
-                notifySuccess('Allergy record deleted.');
-                onRefresh?.();
-            }
-            catch (error) {
-                console.error('Failed to delete allergy.', error);
-                notifyError(error?.message || 'Failed to delete the allergy record.');
-            }
+    const handleDelete = async (record) => {
+        const confirm = await swalTheme.fire({
+            title: 'Delete Allergy Record',
+            text: 'Are you sure about deleting the allergy record?',
+            confirmButtonText: 'YES',
+            cancelButtonText: 'NO',
         });
+        if (!confirm.isConfirmed) return;
+        const autoMessage = `An existing allergy "${record.allergyType}" has been deleted`;
+        try {
+            await deletePatientAllergy(buildDeletePayload({ patientId, allergyRecord: record, changeLogNotes: autoMessage }));
+            notifySuccess('Allergy record deleted.');
+            onRefresh?.();
+        } catch (error) {
+            console.error('Failed to delete allergy.', error);
+            notifyError(error?.message || 'Failed to delete the allergy record.');
+        }
     };
-    const handleRecover = (record) => {
-        confirmThen('Are you sure about recovering the allergy record?', async () => {
-            const changeLogNotes = window.prompt('Enter change log message for recovering this allergy record:') || '';
-            if (!changeLogNotes.trim())
-                return;
-            try {
-                await recoverPatientAllergy(buildRecoverPayload({ patientId, allergyRecord: record, changeLogNotes }));
-                notifySuccess('Allergy record recovered.');
-                onRefresh?.();
-            }
-            catch (error) {
-                console.error('Failed to recover allergy.', error);
-                notifyError(error?.message || 'Failed to recover the allergy record.');
-            }
+    const handleRecover = async (record) => {
+        const confirm = await swalTheme.fire({
+            title: 'Recover Allergy Record',
+            text: 'Are you sure about recovering this allergy record?',
+            confirmButtonText: 'YES',
+            cancelButtonText: 'NO',
         });
+        if (!confirm.isConfirmed) return;
+        const autoMessage = `An existing allergy "${record.allergyType}" has been recovered`;
+        try {
+            await recoverPatientAllergy(buildRecoverPayload({ patientId, allergyRecord: record, changeLogNotes: autoMessage }));
+            notifySuccess('Allergy record recovered.');
+            onRefresh?.();
+        } catch (error) {
+            console.error('Failed to recover allergy.', error);
+            notifyError(error?.message || 'Failed to recover the allergy record.');
+        }
     };
     const toggleReaction = (allergyId) => setExpandedReactions((previous) => ({ ...previous, [allergyId]: !previous[allergyId] }));
     const toggleDescription = (allergyId) => setExpandedDescription((previous) => ({ ...previous, [allergyId]: !previous[allergyId] }));
@@ -121,7 +132,45 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
       </div>);
     };
     if (loading)
-        return <div className="p-3 text-muted small">Loading allergies...</div>;
+        return (
+            <div className="pa-allergy-table-outer bg-white border mt-2">
+              <div className="table-responsive">
+                <table className="table align-middle text-start mb-0">
+                    <thead className="table-light">
+                        <tr className="small text-muted">
+                            <th>S.No</th>
+                            <th style={{ width: 280 }}>Allergy Type, Subtype &amp; Criticality</th>
+                            <th style={{ width: 250 }}>Reaction</th>
+                            <th style={{ width: 100 }}>Severity</th>
+                            <th style={{ width: 300 }}>Description</th>
+                            <th>Clinical Status</th>
+                            <th>Verification Status</th>
+                            <th>Onset Date and Time</th>
+                            <th style={{ width: 100 }} />
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <tr key={i}>
+                                <td><div className="pa-skeleton-bar" style={{ width: 20 }} /></td>
+                                <td>
+                                    <div className="pa-skeleton-bar mb-2" style={{ width: 120 }} />
+                                    <div className="pa-skeleton-bar" style={{ width: 80 }} />
+                                </td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 110 }} /></td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 60 }} /></td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 160 }} /></td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 70 }} /></td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 80 }} /></td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 100 }} /></td>
+                                <td><div className="pa-skeleton-bar" style={{ width: 40 }} /></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+              </div>
+            </div>
+        );
     if (!records.length)
         return <NoAllergyData recordType={recordType} showDeleted={showDeleted}/>;
     if (showCards) {
@@ -169,14 +218,15 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
           })}
         </div>);
     }
-    return (<div className="table-scroll-container table-responsive bg-white rounded border mt-2">
+    return (<div className="pa-allergy-table-outer bg-white border mt-2">
+      <div className="table-responsive">
       <table className="table align-middle text-start mb-0">
-        <thead className="thead-border-radius table-light">
-          <tr className="small text-muted text-uppercase">
+        <thead className="table-light">
+          <tr className="small text-muted">
             <th>S.No</th>
-            <th style={{ width: 350 }}>Allergy Type, Subtype &amp; Criticality</th>
+            <th style={{ width: 280 }}>Allergy Type, Subtype &amp; Criticality</th>
             <th style={{ width: 250 }}>Reaction</th>
-            <th style={{ width: 130 }}>Severity</th>
+            <th style={{ width: 100 }}>Severity</th>
             <th style={{ width: 300 }}>Description</th>
             <th>Clinical Status</th>
             <th>Verification Status</th>
@@ -185,7 +235,7 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
             <th style={{ width: 100 }}/>
           </tr>
         </thead>
-        <tbody className="tbody-border-radius font-14">
+        <tbody className="font-14">
           {records.map((record, index) => {
             const reactions = record.reactionMapping || [];
             const key = String(record.allergyId);
@@ -249,6 +299,7 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
         })}
         </tbody>
       </table>
+      </div>
     </div>);
 };
 export default PatientAllergiesList;
