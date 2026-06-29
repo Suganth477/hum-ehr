@@ -75,6 +75,15 @@ correct specificity, scope it under a `body.<state>` class and/or add
    override with an **id + `!important`** (and an explicit `translateX(0px)`, not
    `none`). NOTE: the in-app preview misrenders `transform` on these
    legacy-interop elements — **verify drawers/offcanvas in a real browser.**
+5. **PrimeFlex vs Bootstrap grid collision — keep `import 'primeflex/primeflex.css'`
+   BEFORE Bootstrap in `App.jsx`.** Both libs define non-responsive `.col-1..12`;
+   we use Bootstrap's grid (`.row` + responsive `.col-{bp}-*`). When PrimeFlex
+   loaded last, its plain `.col-12` (no media query, equal specificity) won the
+   cascade over `.col-md-3`, so a `col-12 col-sm-6 col-md-3` form row silently
+   collapsed to one stacked column on desktop. Symptom: classes look right in the
+   inspector but `col-md-*` never takes effect ≥768px. Fix = Bootstrap loads last
+   so its grid is authoritative. (Allergy's `col-md-4` was unaffected because it
+   has no plain `col-12`.)
 
 ## Checklist for a new / migrated screen
 

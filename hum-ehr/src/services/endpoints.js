@@ -15,6 +15,13 @@ const ENDPOINTS = {
 		recover: '/allergies/recover',
 		lookup: '/allergies/lookup',
 	},
+	problem: {
+		list: (recordType = 'active') => `/diagnosis/${recordType}`,
+		save: '/diagnosis',
+		invalid: '/diagnosis/invalid',
+		icdLookup: '/diagnosis/icd/lookup',
+		snomedLookup: '/diagnosis/snomed/lookup',
+	},
 	lookup: {
 		humCodes: (groupCode) => `/hum-codes/${groupCode}`,
 		multipleHumCodes: '/multiple/hum-codes',

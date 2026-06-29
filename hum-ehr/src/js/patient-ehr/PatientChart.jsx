@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PatientDemographics from './PatientDemographics';
 import PatientChartSideMenu from './PatientChartSideMenu';
 import PatientAllergies from './allergies/PatientAllergies';
+import PatientProblems from './problems/PatientProblems';
 import './PatientChart.css';
 const PatientChart = ({ patientId }) => {
     const [section, setSection] = useState('PCSUM');
@@ -16,7 +17,7 @@ const PatientChart = ({ patientId }) => {
             case 'PCALL':
                 return <PatientAllergies patientId={patientId}/>;
             case 'PCPRO':
-                return <patient-problems patient-id={patientId} record-type="active"/>;
+                return <PatientProblems patientId={patientId}/>;
             case 'PCENC':
                 return <patient-encounter patient-id={patientId} record-type="active"/>;
             case 'PCPS':
