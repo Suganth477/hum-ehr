@@ -60,15 +60,18 @@ const ActivePatientsList = ({ activeTab, onOpenTab }) => {
 			setLoading(false);
 		}
 	}, [isPatientListTab, requestParams, notifyError]);
+
 	useEffect(() => {
 		const timerId = window.setTimeout(loadPatients, DEBOUNCE_PATIENT_LIST_MS);
 		return () => window.clearTimeout(timerId);
 	}, [loadPatients]);
+
 	useEffect(() => {
 		// The patient chart view collapses the side nav; the list view restores
 		// it. LayoutContext owns the body/side-nav classes now.
 		setChartView(!isPatientListTab);
 	}, [isPatientListTab, setChartView]);
+
 	const updateFilter = (key, value) => {
 		setFirst(0);
 		setFilters((previous) => ({ ...previous, [key]: value }));
@@ -98,6 +101,28 @@ const ActivePatientsList = ({ activeTab, onOpenTab }) => {
 	const nameBodyTemplate = (patient) => (<button type="button" className="active-patient-name-link btn btn-link text-capitalize p-0 text-decoration-none" title="Patient Profile" onClick={() => onOpenTab?.(patient.patientId, patient.fullName, patient.genderCode)}>
 		{patient.fullName}
 	</button>);
+	const SkeletonTable = () => (
+		<div className="active-patient-table-scroll">
+			<table className="table table-hover border w-100">
+				<thead className="table-light">
+					<tr>
+						{['S.No', 'Name', 'Gender', 'Date of Birth', 'Phone Number', 'EMR Id', 'Medicare Number', 'Action'].map((h) => (
+							<th key={h} className="small text-muted fw-semibold">{h}</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{Array.from({ length: rows }).map((_, i) => (
+						<tr key={i}>
+							{[70, 180, 100, 120, 200, 120, 150, 100].map((w, j) => (
+								<td key={j}><div className="apl-skeleton-bar" style={{ width: j === 0 ? 24 : `${60 + Math.round((w * 0.4))}px` }} /></td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	);
 	if (!isPatientListTab) {
 		return (<div className="container-fluid tab-content hh-ehr-bg-color9 p-0 h-100 position-relative">
 			<div className="tab-pane patient-chart-tab-pane fade show active" id={`${activeTab}_chart_tab_pane`} role="tabpanel">
@@ -145,7 +170,8 @@ const ActivePatientsList = ({ activeTab, onOpenTab }) => {
 						</div>
 					</div>))}
 					{totalRecords > 0 && (<Paginator first={first} rows={rows} totalRecords={totalRecords} onPageChange={onPageChange} rowsPerPageOptions={[5, 10, 25, 50]} />)}
-				</div>) : (<div className="active-patient-table-scroll"><DataTable value={patients} lazy paginator first={first} rows={rows} totalRecords={totalRecords} onPage={onPageChange} sortField={sortMeta.sortField} sortOrder={sortMeta.sortOrder} onSort={onSortChange} loading={loading} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No patients found." scrollable scrollHeight="65vh" className="p-datatable-striped active-patient-table" id="care_group_active_patients" tableClassName="table table-hover border w-100">
+				</div>) : (loading ? <SkeletonTable /> : <div className="active-patient-table-scroll">
+					<DataTable value={patients} lazy paginator first={first} rows={rows} totalRecords={totalRecords} onPage={onPageChange} sortField={sortMeta.sortField} sortOrder={sortMeta.sortOrder} onSort={onSortChange} rowsPerPageOptions={[5, 10, 25, 50]} emptyMessage="No patients found." scrollable scrollHeight="65vh" className="p-datatable-striped active-patient-table" id="care_group_active_patients" tableClassName="table table-hover border w-100">
 					<Column field="sno" header="S.No" style={{ width: '70px' }} body={(row) => <div className="table-data">{row.sno}</div>} />
 					<Column field="fullName" header="Name" sortable style={{ width: '180px' }} body={nameBodyTemplate} />
 					<Column field="gender" header="Gender" sortable style={{ width: '100px' }} body={(row) => <div className="table-data">{row.gender}</div>} />

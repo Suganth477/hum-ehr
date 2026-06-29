@@ -2,6 +2,160 @@
    Patient Allergies Module Style Sheet (Extracted Verbatim from JSP)
    ========================================================================== */
 
+@keyframes pa-shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+/* ====== Allergy Reaction Dialog — teal header ====== */
+.pa-reaction-dialog .p-dialog-header.pa-reaction-dialog-header {
+    background-color: var(--app-color2) !important;
+    padding: 12px 20px !important;
+    border-radius: 6px 6px 0 0 !important;
+}
+
+.pa-reaction-dialog .p-dialog-header.pa-reaction-dialog-header .p-dialog-title {
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.pa-reaction-dialog .p-dialog-header.pa-reaction-dialog-header .p-dialog-header-icon {
+    color: #fff !important;
+    opacity: 0.85;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.pa-reaction-dialog .p-dialog-header.pa-reaction-dialog-header .p-dialog-header-icon:hover {
+    background-color: rgba(255,255,255,0.15) !important;
+    opacity: 1;
+}
+
+.pa-reaction-dialog .p-dialog-content {
+    padding: 20px 24px !important;
+    border-radius: 0 0 6px 6px !important;
+}
+
+/* ====== SweetAlert2 — app theme overrides ====== */
+.pa-swal-popup {
+    border-radius: 10px !important;
+    padding: 28px 24px 20px !important;
+    font-family: inherit !important;
+    width: 420px !important;
+}
+
+.pa-swal-title {
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    color: var(--app-color2) !important;
+    margin-bottom: 8px !important;
+}
+
+.swal2-html-container {
+    font-size: 14px !important;
+    color: var(--app-color21) !important;
+}
+
+.pa-swal-input {
+    font-size: 13px !important;
+    border: 1px solid var(--app-color13) !important;
+    border-radius: 6px !important;
+    padding: 8px 10px !important;
+    width: 100% !important;
+    resize: vertical !important;
+    min-height: 80px !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.pa-swal-input:focus {
+    border-color: var(--app-color2) !important;
+    box-shadow: 0 0 0 3px rgba(29, 156, 166, 0.15) !important;
+}
+
+.swal2-validation-message {
+    font-size: 12px !important;
+    background: transparent !important;
+    color: #dc3545 !important;
+    justify-content: flex-start !important;
+    padding: 4px 0 0 0 !important;
+    border: none !important;
+}
+
+.swal2-validation-message::before {
+    display: none !important;
+}
+
+.swal2-actions {
+    gap: 10px !important;
+    margin-top: 20px !important;
+}
+
+.pa-swal-confirm {
+    background-color: var(--app-color2) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: var(--app-border-radius8) !important;
+    padding: 7px 24px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: background 0.2s !important;
+}
+
+.pa-swal-confirm:hover {
+    background-color: var(--app-color5) !important;
+}
+
+.pa-swal-cancel {
+    background-color: transparent !important;
+    color: var(--app-color2) !important;
+    border: 1px solid var(--app-color2) !important;
+    border-radius: var(--app-border-radius8) !important;
+    padding: 7px 24px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: background 0.2s, color 0.2s !important;
+}
+
+.pa-swal-cancel:hover {
+    background-color: var(--app-color40) !important;
+}
+
+/* ====== react-select — thin custom scrollbar ====== */
+.react-select__menu-list {
+    scrollbar-width: thin;
+}
+
+.react-select__menu-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.react-select__menu-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.react-select__menu-list::-webkit-scrollbar-thumb {
+    background-color: var(--app-color2);
+    border-radius: 4px;
+}
+
+.pa-allergy-table-outer {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.pa-skeleton-bar {
+    height: 13px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #e8ecef 25%, #f4f6f8 50%, #e8ecef 75%);
+    background-size: 800px 100%;
+    animation: pa-shimmer 1.4s infinite linear;
+}
+
 .pa-allergies-main-container patient-allergies-list .pa-patient-allergy-icon-type-group {
     display: flex;
     align-items: center;

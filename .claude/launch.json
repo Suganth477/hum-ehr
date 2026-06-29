@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hum-ehr dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "hum-ehr", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "hum-ehr preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "hum-ehr", "run", "preview"],
+      "port": 4173
+    }
+  ]
+}

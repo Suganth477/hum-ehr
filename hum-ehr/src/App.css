@@ -484,6 +484,7 @@ legend{
 table thead tr th {
    background-color: var(--app-color16) !important;
    color: var(--app-color20) !important;
+   font-size: 14px !important;
 }
 
 .scroll_table .dt-scroll-body tr {
@@ -498,6 +499,125 @@ table thead tr th {
 
 .dt-paging .dt-paging-button:not(.active) .page-link {
    color: var(--app-color6);
+}
+
+/** ====== PrimeReact Paginator — theme overrides ====== **/
+
+/* Page number buttons */
+.p-paginator .p-paginator-page {
+   color: var(--app-color2) !important;
+   border: 1px solid var(--app-color13) !important;
+   border-radius: var(--app-border-radius8) !important;
+   min-width: 2rem !important;
+   height: 2rem !important;
+   margin: 0 2px !important;
+   background: transparent !important;
+   transition: background 0.2s, color 0.2s !important;
+}
+
+/* Active / selected page */
+.p-paginator .p-paginator-page.p-highlight,
+.p-paginator .p-paginator-page[aria-current="page"] {
+   background-color: var(--app-color2) !important;
+   border-color: var(--app-color2) !important;
+   color: #fff !important;
+   font-weight: 600 !important;
+}
+
+/* Hover on non-active pages */
+.p-paginator .p-paginator-page:not(.p-highlight):hover {
+   background-color: var(--app-color40) !important;
+   border-color: var(--app-color2) !important;
+   color: var(--app-color5) !important;
+}
+
+/* Prev / Next / First / Last arrow buttons */
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-last {
+   color: var(--app-color2) !important;
+   border: 1px solid var(--app-color13) !important;
+   border-radius: var(--app-border-radius8) !important;
+   min-width: 2rem !important;
+   height: 2rem !important;
+   margin: 0 2px !important;
+   background: transparent !important;
+   transition: background 0.2s, color 0.2s !important;
+}
+
+.p-paginator .p-paginator-prev:hover,
+.p-paginator .p-paginator-next:hover,
+.p-paginator .p-paginator-first:hover,
+.p-paginator .p-paginator-last:hover {
+   background-color: var(--app-color40) !important;
+   border-color: var(--app-color2) !important;
+}
+
+/* Disabled arrow buttons */
+.p-paginator .p-paginator-prev:disabled,
+.p-paginator .p-paginator-next:disabled,
+.p-paginator .p-paginator-first:disabled,
+.p-paginator .p-paginator-last:disabled {
+   color: var(--app-color35) !important;
+   border-color: var(--app-color13) !important;
+   opacity: 0.5 !important;
+}
+
+/* Rows-per-page dropdown */
+.p-paginator .p-paginator-rpp-dropdown .p-select-label,
+.p-paginator .p-dropdown .p-dropdown-label {
+   color: var(--app-color2) !important;
+   font-size: 13px !important;
+}
+
+.p-paginator .p-paginator-rpp-dropdown,
+.p-paginator .p-dropdown {
+   border-color: var(--app-color13) !important;
+   border-radius: var(--app-border-radius8) !important;
+}
+
+/* Rows-per-page dropdown panel — remove unnecessary scroll */
+.p-select-overlay,
+.p-dropdown-panel {
+   overflow: hidden !important;
+}
+
+.p-select-list-container,
+.p-dropdown-items-wrapper {
+   overflow: hidden !important;
+   max-height: none !important;
+}
+
+.p-select-list,
+.p-dropdown-items {
+   overflow: hidden !important;
+   padding: 4px 0 !important;
+}
+
+/* Dropdown option items */
+.p-select-option,
+.p-dropdown-item {
+   font-size: 13px !important;
+   padding: 6px 12px !important;
+   color: var(--app-color6) !important;
+}
+
+.p-select-option:hover,
+.p-dropdown-item:hover {
+   background-color: var(--app-color40) !important;
+   color: var(--app-color2) !important;
+}
+
+.p-select-option.p-selected,
+.p-dropdown-item.p-highlight {
+   background-color: var(--app-color2) !important;
+   color: #fff !important;
+}
+
+.p-paginator .p-paginator-rpp-dropdown:hover,
+.p-paginator .p-dropdown:hover {
+   border-color: var(--app-color2) !important;
 }
 
 .scroll_table .dt-scroll-head, 
@@ -1655,4 +1775,15 @@ ehr-orders-main-element label, ehr-orders-main-element .ehr-order-summary-label 
 .icon-input-group .remove-input-value ~ .ui-loader-spinner,
 .icon-input-group:has(.remove-input-value) .ui-loader-spinner {
    right: 35px;
+}
+
+.filter-icon-btn {
+   padding: 1px 15px !important;
+   .mdi {
+      font-size: var(--app-font18) !important;
+   }
+}
+
+.p-toast.p-component {
+   z-index: 100000 !important;
 }

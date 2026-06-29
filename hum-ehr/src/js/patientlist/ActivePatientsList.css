@@ -1,3 +1,16 @@
+@keyframes apl-shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.apl-skeleton-bar {
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #e8ecef 25%, #f4f6f8 50%, #e8ecef 75%);
+    background-size: 800px 100%;
+    animation: apl-shimmer 1.4s infinite linear;
+}
+
 #application_quick_access_nav_container_1 .patient-list-nav-tabs {
     display: flex;
     align-items: flex-start;

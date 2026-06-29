@@ -128,11 +128,11 @@ const PatientAllergies = ({ patientId }) => {
               <div className="pa-allergies-header-input-group d-flex align-items-center gap-2 flex-wrap">
                 <div className="active-history-toggle-group">
                   <ul className="nav nav-pills active-history-toggle-group-list toggle-group-small" role="tablist">
-                    <li className="nav-item">
-                      <button className={`nav-link small ${recordType === 'active' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('active')} type="button">Active</button>
+                    <li className="nav-item active-history-toggle-list">
+                      <button className={`nav-link active-history-nav-link small ${recordType === 'active' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('active')} type="button">Active</button>
                     </li>
-                    <li className="nav-item">
-                      <button className={`nav-link small ${recordType === 'history' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('history')} type="button">History</button>
+                    <li className="nav-item active-history-toggle-list">
+                      <button className={`nav-link active-history-nav-link small ${recordType === 'history' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('history')} type="button">History</button>
                     </li>
                   </ul>
                 </div>
@@ -151,8 +151,8 @@ const PatientAllergies = ({ patientId }) => {
               </div>
 
               <div className="pa-allergies-header-action-icons-container d-flex align-items-center gap-2">
-                <button type="button" className="pa-allegy-header-filter-icon-container btn pa-allergy-filter-icon-btn d-flex align-items-center gap-2 btn-md border-0" onClick={() => setFilterVisible(true)}>
-                  <span className="mdi mdi-filter-variant pa-allergy-filter-icon"/>Filter
+                <button type="button" className="btn btn-outline-secondary btn-md d-flex align-items-center gap-1 filter-icon-btn" onClick={() => setFilterVisible(true)}>
+                  <span className="mdi mdi-filter-variant"/>Filter
                 </button>
                 {recordType !== 'history' && (<button type="button" className="pa-add-new-allergy-btn btn btn-primary btn-md border-radius-button text-nowrap" id={`pa_add_new_allergy_btn_${patientId}`} onClick={() => openAddEdit(null, 'create')}>
                     <span className="mdi mdi-plus"/> Add Allergy
@@ -160,8 +160,6 @@ const PatientAllergies = ({ patientId }) => {
               </div>
             </div>
           </div>
-
-          {metadataLoading && <div className="small text-muted mb-2">Loading allergy master data...</div>}
 
           <div className="pa-allergies-list-body">
             <PatientAllergiesList patientId={patientId} recordType={recordType} showDeleted={showDeleted} searchTerm={searchTerm} advancedFilters={filterForm} refreshKey={refreshKey} onEdit={(record) => openAddEdit(record, 'edit')} onRecoverEdit={(record) => openAddEdit(record, 'recover')} onRefresh={() => setRefreshKey((key) => key + 1)}/>
