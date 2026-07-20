@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Migration playbook (source of truth):** the full plan for the JSP → React
+> migration — adopted stack, conventions, the icon system, the per-screen conversion
+> workflow, the verification checklist, and screen-by-screen status — lives in
+> [`JSP-to-React-Migration-Plan.md`](./JSP-to-React-Migration-Plan.md). **Read it before
+> converting a screen or making any stack/convention decision.** Where that doc and this
+> summary disagree, the plan doc wins.
+
 ## Commands
 
 ```bash
@@ -66,10 +73,13 @@ Open patient tabs are stored in `sessionStorage` (not `localStorage`) under keys
 
 | Concern | Library |
 |---|---|
-| UI components | PrimeReact 10, Bootstrap 5, MUI Icons |
+| UI components | PrimeReact 10, Bootstrap 5, PrimeFlex |
 | Routing | React Router 7 |
-| State | Redux Toolkit 2, React Context |
+| State | Redux Toolkit 2 (auth only), React Context |
+| Server state | TanStack Query + TanStack Virtual — **Message Center only** |
 | HTTP | Axios 1 |
 | Auth | JWT in cookies via js-cookie |
-| Date/time | Moment + Moment Timezone, Flatpickr |
-| Icons | FontAwesome 7, Material Design Icons |
+| Forms | react-hook-form + zod, react-select |
+| Date/time | **dayjs** (central `src/utils/dayjs.js`), Flatpickr |
+| Icons | Exact-vector `LegacyIcon` — `@mdi/js` + `@fortawesome/free-*-svg-icons` path data (**no icon fonts**); `pi` only for PrimeReact internals |
+| Monitoring | Bugsnag (production-only, PHI-scrubbed) |

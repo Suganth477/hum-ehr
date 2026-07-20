@@ -110,8 +110,8 @@ const PatientProcedureDetails = ({ patientId, record, onEdit, onDeleted }) => {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div><span className="pcps-procedure-record-info-name-title text-capitalize">{record.procedureDescription}</span></div>
         {!invalid && (<div className="d-flex gap-3 justify-content-end">
-          <button type="button" className="pcps-record-action-btn" title="Edit" onClick={() => onEdit(record)}><LegacyIcon icon="fa-pencil"/> Edit</button>
-          <button type="button" className="pcps-record-action-btn" title="Delete" onClick={handleDelete}><LegacyIcon icon="fa-trash-can"/></button>
+          <button type="button" className="pcps-record-action-btn" title="Edit" onClick={() => onEdit(record)}><LegacyIcon icon="fa-pencil" className='ehr-primary-color-icon-svg' /> Edit</button>
+          <button type="button" className="pcps-record-action-btn" title="Delete" onClick={handleDelete}><LegacyIcon icon="fa-trash-can" className='ehr-primary-color-icon-svg' /></button>
         </div>)}
       </div>
 

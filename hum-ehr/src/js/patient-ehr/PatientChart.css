@@ -83,6 +83,7 @@
 }
 
 .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
+    font-size: var(--app-font24);
     padding: 0px 5px;
 }
 

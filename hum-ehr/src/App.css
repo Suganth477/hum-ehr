@@ -138,9 +138,8 @@
    color: var(--app-color31) !important;
 }
 
-.pi {
-   font-size: var(--app-font24);
-   cursor: pointer;
+.action-icon-dropdown-group .action-icon .pi {
+   font-size: var(--app-font16);
 }
 
 /** ====== application common styles are declared here ====== **/
@@ -662,6 +661,7 @@ table tbody tr td {
 } */
 
 .action-group-icon {
+   font-size: var(--app-font24);
    border-radius: var(--app-border-radius20);
    padding: 3px 4px;
    box-shadow: 0px 2px 5px var(--app-color7);
@@ -1047,6 +1047,7 @@ body.modal-open #application_main_header {
 }
 
 #application_main_header .navbar-header .application-menu-bar-icon {
+   font-size: var(--app-font24);
    cursor: pointer;
    transition: transform 0.3s ease, color 0.3s ease;
 }
@@ -1097,8 +1098,13 @@ Start of application quick access navbar styles
 }
 
 #application_quick_access_nav_container .app-quick-access-icon-section ul .app-quick-access-icon-list {
+   /* font-size: var(--app-font24); */
    margin: 5px;
    cursor: pointer;
+}
+
+#application_quick_access_nav_container .app-quick-access-icon-section ul .app-quick-access-icon-list .pi{
+   font-size: var(--app-font24);
 }
 
 /********************************************
@@ -1233,6 +1239,7 @@ body.expanded-view #application_side_navigation_menu_container.toggled-2 #sideba
 }
 
 #sidebar_wrapper .sidebar-nav .app-menu-icon {
+   font-size: var(--app-font24);
    margin-left: 8px;
    margin-right: 5px;
 }
