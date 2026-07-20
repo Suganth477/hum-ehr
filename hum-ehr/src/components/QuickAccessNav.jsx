@@ -1,4 +1,5 @@
 import Sidebar from './Sidebar';
+import { LegacyIcon, HeartPulseIcon, DevicesIcon, ChartMultipleIcon, ListBoxIcon } from './common/CustomIcons';
 const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 	const handleTabClickEvent = (section, tabId, e) => {
 		// The filter-icon visibility is rendered declaratively from `activeTab`
@@ -43,7 +44,7 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 					{openTabs.map((tab) => (<li key={tab.patientId} className={`nav-item patient-list-nav-item patient-list-nav-item-${tab.patientId} ${activeTab === tab.patientId ? 'active' : ''}`} data-patient-id={tab.patientId} data-section="patient_name" role="presentation">
 						<button id={`pills_${tab.patientId}_chart_tab`} className={`nav-link patient-list-nav-link rounded-top ${activeTab === tab.patientId ? 'active' : ''}`} type="button" role="tab" onClick={(e) => handleTabClickEvent('patient_name', tab.patientId, e)} aria-controls={`${tab.patientId}_chart_tab_pane`} aria-selected={activeTab === tab.patientId}>
 							<span className="text-truncate patient-name">{tab.patientName}</span>
-							<span className="mdi mdi-close patient-list-nav-item-close-icon" role="button" tabIndex={0} aria-label={`Close ${tab.patientName} tab`} onClick={(ev) => onCloseTab(tab.patientId, ev)} onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onCloseTab(tab.patientId, ev); } }} />
+							<LegacyIcon icon="mdi-close" className="patient-list-nav-item-close-icon" role="button" tabIndex={0} aria-label={`Close ${tab.patientName} tab`} onClick={(ev) => onCloseTab(tab.patientId, ev)} onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onCloseTab(tab.patientId, ev); } }} />
 						</button>
 					</li>))}
 				</ul>
@@ -53,18 +54,18 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 				<div className={`list-filter-access-icon ${activeTab === 'patient_list' ? '' : 'd-none'}`}>
 					<ul className="list-unstyled m-0 me-1 hh-ehr-color1">
 						<li className="app-quick-access-icon-list" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-							<span className="mdi mdi-filter-variant" />
+							<LegacyIcon icon="mdi-filter-variant" />
 						</li>
 					</ul>
 				</div>
 				<div className="app-quick-access-icon-section hh-ehr-bg-color5 hh-ehr-color1">
 					<ul>
-						<li className="app-quick-access-icon-list"><span className="mdi mdi-calendar-plus-outline" /></li>
-						<li className="app-quick-access-icon-list"><span className="mdi mdi-heart-pulse" /></li>
-						<li className="app-quick-access-icon-list"><span className="mdi mdi-devices" /></li>
-						<li className="app-quick-access-icon-list"><span className="mdi mdi-currency-usd" /></li>
-						<li className="app-quick-access-icon-list"><span className="mdi mdi-chart-multiple" /></li>
-						<li className="app-quick-access-icon-list"><span className="mdi mdi-list-box-outline" /></li>
+						<li className="app-quick-access-icon-list"><LegacyIcon icon="mdi-calendar-plus-outline" /></li>
+						<li className="app-quick-access-icon-list"><HeartPulseIcon /></li>
+						<li className="app-quick-access-icon-list"><DevicesIcon /></li>
+						<li className="app-quick-access-icon-list"><LegacyIcon icon="mdi-currency-usd" /></li>
+						<li className="app-quick-access-icon-list"><ChartMultipleIcon /></li>
+						<li className="app-quick-access-icon-list"><ListBoxIcon /></li>
 					</ul>
 				</div>
 			</div>

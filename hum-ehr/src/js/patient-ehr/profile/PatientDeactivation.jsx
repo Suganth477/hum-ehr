@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { getPatientDetails, fetchDeactivationReasons, deactivatePatientUser } from '../../../services/patientProfileService';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -119,14 +120,14 @@ const PatientDeactivation = ({ patientId }) => {
           </div>)}
           <div className="mb-3">
             <button type="button" className="btn btn-primary border-radius-button" onClick={() => fileInputRef.current?.click()}>
-              <span className="mdi mdi-upload me-1"/>Upload File
+              <LegacyIcon icon="mdi-upload" className="me-1"/>Upload File
             </button>
             <input ref={fileInputRef} type="file" accept="application/pdf" className="d-none" onChange={handleFileChange}/>
             <FieldError message={fileError}/>
             {file && (
               <div className="pp-file-chip mt-2">
                 <div className="pp-file-chip-text" title={file.name}>{file.name.length > 13 ? `${file.name.substring(0, 13)}...` : file.name}</div>
-                <span className="pp-file-chip-remove mdi mdi-close-circle-outline" role="button" onClick={() => setFile(null)}/>
+                <LegacyIcon icon="mdi-close-circle-outline" className="pp-file-chip-remove" role="button" onClick={() => setFile(null)}/>
               </div>
             )}
           </div>

@@ -1,5 +1,6 @@
 import AdminMenu from './AdminMenu';
 import doctorImage from '../assets/images/doctor.jpeg';
+import { LegacyIcon } from './common/CustomIcons';
 import { useLayout } from '../context/LayoutContext';
 import { useIsTabletOrBelow } from '../hooks/useMediaQuery';
 const Sidebar = ({ userLoginDetails, userFullName }) => {
@@ -20,9 +21,9 @@ const Sidebar = ({ userLoginDetails, userFullName }) => {
 		<ul className="sidebar-nav m-0" id="application_menu_settings_container">
 			<li className="application-menu-list">
 				<a href="#" className="parent-link user-details-link" onClick={(e) => e.preventDefault()}>
-					<span className="app-menu-icon user-profile-icon">
+					<i className="app-menu-icon user-profile-icon">
 						<img className="profile-image user-profile" src={doctorImage} alt="Doctor Profile" />
-					</span>
+					</i>
 					<ul className="user-details-list">
 						<li className="user-desc">
 							<span className="app-menu-description ms-0 user-name text-truncate text-capitalize">
@@ -33,8 +34,8 @@ const Sidebar = ({ userLoginDetails, userFullName }) => {
 							</span>
 						</li>
 						<li className="user-profile-icons">
-							<span className="app-menu-icon me-0 mdi mdi-cog-outline" data-bs-toggle="tooltip" data-bs-placement="top" title="Settings" />
-							<span className="app-menu-icon me-0 mdi mdi-logout" data-bs-toggle="tooltip" data-bs-placement="top" title="Logout" />
+							<LegacyIcon icon="mdi-cog-outline" className="app-menu-icon me-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Settings" />
+							<LegacyIcon icon="mdi-logout" className="app-menu-icon me-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Logout" />
 						</li>
 					</ul>
 				</a>

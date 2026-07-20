@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import {
     buildProcedureSavePayload, saveProcedure,
     fetchProcedureNameLookup, fetchReferralReasonLookup, fetchSdohInterventionLookup,
@@ -202,7 +203,7 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
     return (<div className="container-fluid">
       <div className="row">
         <div className="d-flex align-items-center gap-2 mb-2">
-          <span className="mdi mdi-arrow-left back-to-icon" role="button" style={{ fontSize: 20 }} onClick={() => { if (window.confirm('Are u sure about to exit procedure form?')) onClose(false); }}/>
+          <LegacyIcon icon="mdi-arrow-left" className="back-to-icon" role="button" style={{ fontSize: 20 }} onClick={() => { if (window.confirm('Are u sure about to exit procedure form?')) onClose(false); }}/>
           <span className="fw-bold" style={{ fontSize: '1rem' }}>{isEdit ? 'Edit Procedure' : 'Add Procedure'}</span>
         </div>
       </div>
@@ -364,7 +365,7 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
           </div>
         </div>
 
-        {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+        {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
         <div className="d-flex justify-content-end gap-3 mt-3 pt-3 border-top">
           <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" disabled={saving}

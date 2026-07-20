@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Dialog } from 'primereact/dialog';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import {
     buildHospitalizationSavePayload,
     buildHospitalizationValidatePayload,
@@ -265,7 +266,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
         <div className="row">
           <div className="d-flex align-items-center gap-1">
             <button type="button" className="btn btn-link p-0 text-dark" id={fieldId('pch_add_edit_back_button')} onClick={handleCancel} aria-label="Back to hospitalization list">
-              <span className="mdi mdi-arrow-left input-icon-left-align fs-4"/>
+              <LegacyIcon icon="mdi-arrow-left" className="input-icon-left-align fs-4"/>
             </button>
             <div>
               <span className="pch-add-edit-explanation-detail-label fw-bold" style={{ fontSize: '1rem' }}><span>{isEditMode ? 'Edit' : 'Add'}</span> Hospitalization Details</span>
@@ -345,7 +346,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
                                     <span className="clinical-test-problem-description"> {descOfDiagnosis(problem)}</span>
                                   </div>
                                 </div>
-                              </div>)) : (<div style={{ display: 'flex', alignItems: 'center', height: 100, justifyContent: 'center', gap: 4 }}><i className="mdi mdi-information-outline"/> The patient doesn't have any diagnosis yet! </div>)}
+                              </div>)) : (<div style={{ display: 'flex', alignItems: 'center', height: 100, justifyContent: 'center', gap: 4 }}><LegacyIcon icon="mdi-information-outline"/> The patient doesn't have any diagnosis yet! </div>)}
                           </div>
                         </div>) : (<div className="tab-pane fade show active ehr-order-patient-encounter-problem-tab-content">
                           <div className="ehr-order-encounter-problem-list-items-container">
@@ -366,7 +367,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
                                       </div>))}
                                   </div>
                                 </div>
-                              </div>)) : (<div style={{ display: 'flex', alignItems: 'center', height: 100, justifyContent: 'center', gap: 4 }}><i className="mdi mdi-information-outline"/> The patient doesn't have any encounter diagnosis yet! </div>)}
+                              </div>)) : (<div style={{ display: 'flex', alignItems: 'center', height: 100, justifyContent: 'center', gap: 4 }}><LegacyIcon icon="mdi-information-outline"/> The patient doesn't have any encounter diagnosis yet! </div>)}
                           </div>
                         </div>)}
                     </div>
@@ -378,7 +379,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
                           <div className="ehr-add-order-selected-problems-description">{item.description}</div>
                         </div>
                         <div className="clinical-test-selected-problem-remove-container">
-                          <span><i className="fas fa-times ehr-add-order-selected-problem-remove-icon" onClick={() => removeSelectedChip(item)}/></span>
+                          <span><LegacyIcon icon="fa-times" className="ehr-add-order-selected-problem-remove-icon" onClick={() => removeSelectedChip(item)}/></span>
                         </div>
                       </div>))}
                   </div>
@@ -394,7 +395,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
             </div>
             {saveError && (<div className="row m-0 p-0">
                 <div className={`small mt-1 ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}>
-                  <i className="fa fa-exclamation-triangle me-1"/>{saveError.message}
+                  <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}
                 </div>
               </div>)}
             <div className="row">

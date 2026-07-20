@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import PatientSurgicalHistoryList from './PatientSurgicalHistoryList';
 import PatientSurgicalHistoryViewDetails from './PatientSurgicalHistoryViewDetails';
 import PatientSurgicalHistoryAddEdit from './PatientSurgicalHistoryAddEdit';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientSurgicalHistory.css';
 
 /**
@@ -35,14 +36,14 @@ const PatientSurgicalHistory = ({ patientId }) => {
         <div className="col-md-3 surgical-history-left-side-main-container pc-left-side-main-container">
           <div className="d-flex justify-content-end mt-1 mb-2">
             <button type="button" className="pc-add-new-surgical-history-btn pc-add-new-section-details-btn btn btn-primary btn-md border-radius-button" onClick={() => openAddEdit(null)}>
-              <span className="mdi mdi-plus mdi-s-20"/> Add Surgical History
+              <LegacyIcon icon="mdi-plus" className="icon-size-20"/> Add Surgical History
             </button>
           </div>
           <div className="icon-input-group position-relative mt-2">
             <input type="text" id={`surgical_history_surgery_name_filter_${patientId}`} placeholder="Search Surgery Name"
               className="form-control text-capitalize" autoComplete="off" value={searchTerm} disabled={showDeleted}
               onChange={(e) => setSearchTerm(e.target.value)}/>
-            <span className="mdi mdi-magnify input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
+            <LegacyIcon icon="mdi-magnify" className="input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
           </div>
           <div className="mt-2">
             <label className="label-name d-flex align-items-center mb-2">

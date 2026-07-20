@@ -8,6 +8,7 @@ import PatientImplantableDeviceAddEdit from './PatientImplantableDeviceAddEdit';
 import PatientImplantableDeviceExplant from './PatientImplantableDeviceExplant';
 import { getPendingImplantDevice, removePendingImplantDevice } from '../../../services/implantDeviceService';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientImplantableDevice.css';
 
 const CLOSED = { type: null };
@@ -89,7 +90,7 @@ const PatientImplantableDevice = ({ patientId }) => {
             </div>
             {recordType === 'active' && (
               <button type="button" className="pc-add-new-implantable-device-btn pc-add-new-section-details-btn btn btn-primary btn-md border-radius-button" onClick={() => setDialog({ type: 'udi', prefillUdi: '' })}>
-                <span className="mdi mdi-plus mdi-s-20"/> Add Device Details
+                <LegacyIcon icon="mdi-plus" className="icon-size-20"/> Add Device Details
               </button>
             )}
           </div>
@@ -102,7 +103,7 @@ const PatientImplantableDevice = ({ patientId }) => {
           <div className="search-implant-device-container icon-input-group pc-search-input-container mt-2">
             <div className="position-relative">
               <input id={`search_implantable_device_name_${patientId}`} type="text" className="form-control search-implantable-device-name" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-              <span className="mdi mdi-magnify input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
+              <LegacyIcon icon="mdi-magnify" className="input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
             </div>
           </div>
         </div>

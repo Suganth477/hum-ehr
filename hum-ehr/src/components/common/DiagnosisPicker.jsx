@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchPatientDiagnosisProblems } from '../../services/procedureService';
 import { getFormattedIcdCode } from '../../utils/commonUtility';
+import { LegacyIcon } from './CustomIcons';
 import './DiagnosisPicker.css';
 
 /**
@@ -90,7 +91,7 @@ const DiagnosisPicker = ({ patientId, value, onChange, title = 'Clinical Indicat
                     <label className="form-check-label" htmlFor={`diag_${patientId}_${rec.diagnosisId}`}>{getFormattedIcdCode(rec.icdCode || '')} &ensp;{rec.icdDescription}</label>
                   </div>
                 ))
-              : <div className="nodata d-flex justify-content-center align-items-center p-2"><i className="mdi mdi-information-outline me-2" style={{ fontSize: '1.2rem' }}/>Patient doesn't have any problem diagnosis yet!</div>)}
+              : <div className="nodata d-flex justify-content-center align-items-center p-2"><LegacyIcon icon="mdi-information-outline" className="me-2" style={{ fontSize: '1.2rem' }}/>Patient doesn't have any problem diagnosis yet!</div>)}
             {!loading && tab === 'encounter' && (lists.encounterDiagnosisList.length
               ? lists.encounterDiagnosisList.map((enc, encIndex) => (
                   <div key={encIndex} className="d-flex mx-2 my-2 flex-column">
@@ -105,7 +106,7 @@ const DiagnosisPicker = ({ patientId, value, onChange, title = 'Clinical Indicat
                     ))}
                   </div>
                 ))
-              : <div className="nodata d-flex justify-content-center align-items-center p-2"><i className="mdi mdi-information-outline me-2" style={{ fontSize: '1.2rem' }}/>Patient doesn't have any encounter diagnosis yet!</div>)}
+              : <div className="nodata d-flex justify-content-center align-items-center p-2"><LegacyIcon icon="mdi-information-outline" className="me-2" style={{ fontSize: '1.2rem' }}/>Patient doesn't have any encounter diagnosis yet!</div>)}
           </div>
         </div>)}
       </div>

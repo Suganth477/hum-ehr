@@ -1,4 +1,4 @@
-/* Patient Profile — styles carried over from patient-profile-template.jsp */
+﻿/* Patient Profile â€” styles carried over from patient-profile-template.jsp */
 
 .patient-profile-node .patient-profile-toggle-group .nav-link {
     color: black;
@@ -47,7 +47,7 @@
     align-items: center;
     white-space: nowrap;
 }
-.pp-edit-btn .mdi { line-height: normal !important; }
+.pp-edit-btn .pi { line-height: normal !important; }
 .pp-edit-btn-outline {
     color: var(--app-color4, #189FAA) !important;
     border-radius: 6px !important;
@@ -73,7 +73,7 @@
     background: #DBF6F8;
 }
 
-/* Demographics edit — section timeline */
+/* Demographics edit â€” section timeline */
 .pp-demographics-sections {
     border-radius: 12px;
     border: 1px solid #D7DDE3;

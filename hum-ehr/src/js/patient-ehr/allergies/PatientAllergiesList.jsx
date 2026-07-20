@@ -6,6 +6,7 @@ import { DEBOUNCE_ALLERGY_LIST_MS } from '../../../constants/timing';
 import { useNotify } from '../../../context/NotificationContext';
 import { useIsTabletOrBelow } from '../../../hooks/useMediaQuery';
 import NoDataAvailable from '../../../components/NoDataAvailable';
+import { LegacyIcon, AllergyIcon, PrescriptionBottleIcon, BowlFoodIcon, BuildingsIcon, PawIcon } from '../../../components/common/CustomIcons';
 
 const swalTheme = Swal.mixin({
     customClass: {
@@ -20,16 +21,26 @@ const swalTheme = Swal.mixin({
     reverseButtons: false,
     allowOutsideClick: false,
 });
-const ALLERGY_TYPE_ICONS = {
-    DRUG: 'fa-prescription-bottle-medical',
-    FOOD: 'fa-bowl-food',
-    ENVI: 'fa-buildings',
+// Custom SVGs (named comps) + LegacyIcon reproduce the original FontAwesome
+// allergy-type glyphs (ellipsis, ban). Fallback = AllergyIcon.
+const ALLERGY_TYPE_SVG = {
+    DRUG: PrescriptionBottleIcon,
+    FOOD: BowlFoodIcon,
+    ENVI: BuildingsIcon,
+    ANIM: PawIcon,
+};
+const ALLERGY_TYPE_FA = {
     AOTH: 'fa-ellipsis',
-    ANIM: 'fa-paw',
     NKA: 'fa-ban',
     NKDA: 'fa-ban',
 };
-const AllergyTypeIcon = ({ code }) => (<i className={`fa-solid ${(code && ALLERGY_TYPE_ICONS[code]) || 'fa-hand-dots'} me-2 pa-allergy-icon`}/>);
+const AllergyTypeIcon = ({ code }) => {
+    const SvgIcon = code && ALLERGY_TYPE_SVG[code];
+    if (SvgIcon) return <SvgIcon className="me-2 pa-allergy-icon"/>;
+    const fa = code && ALLERGY_TYPE_FA[code];
+    if (fa) return <LegacyIcon icon={fa} className="me-2 pa-allergy-icon"/>;
+    return <AllergyIcon className="me-2 pa-allergy-icon"/>;
+};
 const NoAllergyData = ({ recordType, showDeleted }) => {
     const label = recordType === 'active' ? 'active allergies' : showDeleted ? 'deleted allergies' : 'history of allergies';
     return (<NoDataAvailable desc={`No ${label} recorded yet!`} />);
@@ -183,12 +194,12 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
                   </div>
                   <div className="d-flex align-items-center gap-1">
                     {recordType === 'active' && (<>
-                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Edit" onClick={() => onEdit?.(record)}><i className="fa-regular fa-pencil"/></button>
-                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Delete" onClick={() => handleDelete(record)}><i className="fa-regular fa-trash-can"/></button>
+                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Edit" onClick={() => onEdit?.(record)}><LegacyIcon icon="fa-pencil"/></button>
+                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Delete" onClick={() => handleDelete(record)}><LegacyIcon icon="fa-trash-can"/></button>
                       </>)}
                     {isDeletedHistoryRecord && (<>
-                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Recover/Edit" onClick={() => onRecoverEdit?.(record)}><i className="fa-regular fa-pencil"/></button>
-                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Recover" onClick={() => handleRecover(record)}><i className="fa-regular fa-rotate"/></button>
+                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Recover/Edit" onClick={() => onRecoverEdit?.(record)}><LegacyIcon icon="fa-pencil"/></button>
+                        <button type="button" className="btn btn-default border-0 action-icon p-1" title="Recover" onClick={() => handleRecover(record)}><LegacyIcon icon="fa-rotate"/></button>
                       </>)}
                   </div>
                 </div>
@@ -274,18 +285,18 @@ const PatientAllergiesList = ({ patientId, recordType, showDeleted, searchTerm, 
                     <div className="d-flex align-items-center gap-2">
                       {recordType === 'active' && (<>
                           <button type="button" className="btn btn-default border-0 action-icon ms-2 d-block pa-edit-recover-allergy-details" data-action="edit" title="Edit" onClick={() => onEdit?.(record)}>
-                            <i className="fa-regular fa-pencil"/>
+                            <LegacyIcon icon="fa-pencil"/>
                           </button>
                           <button type="button" className="btn btn-default border-0 pa-delete-allergy-details action-icon" data-action="delete" title="Delete" onClick={() => handleDelete(record)}>
-                            <i className="fa-regular fa-trash-can"/>
+                            <LegacyIcon icon="fa-trash-can"/>
                           </button>
                         </>)}
                       {isDeletedHistoryRecord && (<>
                           <button type="button" className="btn btn-default border-0 pa-edit-recover-allergy-details action-icon" data-action="recover" title="Recover/Edit" onClick={() => onRecoverEdit?.(record)}>
-                            <i className="fa-regular fa-pencil"/>
+                            <LegacyIcon icon="fa-pencil"/>
                           </button>
                           <button type="button" className="btn btn-default border-0 pa-edit-recover-allergy-details action-icon" data-action="recover" title="Recover" onClick={() => handleRecover(record)}>
-                            <i className="fa-regular fa-rotate"/>
+                            <LegacyIcon icon="fa-rotate"/>
                           </button>
                         </>)}
                     </div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import { fetchPreferencesList } from '../../../services/preferencesService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const relativeTime = (value) => {
@@ -53,7 +54,7 @@ const PatientPreferencesList = ({ patientId, recordType, preferencesType, lookup
     if (!records.length)
         return (<div className="list-wrapper pc-no-list-data-container">
           <div className="nodata d-flex justify-content-center align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>No preferences recorded.</div>
           </div>
         </div>);

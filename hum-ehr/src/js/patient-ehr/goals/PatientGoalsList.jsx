@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import { extractAllGoals, fetchPatientGoals, fetchSdohGoals, mapSdohGoalsList } from '../../../services/goalService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const relativeTime = (value) => {
@@ -64,7 +65,7 @@ const PatientGoalsList = ({ patientId, recordType, goalType, searchTerm, showDel
     if (!records.length)
         return (<div className="list-wrapper pc-no-list-data-container">
           <div className="nodata d-flex justify-content-center align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>No goals recorded.</div>
           </div>
         </div>);

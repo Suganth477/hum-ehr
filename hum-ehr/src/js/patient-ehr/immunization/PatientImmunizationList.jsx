@@ -3,6 +3,7 @@ import moment from '../../../utils/dayjs';
 import { fetchPatientImmunizations } from '../../../services/immunizationService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon, NotesMedicalIcon } from '../../../components/common/CustomIcons';
 
 const relativeTime = (value) => {
     if (!value) return '';
@@ -50,7 +51,7 @@ const PatientImmunizationList = ({ patientId, recordType, searchTerm, refreshKey
     if (!records.length)
         return (<div className="list-wrapper pc-no-list-data-container">
           <div className="nodata d-flex justify-content-start align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>Patient doesn't have any {recordType === 'active' ? 'active' : 'scheduled'} immunization yet!</div>
           </div>
         </div>);
@@ -61,7 +62,7 @@ const PatientImmunizationList = ({ patientId, recordType, searchTerm, refreshKey
         const name = (record.vaccineName || '').slice(0, 50) + ((record.vaccineName || '').length > 50 ? '...' : '');
         return (<div key={record.id} className={`row immunization-each-vaccine-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
             <div className="col-md-9 vaccine-name text-capitalize pe-0">
-              {record.sourceType === 'CPLNEMR' && <i className="fa-solid fa-notes-medical me-1 text-info" title="EMR Entry"/>}
+              {record.sourceType === 'CPLNEMR' && <span className="me-1 text-info" title="EMR Entry"><NotesMedicalIcon/></span>}
               {name}
             </div>
             <div className="col-md-3 pe-0">

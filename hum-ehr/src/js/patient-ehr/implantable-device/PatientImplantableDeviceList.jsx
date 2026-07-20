@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import { fetchImplantDeviceList } from '../../../services/implantDeviceService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const dateOnly = (value) => (value ? moment(value).format('MM-DD-YYYY') : '');
@@ -60,7 +61,7 @@ const PatientImplantableDeviceList = ({ patientId, recordType, invalidFlag, sear
         else message = `Patient doesn't have any ${recordType === 'history' ? 'inactive' : 'active'} implantable device yet!`;
         return (<div className="list-wrapper pc-no-list-data-container" style={{ color: '#9e9b9b' }}>
           <div className="nodata d-flex justify-content-start align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>{message}</div>
           </div>
         </div>);

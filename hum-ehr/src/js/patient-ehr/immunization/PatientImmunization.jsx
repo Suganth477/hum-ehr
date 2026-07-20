@@ -8,6 +8,7 @@ import { fetchPhysiciansInCareGroup } from '../../../services/lookupService';
 import { fetchPatientDetails } from '../../../services/patientService';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientImmunization.css';
 
 const EMPTY_REFERENCE = { vaccines: [], routes: [], doseForms: [], units: [] };
@@ -88,13 +89,13 @@ const PatientImmunization = ({ patientId }) => {
               </ul>
             </div>
             <button type="button" className="pc-add-new-immunization-btn pc-add-new-section-details-btn btn btn-primary btn-md border-radius-button" onClick={() => openAddEdit(null)}>
-              <span className="mdi mdi-plus mdi-s-20"/> Add Vaccine
+              <LegacyIcon icon="mdi-plus" className="icon-size-20"/> Add Vaccine
             </button>
           </div>
           <div className="search-immunization-container icon-input-group pc-search-input-container mt-2">
             <div className="position-relative">
               <input id={`search_immunization_device_name_${patientId}`} type="text" className="form-control search-immunization-name text-capitalize" placeholder="Search Immunization" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}/>
-              <span className="mdi mdi-magnify input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
+              <LegacyIcon icon="mdi-magnify" className="input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
             </div>
           </div>
         </div>

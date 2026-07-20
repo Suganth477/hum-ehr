@@ -8,6 +8,7 @@ import { useLayout } from '../../context/LayoutContext';
 import { useNotify } from '../../context/NotificationContext';
 import { useIsTabletOrBelow } from '../../hooks/useMediaQuery';
 import { SkeletonTable } from '../../components/common/ContentLoader';
+import { LegacyIcon } from '../../components/common/CustomIcons';
 import './ActivePatientsList.css';
 
 // PatientChart (+ its 12 code-split sections) loads only when a patient tab opens.
@@ -139,12 +140,12 @@ const ActivePatientsList = ({ activeTab, onOpenTab }) => {
 					<div className="patient-chart-header-search-input-group">
 						<div className="patient-chart-search-input-icon-container">
 							<input type="text" name="patient_chart_patient_list_search_input" id="patient_chart_patient_list_search_input" maxLength={25} className="form-control text-capitalize" placeholder="Search Patient Name" value={filters.search} onChange={(event) => updateFilter('search', event.target.value)} />
-							<i className="fa fa-solid fa-magnifying-glass mdi mdi-magnify input-icon" />
+							<LegacyIcon icon="fa-magnifying-glass" className="input-icon" />
 						</div>
 					</div>
 					<div className="patient-chart-header-action-container d-flex gap-3 align-items-center">
 						<button className="btn btn-primary mt-1 btn-md border-radius-button border-0 d-flex align-items-center gap-2" type="button" id="patient_chart_add_new_patient_btn_id" onClick={() => console.warn('Create New Patient workflow is not migrated yet.')}>
-							<span className="mdi mdi-plus" />
+							<LegacyIcon icon="mdi-plus" />
 							<span>Create New Patient</span>
 						</button>
 					</div>
@@ -158,7 +159,7 @@ const ActivePatientsList = ({ activeTab, onOpenTab }) => {
 						<div className="card-body p-2">
 							<div className="d-flex justify-content-between align-items-start gap-2">
 								{nameBodyTemplate(patient)}
-								<span className="mdi mdi-dots-vertical action-group-icon" />
+								<LegacyIcon icon="mdi-dots-vertical" className="action-group-icon" />
 							</div>
 							<div className="row g-1 small mt-1">
 								<div className="col-6"><span className="text-muted">Gender:</span> {patient.gender || '-'}</div>
@@ -179,7 +180,7 @@ const ActivePatientsList = ({ activeTab, onOpenTab }) => {
 					<Column header="Phone Number" style={{ width: '200px' }} body={phoneBodyTemplate} />
 					<Column field="emrId" header="EMR Id" sortable style={{ width: '120px' }} body={(row) => <div className="table-data text-uppercase">{row.emrId}</div>} />
 					<Column field="medicareNumber" header="Medicare Number" style={{ width: '150px' }} body={(row) => <div className="table-data text-uppercase">{row.medicareNumber}</div>} />
-					<Column header="Action" style={{ width: '100px' }} body={() => <span className="mdi mdi-dots-vertical action-group-icon" />} />
+					<Column header="Action" style={{ width: '100px' }} body={() => <LegacyIcon icon="mdi-dots-vertical" className="action-group-icon" />} />
 				</DataTable></div>)}
 		</div>
 	</div>);

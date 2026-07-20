@@ -9,6 +9,7 @@ import {
 } from '../../../services/documentsService';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientDocuments.css';
 
 /**
@@ -99,11 +100,11 @@ const PatientDocuments = ({ patientId }) => {
       <div className="pd-patient-documents-main-header container-fluid d-flex justify-content-end align-items-center gap-2 mt-2 px-0">
         <div className="position-relative">
           <input id={`pc_search_document_input_${patientId}`} type="text" className="form-control" placeholder="Search Documents" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-          <span className="mdi mdi-magnify search-input-icon"/>
+          <LegacyIcon icon="mdi-magnify" className="search-input-icon"/>
         </div>
-        <button type="button" className="pd-patient-documents-filter-icon btn btn-default" onClick={() => setFilterOpen(true)}><i className="fa-regular fa-filter"/> Filter</button>
+        <button type="button" className="pd-patient-documents-filter-icon btn btn-default" onClick={() => setFilterOpen(true)}><LegacyIcon icon="fa-filter"/> Filter</button>
         <button type="button" className="pc-add-new-documents-btn btn btn-primary btn-md border-radius-button" onClick={() => setDialog({ type: 'addEdit', record: null })}>
-          <span className="mdi mdi-plus"/> Add Documents
+          <LegacyIcon icon="mdi-plus"/> Add Documents
         </button>
       </div>
 
@@ -128,7 +129,7 @@ const PatientDocuments = ({ patientId }) => {
           <div className="pc-patient-document-category-filter-container flex-grow-1">
             <div className="form-group filter-search-underline m-0 mt-2 position-relative">
               <input type="text" id={`pc_patient_document_category_filter_search_${patientId}`} className="form-control" placeholder="Category" value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)}/>
-              <i className="fa fa-solid fa-magnifying-glass position-absolute" style={{ right: 8, top: 10 }}/>
+              <LegacyIcon icon="fa-magnifying-glass" className="position-absolute" style={{ right: 8, top: 10 }}/>
             </div>
             {(categorySearch || draftChecked.length > 0) && (
               <span className="float-end clear-filter" style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={clearCategoryFilter}>Clear</span>

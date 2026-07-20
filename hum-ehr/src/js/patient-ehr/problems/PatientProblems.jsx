@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Sidebar } from 'primereact/sidebar';
 import PatientProblemsList from './PatientProblemsList';
 import PatientProblemsAddEdit from './PatientProblemsAddEdit';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { fetchProblemStatusMetadata } from '../../../services/lookupService';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
@@ -93,16 +94,16 @@ const PatientProblems = ({ patientId }) => {
 
                 <div className="pp-problems-header-search-input-group position-relative ms-2">
                   <input id={`pa_search_problem_input_${patientId}`} type="text" className="form-control pa-search-problem-input" placeholder="Search problems" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}/>
-                  <i className="fa fa-solid fa-magnifying-glass position-absolute end-0 top-50 translate-middle-y me-2 text-muted"/>
+                  <LegacyIcon icon="fa-magnifying-glass" className="position-absolute end-0 top-50 translate-middle-y me-2 text-muted"/>
                 </div>
               </div>
 
               <div className="pp-problems-header-action-icons-container d-flex align-items-center gap-2">
                 <button type="button" className="btn pp-diagnosis-filter-icon-btn d-flex align-items-center gap-2 btn-md border-0" onClick={() => setFilterVisible(true)}>
-                  <span className="mdi mdi-filter-variant"/>Filter
+                  <LegacyIcon icon="mdi-filter-variant"/>Filter
                 </button>
                 {recordType !== 'history' && (<button type="button" className="pa-add-new-problem-btn btn btn-primary btn-md border-radius-button text-nowrap" id={`pp_add_new_problem_btn_${patientId}`} onClick={() => openAddEdit(null, 'create')}>
-                    <span className="mdi mdi-plus"/> Add Problem
+                    <LegacyIcon icon="mdi-plus"/> Add Problem
                   </button>)}
               </div>
             </div>

@@ -4,6 +4,7 @@ import { buildImplantDeviceExplantPayload, saveImplantDeviceExplant } from '../.
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const dateOnly = (value) => (value ? moment(value).format('MM-DD-YYYY') : '');
 
@@ -71,7 +72,7 @@ const PatientImplantableDeviceExplant = ({ patientId, record, onClose }) => {
         </div>
       </div>
 
-      {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+      {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
       <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
         <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>

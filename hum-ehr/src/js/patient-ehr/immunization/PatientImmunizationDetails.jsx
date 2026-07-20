@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { buildImmunizationDeletePayload, deleteImmunization } from '../../../services/immunizationService';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const PatientImmunizationDetails = ({ patientId, recordType, record, onEdit, onDeleted }) => {
     const [showMore, setShowMore] = useState(false);
@@ -9,7 +10,7 @@ const PatientImmunizationDetails = ({ patientId, recordType, record, onEdit, onD
 
     if (!record)
         return (<div className="list-wrapper my-5" style={{ padding: '30px 20px', textAlign: 'center' }}>
-          <div className="nodata"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
+          <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
             <span style={{ fontSize: 20 }}> Patient doesn't have any {recordType === 'active' ? 'active' : 'scheduled'} immunization yet!</span>
           </div>
         </div>);
@@ -42,8 +43,8 @@ const PatientImmunizationDetails = ({ patientId, recordType, record, onEdit, onD
       <div className="row mx-3 my-4 mb-4">
         <div className="col-md-11 vaccine-name fw-bold patient-chart-list-selected-item-title text-capitalize">{record.vaccineName}</div>
         <div className="col-md-1 vaccine-action-icons d-flex gap-2">
-          <span className="mdi mdi-pencil vaccine-edit-device-icon" role="button" title="Edit Vaccine" onClick={() => onEdit(record)}/>
-          <span className={`mdi mdi-delete vaccine-delete-device-icon ${deleting ? 'disabled' : ''}`} role="button" title="Delete Vaccine" onClick={deleting ? undefined : handleDelete}/>
+          <LegacyIcon icon="mdi-pencil" className="vaccine-edit-device-icon" role="button" title="Edit Vaccine" onClick={() => onEdit(record)}/>
+          <LegacyIcon icon="mdi-delete" className={`vaccine-delete-device-icon ${deleting ? 'disabled' : ''}`} role="button" title="Delete Vaccine" onClick={deleting ? undefined : handleDelete}/>
         </div>
       </div>
 

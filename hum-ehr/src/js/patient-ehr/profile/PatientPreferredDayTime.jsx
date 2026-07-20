@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import { getPatientDetails, refreshPatientDetails, savePreferredDayTime, convert24To12 } from '../../../services/patientProfileService';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -169,7 +170,7 @@ const PatientPreferredDayTime = ({ patientId }) => {
                 </tbody>
               </table>
             </div>
-            <span role="button" title="Edit Preferred Day and Time" onClick={openEdit}><span className="mdi mdi-pencil" style={{ fontSize: 18 }}/></span>
+            <span role="button" title="Edit Preferred Day and Time" onClick={openEdit}><LegacyIcon icon="mdi-pencil" style={{ fontSize: 18 }}/></span>
           </div>
         </div>);
     }

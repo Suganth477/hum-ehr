@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchDocumentFiles } from '../../../services/documentsService';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 // Mirrors convertIntoBase64AndShowPdfInModal's format switch (default = pdf).
 const mimeFor = (fileFormat) => {
@@ -93,7 +94,7 @@ const PatientDocumentsView = ({ record, categories }) => {
           </>) : (
             <div className="col-md-12 pc-patient-documents-no-documents">
               <div className="border-section m-5 p-5 text-center">
-                <div className="row"><div className="no-data-icon text-center"><i className="fa-regular fa-circle-exclamation"/></div></div>
+                <div className="row"><div className="no-data-icon text-center"><LegacyIcon icon="fa-circle-exclamation"/></div></div>
                 No Documents Uploaded.
               </div>
             </div>

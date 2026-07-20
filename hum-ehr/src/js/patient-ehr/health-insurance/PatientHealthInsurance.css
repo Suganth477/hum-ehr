@@ -1,4 +1,4 @@
-/* Health Insurance — styles ported from common-second-template.jsp
+﻿/* Health Insurance â€” styles ported from common-second-template.jsp
    (main + view-details templates). List/detail rows reuse the shared
    pc-list-each-details / patient-chart classes. */
 
@@ -44,7 +44,7 @@
     margin-bottom: 10px;
     color: var(--app-color20, #37474f);
 }
-.show-details-main-container .icon-container .mdi {
+.show-details-main-container .icon-container .pi {
     cursor: pointer;
     font-size: 18px;
 }
@@ -54,7 +54,7 @@
 .show-details-main-container .icon-container.disabled {
     cursor: not-allowed !important;
 }
-.show-details-main-container .icon-container.disabled .mdi {
+.show-details-main-container .icon-container.disabled .pi {
     pointer-events: none;
     opacity: 0.5;
 }

@@ -8,6 +8,7 @@ import {
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const dateOnly = (value) => (value ? moment(value).format('MM-DD-YYYY') : '');
 const md = (d) => (d ? moment(d, 'MM-DD-YYYY', true) : null);
@@ -227,7 +228,7 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
             <FlatpickrDateTimeInput value={form.implantDate} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={implantMin} maxDate={implantMax}
               onChange={(v) => { update({ implantDate: v }); clearError('implantDate'); }}/>
             {form.expiryDate && form.implantDate && md(form.expiryDate)?.isSame(md(form.implantDate), 'day') && (
-              <p className="implantation-alert-message m-0 mt-2"><i className="fa fa-exclamation-triangle"/> <b>Device is expiring on the implantation date, Please verify.</b></p>
+              <p className="implantation-alert-message m-0 mt-2"><LegacyIcon icon="fa-exclamation-triangle"/> <b>Device is expiring on the implantation date, Please verify.</b></p>
             )}
             <FieldError message={errors.implantDate}/>
           </div>
@@ -255,8 +256,8 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
           <div className="col-12 d-flex align-items-center gap-4">
             <div className="form-check"><label className="form-check-label pcid-label-name"><input className="form-check-input me-1" type="radio" name="implantLink" checked={linkMode === 'PROCEDURE'} onChange={() => setLinkMode('PROCEDURE')}/> Procedure Entry</label></div>
             <div className="form-check"><label className="form-check-label pcid-label-name"><input className="form-check-input me-1" type="radio" name="implantLink" checked={linkMode === 'SURGICAL'} onChange={() => setLinkMode('SURGICAL')}/> Surgical History</label></div>
-            {linkMode === 'PROCEDURE' && <button type="button" className="btn btn-sm btn-outline-secondary" disabled={addNewDisabled} title="Available after the Procedure section is migrated"><span className="mdi mdi-plus"/> Add New Procedure</button>}
-            {linkMode === 'SURGICAL' && <button type="button" className="btn btn-sm btn-outline-secondary" disabled={addNewDisabled} title="Available after the Surgical History section is migrated"><span className="mdi mdi-plus"/> Add Surgical History</button>}
+            {linkMode === 'PROCEDURE' && <button type="button" className="btn btn-sm btn-outline-secondary" disabled={addNewDisabled} title="Available after the Procedure section is migrated"><LegacyIcon icon="mdi-plus"/> Add New Procedure</button>}
+            {linkMode === 'SURGICAL' && <button type="button" className="btn btn-sm btn-outline-secondary" disabled={addNewDisabled} title="Available after the Surgical History section is migrated"><LegacyIcon icon="mdi-plus"/> Add Surgical History</button>}
           </div>
           {!!form.procedureChips.length && (<div className="col-md-6 pcid-show-selected-implant-procedure-list-container">
             {form.procedureChips.map((c) => (<div key={c.id} className="pcid-selected-link-chip p-2 my-1 d-flex justify-content-between align-items-center">
@@ -301,7 +302,7 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
         </div>)}
       </div>
 
-      {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+      {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
       {duplicatePrompt && (<div className="alert alert-warning mt-2">
         This device appears to already exist for the patient. Add it anyway?

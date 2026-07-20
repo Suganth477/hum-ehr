@@ -6,6 +6,7 @@ import {
 } from '../../../services/patientProfileService';
 import US_STATES from '../../../constants/usStates';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -144,11 +145,11 @@ const PatientAddressInformation = ({ patientId }) => {
     return (<div className="ps-md-2">
       <div className="pp-address-card p-2 mt-3">
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 px-2">
-          <div className="fw-bold"><i className="fa-solid fa-house me-2"/>Current Address</div>
+          <div className="fw-bold"><LegacyIcon icon="fa-house" className="me-2"/>Current Address</div>
           <div className="d-flex align-items-center gap-2">
             <button type="button" className="btn btn-primary border-radius-button" style={{ width: 'auto' }} onClick={() => openDialog(false)}>Add New Address</button>
             <button type="button" className="btn pp-edit-btn-outline" title="Edit Address Information" onClick={() => openDialog(true)}>
-              <span className="mdi mdi-pencil me-1"/>Edit
+              <LegacyIcon icon="mdi-pencil" className="me-1"/>Edit
             </button>
           </div>
         </div>
@@ -156,12 +157,12 @@ const PatientAddressInformation = ({ patientId }) => {
       </div>
 
       <div className="pp-address-card p-2 mt-3">
-        <div className="fw-bold px-2"><i className="fa-solid fa-house me-2"/>Previous Address</div>
+        <div className="fw-bold px-2"><LegacyIcon icon="fa-house" className="me-2"/>Previous Address</div>
         {previousAddresses.length === 0 && <div className="text-muted px-3 py-2">-</div>}
         {previousAddresses.map((address, index) => (
           <div className="d-flex mt-2" key={address.addressId || index}>
             <div className="d-flex flex-column gap-2 align-items-center" style={{ margin: '3px 0px 0px 6px' }}>
-              <span className="mdi mdi-circle pp-prev-address-dot"/>
+              <LegacyIcon icon="mdi-circle" className="pp-prev-address-dot"/>
               <div className="pp-prev-address-line"/>
             </div>
             <div className="flex-grow-1"><AddressRow address={address} isPrevious/></div>
@@ -200,7 +201,7 @@ const PatientAddressInformation = ({ patientId }) => {
             <div className="col-md-4">
               <label>Zip Code</label>
               <input type="text" className="form-control" placeholder="Zip Code" maxLength={5} value={form.zipCode} onChange={(e) => handleZipChange(e.target.value.replace(/\D/g, ''))}/>
-              {zipInvalid && <div className="small text-danger mt-1"><i className="fa fa-exclamation-triangle me-1"/><b>Invalid Zip Code</b></div>}
+              {zipInvalid && <div className="small text-danger mt-1"><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/><b>Invalid Zip Code</b></div>}
               <FieldError message={errors.zipCode}/>
             </div>
             <div className="col-md-4">

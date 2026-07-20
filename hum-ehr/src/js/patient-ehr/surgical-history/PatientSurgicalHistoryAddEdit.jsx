@@ -13,6 +13,7 @@ import patientCache from '../../../utils/patientCache';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import UniversalFileUploader from '../../../components/common/UniversalFileUploader';
 import DiagnosisPicker from '../../../components/common/DiagnosisPicker';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
@@ -160,7 +161,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
     return (<div className="pc-patient-surgical-history-add-edit-main-container">
       <div className="mb-3 d-flex align-items-center gap-2">
         <span role="button" onClick={() => { if (window.confirm('Are you sure about to exit surgical history form?')) onClose(false); }}>
-          <i className="mdi mdi-arrow-left" style={{ fontSize: 20 }}/>
+          <LegacyIcon icon="mdi-arrow-left" style={{ fontSize: 20 }}/>
         </span>
         <span className="fw-bold">{isEdit ? 'Edit Surgical History' : 'Add Surgical History'}</span>
       </div>
@@ -226,7 +227,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
           </div>
         </fieldset>
 
-        {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+        {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
         <div className="d-flex justify-content-end gap-3 m-3">
           <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" style={{ width: 150 }} disabled={saving}

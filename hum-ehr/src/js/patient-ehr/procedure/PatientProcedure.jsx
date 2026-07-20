@@ -5,6 +5,7 @@ import PatientProcedureAddEdit from './PatientProcedureAddEdit';
 import { fetchProcedureReferenceData } from '../../../services/procedureService';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientProcedure.css';
 
 const EMPTY_REFERENCE = { statuses: [], outcomes: [], categories: [], followUpTypes: [] };
@@ -62,19 +63,19 @@ const PatientProcedure = ({ patientId }) => {
         <div className="col-md-3 pcps-patient-procedure-main-list-container pc-left-side-main-container">
           <div className="container-fluid p-0 my-2">
             {!searchOpen && (<div className="toggle-and-add-btn-container d-flex justify-content-end align-items-center gap-3">
-              <div className="pc-search-icon-container" role="button" onClick={() => setSearchOpen(true)}><span className="mdi mdi-magnify" style={{ fontSize: 20 }}/></div>
+              <div className="pc-search-icon-container" role="button" onClick={() => setSearchOpen(true)}><LegacyIcon icon="mdi-magnify" style={{ fontSize: 20 }}/></div>
               <button type="button" className="pcps-patient-add-procedure-btn" onClick={() => openAddEdit(null)}>
-                <span className="mdi mdi-plus mdi-s-20"/> Add Procedure
+                <LegacyIcon icon="mdi-plus" className="icon-size-20"/> Add Procedure
               </button>
             </div>)}
             {searchOpen && (<div className="icon-input-group pc-search-input-container">
               <div className="row align-items-center">
                 <div className="col-md-1">
-                  <span className="mdi mdi-arrow-left back-to-icon" role="button" onClick={() => { setSearchOpen(false); setSearchTerm(''); }}/>
+                  <LegacyIcon icon="mdi-arrow-left" className="back-to-icon" role="button" onClick={() => { setSearchOpen(false); setSearchTerm(''); }}/>
                 </div>
                 <div className="col-md-11 position-relative">
                   <input type="text" id={`pcps_procedure_search_input_${patientId}`} placeholder="Search Procedure" className="form-control" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-                  <span className="mdi mdi-magnify input-icon" style={{ position: 'absolute', right: 18, top: 6 }}/>
+                  <LegacyIcon icon="mdi-magnify" className="input-icon" style={{ position: 'absolute', right: 18, top: 6 }}/>
                 </div>
               </div>
             </div>)}

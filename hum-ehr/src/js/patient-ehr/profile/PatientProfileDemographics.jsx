@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getPatientDetails, calculatePatientBMI } from '../../../services/patientProfileService';
 import PatientProfileDemographicsEdit from './PatientProfileDemographicsEdit';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
+import { AccountQuestionIcon, HumanHeightIcon, LegacyIcon } from '../../../components/common/CustomIcons';
 
 const VIEW_TABS = [
     { key: 'patient_information', label: 'Patient Details' },
@@ -20,7 +21,7 @@ const Field = ({ label, value, className = '' }) => (
 
 const EditButton = ({ title, section, onEdit }) => (
     <button type="button" className="btn pp-edit-btn" title={title} onClick={() => onEdit(section)}>
-      <span className="mdi mdi-pencil me-1"/>Edit
+      <LegacyIcon icon="mdi-pencil" className="me-1"/>Edit
     </button>
 );
 
@@ -74,7 +75,7 @@ const PatientProfileDemographics = ({ patientId }) => {
           </div>
           <div className="col-md-10">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <div className="fw-bold"><i className="fa-solid fa-user me-2"/>Patient Information</div>
+              <div className="fw-bold"><LegacyIcon icon="fa-user" className="me-2"/>Patient Information</div>
               <EditButton title="Edit Patient Demographics" section="patient_information" onEdit={setEditSection}/>
             </div>
             <div className="row mx-md-3 mb-2">
@@ -91,7 +92,7 @@ const PatientProfileDemographics = ({ patientId }) => {
           </div>
         </div>
         <div className="mt-3">
-          <div className="fw-bold mb-2"><span className="mdi mdi-account-group-outline me-2"/>Race &amp; Ethnicity</div>
+          <div className="fw-bold mb-2"><LegacyIcon icon="mdi-account-group-outline" className="me-2"/>Race &amp; Ethnicity</div>
           <div className="row mx-md-3">
             <Field label="Race" value={raceText} className="text-capitalize"/>
             <Field label="Ethnicity" value={ethnicityText} className="text-capitalize"/>
@@ -102,7 +103,7 @@ const PatientProfileDemographics = ({ patientId }) => {
 
       {viewTab === 'patient_identity_information' && (<div className="px-3">
         <div className="d-flex justify-content-between align-items-center mb-2">
-          <div className="fw-bold"><span className="mdi mdi-account-question-outline me-2"/>Identity Information</div>
+          <div className="fw-bold"><AccountQuestionIcon className="me-2"/>Identity Information</div>
           <EditButton title="Edit Identity Information" section="patient_identity_information" onEdit={setEditSection}/>
         </div>
         <div className="row mx-md-3 my-3">
@@ -111,7 +112,7 @@ const PatientProfileDemographics = ({ patientId }) => {
           <Field label="Sexual Orientation" value={details.sexualOrientationDesc}/>
           <Field label="Sex Parameter for Clinical Use" value={details.sexParameterClinicalUseDesc} className="text-capitalize"/>
         </div>
-        <div className="fw-bold mb-2"><span className="mdi mdi-account-details-outline me-2"/>Additional Information</div>
+        <div className="fw-bold mb-2"><LegacyIcon icon="mdi-account-details-outline" className="me-2"/>Additional Information</div>
         <div className="row mx-md-3 my-3">
           <Field label="Name Suffix" value={details.suffixName}/>
           <Field label="Previous Name" value={details.previousName}/>
@@ -121,7 +122,7 @@ const PatientProfileDemographics = ({ patientId }) => {
 
       {viewTab === 'patient_physical_information' && (<div className="px-3">
         <div className="d-flex justify-content-between align-items-center mb-2">
-          <div className="fw-bold"><span className="mdi mdi-human-male-height me-2"/>Physical Information</div>
+          <div className="fw-bold"><HumanHeightIcon className="me-2"/>Physical Information</div>
           <EditButton title="Edit Physical Information" section="patient_physical_information" onEdit={setEditSection}/>
         </div>
         <div className="row mx-md-3 my-3">
@@ -133,7 +134,7 @@ const PatientProfileDemographics = ({ patientId }) => {
 
       {viewTab === 'patient_employment_information' && (<div className="px-3">
         <div className="d-flex justify-content-between align-items-center mb-2">
-          <div className="fw-bold"><span className="mdi mdi-briefcase-outline me-2"/>Occupational Information</div>
+          <div className="fw-bold"><LegacyIcon icon="mdi-briefcase-outline" className="me-2"/>Occupational Information</div>
           <EditButton title="Edit Occupational Information" section="patient_employment_information" onEdit={setEditSection}/>
         </div>
         <div className="row mx-md-3 my-3">
@@ -146,7 +147,7 @@ const PatientProfileDemographics = ({ patientId }) => {
         <div className="my-2">
           <div className="pp-label pb-1">
             Patient Status - <span className="fw-bold text-body">{details.dateOfDeath ? 'Deceased' : 'Alive'}</span>
-            <span className="mdi mdi-pencil ms-2" role="button" title="Edit Mortality Information" onClick={() => setEditSection('patient_mortality_information')}/>
+            <LegacyIcon icon="mdi-pencil" className="ms-2" role="button" title="Edit Mortality Information" onClick={() => setEditSection('patient_mortality_information')}/>
           </div>
         </div>
         {details.dateOfDeath && (<div className="row my-3">

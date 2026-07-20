@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { deletePatientGoal, saveSdohGoal } from '../../../services/goalService';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 // Legacy goalRangeHtml
@@ -40,7 +41,7 @@ const PatientGoalsViewDetails = ({ patientId, goal, goalType, recordType, onEdit
 
     if (!goal)
         return (<div className="list-wrapper my-5" style={{ padding: '30px 20px', textAlign: 'center' }}>
-          <div className="nodata"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
+          <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
             <span style={{ fontSize: 20 }}> No goals recorded.</span>
           </div>
         </div>);
@@ -107,8 +108,8 @@ const PatientGoalsViewDetails = ({ patientId, goal, goalType, recordType, onEdit
       <div className="row mx-3 my-4 mb-4">
         <div className="col-md-11 view-goal-name fw-bold patient-chart-list-selected-item-title text-capitalize">{goalName}</div>
         <div className="col-md-1 goals-action-icons d-flex gap-2">
-          {showEdit && <span className="mdi mdi-pencil edit-goals-icon" title={`Edit ${isSdoh ? 'SDOH Goal' : 'Patient Goal'}`} role="button" onClick={() => onEdit(goal)}/>}
-          {showDelete && <span className={`mdi mdi-delete delete-goals-icon ${deleting ? 'disabled' : ''}`} title={`Delete ${isSdoh ? 'SDOH Goal' : 'Patient Goal'}`} role="button" onClick={deleting ? undefined : handleDelete}/>}
+          {showEdit && <LegacyIcon icon="mdi-pencil" className="edit-goals-icon" title={`Edit ${isSdoh ? 'SDOH Goal' : 'Patient Goal'}`} role="button" onClick={() => onEdit(goal)}/>}
+          {showDelete && <LegacyIcon icon="mdi-delete" className={`delete-goals-icon ${deleting ? 'disabled' : ''}`} title={`Delete ${isSdoh ? 'SDOH Goal' : 'Patient Goal'}`} role="button" onClick={deleting ? undefined : handleDelete}/>}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchPatientHealthInsurance } from '../../../services/healthInsuranceService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const PatientHealthInsuranceList = ({ patientId, recordType, showDeleted, refreshKey, selectedId, onSelect, onMeta, }) => {
@@ -47,7 +48,7 @@ const PatientHealthInsuranceList = ({ patientId, recordType, showDeleted, refres
             : !showDeleted ? "Patient doesn't have any health insurance history yet!" : "Patient Doesn't have any deleted health insurance";
         return (<div className="list-wrapper pc-no-list-data-container">
           <div className="nodata d-flex justify-content-start align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>{message}</div>
           </div>
         </div>);

@@ -4,6 +4,7 @@ import {
 } from '../../../services/preferencesService';
 import '../../../components/common/ContentLoader.css';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const NOTES_MAX = 200;
 
@@ -37,7 +38,7 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
 
     if (!record)
         return (<div className="preferences-details-main-container show-details-main-container list-wrapper my-5" style={{ padding: '30px 20px', textAlign: 'center' }}>
-          <div className="nodata"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/><span style={{ fontSize: 20 }}> No preferences recorded.</span></div>
+          <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/><span style={{ fontSize: 20 }}> No preferences recorded.</span></div>
         </div>);
 
     const lookupItem = (lookups || []).find((l) => l.code === record.code);
@@ -78,7 +79,7 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
       <div className="row mx-3 my-4">
         <div className="col-md-11 view-preferences-name fw-bold patient-chart-list-selected-item-title text-capitalize">{title}</div>
         <div className="col-md-1 preferences-action-icons d-flex gap-2">
-          {canEdit && !isDeleted && <span className="mdi mdi-pencil edit-preferences-icon" role="button" title={`Edit ${PREFERENCES_DESC_MAP[preferencesType] || 'Preference'}`} onClick={() => onEdit(record)}/>}
+          {canEdit && !isDeleted && <LegacyIcon icon="mdi-pencil" className="edit-preferences-icon" role="button" title={`Edit ${PREFERENCES_DESC_MAP[preferencesType] || 'Preference'}`} onClick={() => onEdit(record)}/>}
         </div>
       </div>
 
@@ -130,7 +131,7 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
               {record.attachment.map((att, i) => (
                 <div key={att.attachmentId || i} className="pc-patient-preferences-each-file-container mb-1">
                   <span className="pc-patient-view-preferences-report pc-patient-view-upload-report" role="button" onClick={() => viewAttachment(att)}>
-                    <i className={`fa-regular ${((att.fileFormat || '').toLowerCase() === 'pdf') ? 'fa-file-pdf' : 'fa-file-lines'} me-1`}/>{att.fileName}
+                    <LegacyIcon icon={((att.fileFormat || '').toLowerCase() === 'pdf') ? 'fa-file-pdf' : 'fa-file-lines'} className="me-1"/>{att.fileName}
                   </span>
                 </div>
               ))}

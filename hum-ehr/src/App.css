@@ -1,4 +1,4 @@
-
+﻿
 @charset "utf-8";
 @font-face {
     font-family: careapple;
@@ -138,8 +138,7 @@
    color: var(--app-color31) !important;
 }
 
-/** ==== material design icon size ==== **/
-.mdi{
+.pi {
    font-size: var(--app-font24);
    cursor: pointer;
 }
@@ -218,7 +217,7 @@
    color: var(--app-color2) !important;
 }
 
-.border-radius-button .mdi {
+.border-radius-button .pi {
    font-size: var(--app-font18) !important;
 }
 
@@ -267,13 +266,9 @@
 }
 
 .modal .modal-dialog .modal-content .modal-header-group .patient-details {
-   .mdi, svg.svg-inline--fa {
+   .pi {
       color: var(--app-color2) !important;
    }
-  svg.svg-inline--fa {
-      width: 24px;
-      height: 24px;
-  }
 }
    
 
@@ -501,7 +496,7 @@ table thead tr th {
    color: var(--app-color6);
 }
 
-/** ====== PrimeReact Paginator — theme overrides ====== **/
+/** ====== PrimeReact Paginator â€” theme overrides ====== **/
 
 /* Page number buttons */
 .p-paginator .p-paginator-page {
@@ -577,7 +572,7 @@ table thead tr th {
    border-radius: var(--app-border-radius8) !important;
 }
 
-/* Rows-per-page dropdown panel — remove unnecessary scroll */
+/* Rows-per-page dropdown panel â€” remove unnecessary scroll */
 .p-select-overlay,
 .p-dropdown-panel {
    overflow: hidden !important;
@@ -698,8 +693,7 @@ table tbody tr td {
    border-radius: 5px;
 }
 
-.action-icon-dropdown-group .action-icon-dropdown-menu-list li .action-icon,
-svg.svg-inline--fa {
+.action-icon-dropdown-group .action-icon-dropdown-menu-list li .action-icon {
    width: 16px;
    margin: 0px 5px;
    height: 16px;
@@ -1103,7 +1097,7 @@ Start of application quick access navbar styles
 }
 
 #application_quick_access_nav_container .app-quick-access-icon-section ul .app-quick-access-icon-list {
-   margin: 0px 5px;
+   margin: 5px;
    cursor: pointer;
 }
 
@@ -1190,7 +1184,7 @@ body.expanded-view #application_side_navigation_menu_container.toggled-2 #sideba
 
 #sidebar_wrapper .sidebar-nav li {
    text-indent: 5px;
-   line-height: 40px;
+   line-height: 40px !important;
 }
 
 #sidebar_wrapper .sidebar-nav li a {
@@ -1239,6 +1233,7 @@ body.expanded-view #application_side_navigation_menu_container.toggled-2 #sideba
 }
 
 #sidebar_wrapper .sidebar-nav .app-menu-icon {
+   margin-left: 8px;
    margin-right: 5px;
 }
 
@@ -1344,7 +1339,7 @@ body.expanded-view.ignore-menu-icon-view #application_body_container {
    height: 32px;
 }
 
-#application_main_header #app_main_header_list .icon-section .mdi {
+#application_main_header #app_main_header_list .icon-section .pi {
    margin: 0px 8px;
 }
 
@@ -1400,7 +1395,7 @@ body.expanded-view.ignore-menu-icon-view #application_body_container {
 	color: var(--app-color30);
 }
 
-.icon-input-group .mdi.mdi-close {
+.icon-input-group .pi.pi-times {
     top: -2px;
     position: absolute;
     right: 3px;
@@ -1462,7 +1457,7 @@ body.expanded-view.ignore-menu-icon-view #application_body_container {
    font-weight: 300;
 }
 
-.mdi-s-20{
+.icon-size-20{
    font-size: var(--app-font20) !important;
 }
 
@@ -1771,7 +1766,7 @@ ehr-orders-main-element label, ehr-orders-main-element .ehr-order-summary-label 
    height: 1.3rem !important;
 }
 
-/* When close icon EXISTS — push spinner left of it */
+/* When close icon EXISTS â€” push spinner left of it */
 .icon-input-group .remove-input-value ~ .ui-loader-spinner,
 .icon-input-group:has(.remove-input-value) .ui-loader-spinner {
    right: 35px;
@@ -1779,7 +1774,7 @@ ehr-orders-main-element label, ehr-orders-main-element .ehr-order-summary-label 
 
 .filter-icon-btn {
    padding: 1px 15px !important;
-   .mdi {
+   .pi {
       font-size: var(--app-font18) !important;
    }
 }

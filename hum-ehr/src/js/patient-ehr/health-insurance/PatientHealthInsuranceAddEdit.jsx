@@ -10,6 +10,7 @@ import {
 import { fetchPatientDetails } from '../../../services/patientService';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import US_STATES from '../../../constants/usStates';
 
 const ALPHA_NUMERIC = /^[a-zA-Z0-9]*$/;
@@ -262,7 +263,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
 
     return (<div className="patient-health-insurance-add-edit p-3">
       <div className="d-flex align-items-center gap-2 border-bottom pb-2 mb-3">
-        <button type="button" className="btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to insurance list"><span className="mdi mdi-arrow-left fs-4"/></button>
+        <button type="button" className="btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to insurance list"><LegacyIcon icon="mdi-arrow-left" className="fs-4"/></button>
         <span className="fw-bold">{isEdit ? 'Edit' : 'Add'} Health Insurance</span>
       </div>
       <form className="care-plan-data-entry" onSubmit={handleSubmit} noValidate>
@@ -330,7 +331,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
 
         {/* Subscriber */}
         <button type="button" className="btn btn-primary pc-collapse-btn collapse-btn mt-3 w-100 text-start d-flex justify-content-between align-items-center" onClick={() => setSubscriberOpen((v) => !v)}>
-          Subscriber <span className={`mdi ${subscriberOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'}`}/>
+          Subscriber <LegacyIcon icon={subscriberOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'}/>
         </button>
         {subscriberOpen && (<div className="card card-body mt-0">
             <div className="row g-2">
@@ -371,7 +372,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
         {/* Member */}
         <button type="button" className="btn btn-primary pc-collapse-btn collapse-btn mt-3 w-100 text-start d-flex justify-content-between align-items-center" disabled={isSelf} onClick={() => setMemberOpen((v) => !v)}>
           Member {isSelf && <span className="small ms-2">( If the patient is a subscriber, the member option is disabled.)</span>}
-          <span className={`mdi ${memberOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'}`}/>
+          <LegacyIcon icon={memberOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'}/>
         </button>
         {memberOpen && !isSelf && (<div className="card card-body mt-0">
             <div className="row g-2">
@@ -398,7 +399,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
             <AddressFields data={form.member} prefix="phid_member" disabled={false} onField={updateMember}/>
           </div>)}
 
-        {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+        {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
         <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
           <button type="button" className="btn btn-secondary px-4 rounded-pill" onClick={() => onClose(false)} disabled={saving}>Cancel</button>

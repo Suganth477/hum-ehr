@@ -5,6 +5,7 @@ import {
 } from '../../../services/patientProfileService';
 import PatientSpecialtyProviders from './PatientSpecialtyProviders';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 // Legacy server-injected role labels (tenant-configurable JSP constants).
@@ -37,7 +38,7 @@ const MemberCard = ({ sectionKey, title, cardLabel, member, users, canChange, on
           <button type="button" className="btn p-1" title="Edit" disabled={canChange !== 'Y'}
             style={canChange !== 'Y' ? { border: 'none', cursor: 'not-allowed' } : {}}
             onClick={() => onEdit(sectionKey)}>
-            <span className="mdi mdi-pencil" style={{ fontSize: 16 }}/>
+            <LegacyIcon icon="mdi-pencil" style={{ fontSize: 16 }}/>
           </button>
         </div>
       </div>
@@ -166,7 +167,7 @@ const PatientCareTeam = ({ patientId }) => {
           </div>
           {providerChangedWarning && (
             <div className="mt-2 small text-danger">
-              <i className="fa fa-exclamation-triangle me-1"/>
+              <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>
               <strong>Warning: </strong> Services already exist for this patient. Do you still want to Change the care plan provider?
             </div>
           )}

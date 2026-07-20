@@ -3,6 +3,7 @@ import moment from '../../../utils/dayjs';
 import Select from 'react-select';
 import { savePatientGoal, saveSdohGoal } from '../../../services/goalService';
 import { getSaveOutcome } from '../../../utils/saveResponse';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 
 const RANGE_OPTIONS = [
@@ -449,7 +450,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
       </div>
 
       {saveError && (<div className="row mt-2">
-          <div className={`small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>
+          <div className={`small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>
         </div>)}
 
       <div className="row mt-4 pt-3 border-top m-0">

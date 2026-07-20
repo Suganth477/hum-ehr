@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAllergyLookup } from '../../../services/lookupService';
 import { DEBOUNCE_LOOKUP_MS, LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import '../../../components/common/ContentLoader.css';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 const mapLookupItem = (item) => ({
     id: item.id,
     code: item.code,
@@ -94,7 +95,7 @@ const PatientAllergyLookupInput = ({ id, label, conceptCategory, value, disabled
           {label} {required && <span className="text-danger">*</span>}
         </label>)}
       <input id={id} type="text" autoComplete="off" className="form-control" value={value || ''} placeholder={placeholder} disabled={disabled} required={required && !disabled} onChange={handleInputChange} onFocus={handleFocus} onBlur={handleBlur}/>
-      <span className="allergy-lookup-search-icon input-icon input-icon-left-align mdi mdi-magnify"/>
+      <LegacyIcon icon="mdi-magnify" className="allergy-lookup-search-icon input-icon input-icon-left-align"/>
       {searching && (<span className="cl-skeleton-bar position-absolute end-0 me-2" style={{ top: label ? 42 : 12, width: 60 }}/>)}
       {showMenu && (<ul className="dropdown-menu show w-100" role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1080, maxHeight: 220, overflowY: 'auto' }}>
           {options.map((option) => (<li key={`${option.id}_${option.code}`}>

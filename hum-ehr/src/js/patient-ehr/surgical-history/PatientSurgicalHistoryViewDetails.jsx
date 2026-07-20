@@ -3,6 +3,7 @@ import { deleteSurgicalHistory, fetchSurgicalHistoryReport } from '../../../serv
 import { getFormattedIcdCode } from '../../../utils/commonUtility';
 import { FileTiles } from '../procedure/PatientProcedureDetails';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const dateOnly = (value) => {
     if (!value) return '';
@@ -21,7 +22,7 @@ const PatientSurgicalHistoryViewDetails = ({ patientId, record, onEdit, onDelete
     if (!record)
         return (<div className="list-wrapper pc-no-list-data-container mt-0">
           <div className="nodata d-flex justify-content-start align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>Patient doesn't have any surgical history yet!</div>
           </div>
         </div>);
@@ -45,8 +46,8 @@ const PatientSurgicalHistoryViewDetails = ({ patientId, record, onEdit, onDelete
       <div className="d-flex justify-content-between align-items-center mb-3 mx-3">
         <div><span className="pcps-suh-record-info-name-title text-capitalize">{record.surgeryName}</span></div>
         {!invalid && (<div className="d-flex gap-3 justify-content-end">
-          <button type="button" className="pcps-record-action-btn" title="Edit" onClick={() => onEdit(record)}><i className="fa-regular fa-pencil"/> Edit</button>
-          <button type="button" className="pcps-record-action-btn" title="Delete" onClick={handleDelete}><i className="fa-regular fa-trash-can"/></button>
+          <button type="button" className="pcps-record-action-btn" title="Edit" onClick={() => onEdit(record)}><LegacyIcon icon="fa-pencil"/> Edit</button>
+          <button type="button" className="pcps-record-action-btn" title="Delete" onClick={handleDelete}><LegacyIcon icon="fa-trash-can"/></button>
         </div>)}
       </div>
       <div className="surgical-record-info-container custom-scrollbar">

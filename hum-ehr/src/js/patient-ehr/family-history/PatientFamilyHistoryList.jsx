@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import { fetchFamilyHistory, deleteFamilyMember } from '../../../services/familyHistoryService';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 /**
@@ -60,7 +61,7 @@ const PatientFamilyHistoryList = ({ patientId, refreshKey, onDataLoaded }) => {
 
     if (!members.length)
         return (<div className="list-wrapper" style={{ border: '2px solid #ddd', padding: '30px 20px', textAlign: 'center' }}>
-          <div className="nodata"><i className="mdi mdi-information-outline" style={{ fontSize: 40, verticalAlign: 'sub' }}/>
+          <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 40, verticalAlign: 'sub' }}/>
             <span style={{ fontSize: 20 }}> Patient doesn't have any family history yet! </span>
           </div>
         </div>);
@@ -78,7 +79,7 @@ const PatientFamilyHistoryList = ({ patientId, refreshKey, onDataLoaded }) => {
                 {m.relationShipDesc}
                 <span className="pfsh-delete-family-history pcfh-delete-family-history ps-2" role="button" title="Delete Relation"
                   onClick={busy ? undefined : () => handleDelete(m)}>
-                  <span className="pcfh-delete-family-member-icon"><i className="fa-regular fa-trash p-0 m-0"/></span>
+                  <span className="pcfh-delete-family-member-icon"><LegacyIcon icon="fa-trash" className="p-0 m-0"/></span>
                 </span>
               </th>
             ))}
@@ -107,7 +108,7 @@ const PatientFamilyHistoryList = ({ patientId, refreshKey, onDataLoaded }) => {
                 return (<td key={m.memberId} className="pcfh-condition-cell">
                   {cell ? (<>
                     <span className="fw-bold">Yes</span>
-                    {cell.notes ? <i className="fa fa-book pcfh-condition-notes active-condition green ms-1" title={cell.notes} role="button"/> : null}
+                    {cell.notes ? <LegacyIcon icon="fa-book" className="pcfh-condition-notes active-condition green ms-1" title={cell.notes} role="button"/> : null}
                   </>) : <span className="fw-bold">No</span>}
                 </td>);
               })}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { deletePatientHealthInsurance } from '../../../services/healthInsuranceService';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const formatUsAddress = (line1, line2, city, state, zip) =>
     [line1, line2, city, state, zip].map((part) => (part || '').toString().trim()).filter(Boolean).join(', ') || '-';
@@ -17,7 +18,7 @@ const PatientHealthInsuranceViewDetails = ({ patientId, record, recordType, isMe
 
     if (!record)
         return (<div className="list-wrapper my-5" style={{ padding: '30px 20px', textAlign: 'center' }}>
-          <div className="nodata"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
+          <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
             <span style={{ fontSize: 20 }}> Patient doesn't have any {recordType === 'active' ? 'active ' : ''}health insurance yet!</span>
           </div>
         </div>);
@@ -62,10 +63,10 @@ const PatientHealthInsuranceViewDetails = ({ patientId, record, recordType, isMe
         <div className="col-md-11 fw-bold patient-chart-list-selected-item-title text-capitalize">{record.payerName || 'Health Insurance'}</div>
         {showActions && (<div className="col-md-1 d-flex gap-2">
             <span className={`icon-container ${emrLocked ? 'disabled' : ''}`} title={emrLocked ? 'Disabled due to EMR Entry' : 'Edit Health Insurance'}>
-              <span className="mdi mdi-pencil health-insurance-edit-icon" role="button" onClick={emrLocked ? undefined : () => onEdit(record)}/>
+              <LegacyIcon icon="mdi-pencil" className="health-insurance-edit-icon" role="button" onClick={emrLocked ? undefined : () => onEdit(record)}/>
             </span>
             <span className={`icon-container delete-icon-container ${deleteDisabled ? 'disabled' : ''}`} title={emrLocked ? 'Disabled due to EMR Entry' : medicareLocked ? 'Medicare insurance type cannot be deleted for AWV medicare billing' : 'Delete Health Insurance'}>
-              <span className="mdi mdi-delete health-insurance-delete-icon" role="button" onClick={deleteDisabled ? undefined : handleDelete}/>
+              <LegacyIcon icon="mdi-delete" className="health-insurance-delete-icon" role="button" onClick={deleteDisabled ? undefined : handleDelete}/>
             </span>
           </div>)}
       </div>
@@ -125,7 +126,7 @@ const PatientHealthInsuranceViewDetails = ({ patientId, record, recordType, isMe
             <hr />
             <div className="health-insurance-type-heading">Member</div>
             {isSelf ? (<div className="nodata d-flex justify-content-center align-items-center mb-2">
-                <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+                <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
                 <div style={{ fontSize: 18 }}>If the patient is a subscriber, member details are not required.</div>
               </div>) : (<>
                 <div className="row mx-3 my-4">

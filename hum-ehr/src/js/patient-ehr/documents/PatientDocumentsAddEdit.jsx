@@ -10,6 +10,7 @@ import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTime
 import UniversalFileUploader from '../../../components/common/UniversalFileUploader';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -171,7 +172,7 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
         </div>
         <div className="col-md-4">
           <label className="form-label fw-bold d-block">Upload Documents <span className="text-danger">*</span>
-            <span className="float-end" title="You can upload up to 5 documents, each less than 5MB."><i className="fa-regular fa-circle-info"/></span>
+            <span className="float-end" title="You can upload up to 5 documents, each less than 5MB."><LegacyIcon icon="fa-circle-info"/></span>
           </label>
           {isEdit && initialAttachments === null
             ? <SkeletonList rows={2}/>
@@ -182,7 +183,7 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
         </div>
       </div>
 
-      {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+      {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
       <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
         <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>

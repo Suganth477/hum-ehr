@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import { deleteImplantDevice } from '../../../services/implantDeviceService';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const dateOnly = (value) => (value ? moment(value).format('MM-DD-YYYY') : '');
 
@@ -79,7 +80,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
           <div className="position-relative" ref={statusRef}>
             <button type="button" id="pc_implantable_device_status_button" onClick={() => setStatusOpen((v) => !v)} disabled={busy}>
               <span className="status-label">Change Status</span>
-              <i className="mdi mdi-chevron-down"/>
+              <LegacyIcon icon="mdi-chevron-down"/>
             </button>
             {statusOpen && (<ul className="pcid-device-status-menu">
               {recordType === 'active' && <li onClick={() => { setStatusOpen(false); onExplant(record); }}>Inactive</li>}
@@ -87,7 +88,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
             </ul>)}
           </div>
           <button type="button" id="pc_implantable_device_edit_button" onClick={() => onEdit(record)}>
-            <span className="mdi mdi-pencil-outline me-1"/> Edit
+            <LegacyIcon icon="mdi-pencil-outline" className="me-1"/> Edit
           </button>
         </div>)}
       </div>
@@ -95,7 +96,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
       {expiryAlert && (<div className="row mx-3 my-3 implant-device-expiration-alert-container">
         <div className="col-md-12">
           <div className="label py-2">
-            <i className="fa fa-warning" style={{ fontSize: 20, color: '#E7000B' }}/>&nbsp;
+            <LegacyIcon icon="fa-warning" style={{ fontSize: 20, color: '#E7000B' }}/>&nbsp;
             <span className="implant-device-expiration-alert" style={{ color: '#E7000B' }}>{expiryAlert}</span>
           </div>
         </div>
@@ -123,7 +124,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
         <div className="col-md-3">
           <div className={`label implant-device-details-common-class ${strike ? 'error-in' : ''}`}>Expiration Date</div>
           <span className={`fw-bold implant-device-details-common-class ${strike ? 'error-in' : ''}`}>{expiry || '-'}</span>
-          {expired && <span className="pc-implant-device-expired-warning ms-1"><i className="fa fa-warning" style={{ fontSize: 18 }}/></span>}
+          {expired && <span className="pc-implant-device-expired-warning ms-1"><LegacyIcon icon="fa-warning" style={{ fontSize: 18 }}/></span>}
         </div>
       </div>
       <div className="row mx-3 my-3">

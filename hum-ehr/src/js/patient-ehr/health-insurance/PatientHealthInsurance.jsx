@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import PatientHealthInsuranceList from './PatientHealthInsuranceList';
 import PatientHealthInsuranceViewDetails from './PatientHealthInsuranceViewDetails';
 import PatientHealthInsuranceAddEdit from './PatientHealthInsuranceAddEdit';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientHealthInsurance.css';
 
 /**
@@ -65,7 +66,7 @@ const PatientHealthInsurance = ({ patientId }) => {
                     <input type="checkbox" id={`pcps_patient_health_insurance_deleted_records_input_${patientId}`} className="form-check-input me-2" checked={showDeleted} onChange={(event) => setShowDeleted(event.target.checked)}/>
                     <span>Show Deleted Records</span>
                   </label>) : (<button type="button" className="pc-add-new-health-insurance-btn pc-add-new-section-details-btn btn btn-primary btn-md border-radius-button" onClick={() => openAddEdit(null)}>
-                    <span className="mdi mdi-plus mdi-s-20"/> Add Insurance
+                    <LegacyIcon icon="mdi-plus" className="icon-size-20"/> Add Insurance
                   </button>)}
               </div>
             </div>

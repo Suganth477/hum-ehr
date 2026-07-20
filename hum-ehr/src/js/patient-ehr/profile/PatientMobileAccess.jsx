@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getPatientDetails, refreshPatientDetails, saveMobileAccess } from '../../../services/patientProfileService';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -166,7 +167,7 @@ const PatientMobileAccess = ({ patientId }) => {
               <div className="fw-bold">{accessEnabled ? 'Yes' : 'No'}</div>
             </div>
             <div className="col-md-9 col-4 d-flex justify-content-end align-items-start">
-              <span role="button" title="Edit Mobile App Access" onClick={openEdit}><span className="mdi mdi-pencil" style={{ fontSize: 18 }}/></span>
+              <span role="button" title="Edit Mobile App Access" onClick={openEdit}><LegacyIcon icon="mdi-pencil" style={{ fontSize: 18 }}/></span>
             </div>
           </div>
           {accessEnabled && (<div className="row mt-4">
@@ -211,9 +212,9 @@ const PatientMobileAccess = ({ patientId }) => {
               <div className="pp-password-input-group flex-grow-1">
                 <input type={showPassword ? 'text' : 'password'} className="form-control" autoComplete="new-password" value={form.password}
                   onChange={(e) => { update({ password: e.target.value }); clearError('password'); }}/>
-                <span className={`pp-password-toggle mdi ${showPassword ? 'mdi-eye-off' : 'mdi-eye'}`} role="button" onClick={() => setShowPassword((prev) => !prev)}/>
+                <LegacyIcon icon={showPassword ? 'mdi-eye-off' : 'mdi-eye'} className="pp-password-toggle" role="button" onClick={() => setShowPassword((prev) => !prev)}/>
               </div>
-              <button type="button" className="btn btn-primary" title={RULES_TOOLTIP}><i className="fa fa-question-circle"/></button>
+              <button type="button" className="btn btn-primary" title={RULES_TOOLTIP}><LegacyIcon icon="fa-question-circle"/></button>
             </div>
             <FieldError message={errors.password}/>
           </div>

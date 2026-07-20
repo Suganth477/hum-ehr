@@ -3,13 +3,14 @@ import { buildProblemDeletePayload, deletePatientProblem, fetchPatientProblems }
 import patientCache from '../../../utils/patientCache';
 import { DEBOUNCE_ALLERGY_LIST_MS } from '../../../constants/timing';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 import { useIsTabletOrBelow } from '../../../hooks/useMediaQuery';
 const NoProblemData = ({ recordType, showDeleted }) => {
     const label = recordType === 'active' ? 'active problems' : showDeleted ? 'deleted problems' : 'history of problems';
     return (<div className="list-wrapper" style={{ border: '2px solid #ddd', padding: '30px 20px', textAlign: 'center' }}>
       <div className="nodata">
-        <i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
+        <LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
         <span style={{ fontSize: 20 }}> No {label} recorded yet!</span>
       </div>
     </div>);
@@ -80,11 +81,11 @@ const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, f
     const renderActions = (record) => {
         if (recordType === 'active')
             return (<>
-                <button type="button" className="btn btn-default border-0 action-icon p-1 pp-edit-problem-details" title="Edit" onClick={() => onEdit?.(record)}><i className="fa-regular fa-pencil"/></button>
-                <button type="button" className="btn btn-default border-0 action-icon p-1 pp-delete-problem-details" title="Delete" onClick={() => handleDelete(record)}><i className="fa-regular fa-trash-can"/></button>
+                <button type="button" className="btn btn-default border-0 action-icon p-1 pp-edit-problem-details" title="Edit" onClick={() => onEdit?.(record)}><LegacyIcon icon="fa-pencil"/></button>
+                <button type="button" className="btn btn-default border-0 action-icon p-1 pp-delete-problem-details" title="Delete" onClick={() => handleDelete(record)}><LegacyIcon icon="fa-trash-can"/></button>
               </>);
         if (isDeletedRow(record))
-            return (<button type="button" className="btn btn-default border-0 action-icon p-1 pp-edit-problem-details" title="Recover" onClick={() => onRecoverEdit?.(record)}><i className="fa-regular fa-rotate"/></button>);
+            return (<button type="button" className="btn btn-default border-0 action-icon p-1 pp-edit-problem-details" title="Recover" onClick={() => onRecoverEdit?.(record)}><LegacyIcon icon="fa-rotate"/></button>);
         return null;
     };
     if (showCards) {

@@ -1,4 +1,4 @@
-/* Implantable Devices — list/detail reuse the shared pc-* classes; only
+﻿/* Implantable Devices â€” list/detail reuse the shared pc-* classes; only
    section-specific bits (from the legacy templates' <style> blocks) live here. */
 
 /* ---- List ---- */
@@ -48,7 +48,7 @@
     background: transparent;
     cursor: pointer;
 }
-.implant-device-details-main-container .implant-device-action-icons .mdi {
+.implant-device-details-main-container .implant-device-action-icons .pi {
     cursor: pointer;
     font-size: 18px;
 }
@@ -56,7 +56,7 @@
     color: #D50B0B;
 }
 
-/* Status dropdown (Change Status → Inactive / Mark As Error) */
+/* Status dropdown (Change Status â†’ Inactive / Mark As Error) */
 .implant-device-details-main-container #pc_implantable_device_status_button {
     cursor: pointer;
     background-color: #F6F6F6;

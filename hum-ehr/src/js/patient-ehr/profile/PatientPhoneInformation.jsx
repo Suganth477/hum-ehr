@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getPatientDetails } from '../../../services/patientProfileService';
 import PatientPhoneInformationEdit from './PatientPhoneInformationEdit';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const VerifiedBadge = ({ show, invalid }) => (show ? (
     <svg viewBox="0 0 24 24" className="pp-verified-icon" fill={invalid === 'Y' ? 'red' : 'green'}>
@@ -49,14 +50,14 @@ const PatientPhoneInformation = ({ patientId, onEditingChange }) => {
           <Field label="Secondary Communication" value={details.secondaryCommunicationDesc}/>
           <div className="col-md-5 offset-md-1 d-flex justify-content-md-end align-items-start">
             <button type="button" className="btn pp-edit-btn mt-2" title="Edit Patient Contact" onClick={openEdit}>
-              <span className="mdi mdi-pencil me-1"/>Edit
+              <LegacyIcon icon="mdi-pencil" className="me-1"/>Edit
             </button>
           </div>
         </div>
       </div>
 
       <div className="pp-detail-card mt-3 p-2">
-        <div className="fw-bold ms-1 mb-2"><i className="fa-solid fa-phone me-2"/>Patient Contact</div>
+        <div className="fw-bold ms-1 mb-2"><LegacyIcon icon="fa-phone" className="me-2"/>Patient Contact</div>
         <div className="row ms-1 my-1">
           <Field label="Mobile Phone" value={details.mobilePhone} badge={<VerifiedBadge show={!!details.mobilePhone} invalid={details.mobilePhoneInvalidFlag}/>}/>
           <Field label="Home Phone" value={details.homePhone} badge={<VerifiedBadge show={!!details.homePhone} invalid={details.pagerPhoneInvalidFlag}/>}/>
@@ -70,7 +71,7 @@ const PatientPhoneInformation = ({ patientId, onEditingChange }) => {
       </div>
 
       <div className="pp-detail-card mt-3 p-2">
-        <div className="fw-bold ms-1 mb-2"><i className="fa-solid fa-message me-2"/>Text Message</div>
+        <div className="fw-bold ms-1 mb-2"><LegacyIcon icon="fa-message" className="me-2"/>Text Message</div>
         <div className="row ms-1 my-1">
           <Field label="Disabled Text Message Feature" value={details.phoneNumberStatus === 'PTVALID' ? 'No' : 'Yes'}/>
           <Field label="Text Message Consent Type" value={details.phoneNumberStatus === 'PTVALID' ? (details.verificationType === 'VERBVERIF' ? 'Verbal' : 'OTP Verification') : '-'}/>

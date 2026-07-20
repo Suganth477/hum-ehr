@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import PatientFamilyHistoryList from './PatientFamilyHistoryList';
 import PatientFamilyHistoryAddEdit from './PatientFamilyHistoryAddEdit';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import {
     fetchFamilyHistory, fetchFamilyRelationTypes, searchFamilyHistorySnomed,
 } from '../../../services/familyHistoryService';
@@ -72,7 +73,7 @@ const PatientFamilyHistory = ({ patientId }) => {
           <div className="col-md-12 d-flex justify-content-between my-3">
             <div className="view-edit-family-history-text align-items-center label-svg-heading d-flex">View / Edit Family History</div>
             <button className="add-edit-family-history btn btn-primary btn-md border-radius-button" onClick={openEditor} disabled={openingEditor}>
-              <span className={`mdi ${hasData ? 'mdi-pencil' : 'mdi-plus'}`}/> {openingEditor ? 'Please wait...' : (hasData ? 'Edit Family History' : 'Add Family History')}
+              <LegacyIcon icon={hasData ? 'mdi-pencil' : 'mdi-plus'}/> {openingEditor ? 'Please wait...' : (hasData ? 'Edit Family History' : 'Add Family History')}
             </button>
           </div>
         </div>

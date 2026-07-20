@@ -1,4 +1,5 @@
 import moment from './dayjs';
+import { legacyIconHtml } from '../components/common/iconPaths';
 /** Global selector strings retained for cross-script reference stability. */
 export const SELECTORS = {
     applicationInfoCloseIcon: '.app-info-close-icon',
@@ -57,14 +58,14 @@ export const getRelativeTime = (dateAndTime) => {
 };
 export const constructDropDownActionIcons = (element, id, recordType = 'active') => `
     <div class="action-icon-dropdown-group ${recordType === 'history' ? 'd-none' : ''}">
-        <span class="mdi mdi-dots-vertical action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"></span>
+        <span class="action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">${legacyIconHtml('mdi-dots-vertical')}</span>
         <ul class="dropdown-menu action-icon-dropdown-menu-list">
             <li class="${element}-edit-details" data-id="${id}">
-               <i class="action-icon fa-regular fa-pencil"></i>
+               ${legacyIconHtml('fa-pencil', 'action-icon')}
                 <span class="action-name">Edit</span>
             </li>
             <li class="${element}-delete-details" data-id="${id}">
-                <i class="action-icon fa-regular fa-trash"></i>
+                ${legacyIconHtml('fa-trash', 'action-icon')}
                 <span class="action-name">Delete</span>
             </li>
         </ul>
@@ -72,7 +73,7 @@ export const constructDropDownActionIcons = (element, id, recordType = 'active')
   `;
 export const constructDeleteIcons = (element, id, invalidFlag) => `
     <div>
-        <span class="mdi mdi-delete ${element}-delete-details delete-icon ${invalidFlag === 'Y' ? 'd-none' : ''} " data-id="${id}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Delete Social History"></span>
+        <span class="${element}-delete-details delete-icon ${invalidFlag === 'Y' ? 'd-none' : ''} " data-id="${id}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Delete Social History">${legacyIconHtml('mdi-delete')}</span>
     </div>
   `;
 /** Decodes a Base64 string into an object URL. */

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import doctorImage from '../../assets/images/doctor.jpeg';
 import { downloadPatientCCD, fetchPatientDetails } from '../../services/patientService';
 import patientCache from '../../utils/patientCache';
+import { LegacyIcon } from '../../components/common/CustomIcons';
 const getGenderIcon = (genderCode = '') => {
     const code = String(genderCode).toUpperCase();
     if (code === 'F' || code === 'FEMALE')
-        return 'female';
+        return 'mdi-gender-female';
     if (code === 'M' || code === 'MALE')
-        return 'male';
-    return 'transgender';
+        return 'mdi-gender-male';
+    return 'mdi-gender-transgender';
 };
 const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth)
@@ -125,14 +126,14 @@ const PatientDemographics = ({ patientId }) => {
             </div>
 
             <div className="pd-patient-demographics-list-item">
-              <span className="pd-patient-demographics-icon mdi mdi-calendar-month-outline"/>
+              <LegacyIcon icon="mdi-calendar-month-outline" className="pd-patient-demographics-icon"/>
               <span className="pd-patient-demographics-data">
                 {patientDetails.dateOfBirth}{age !== '' ? ` (${age}yrs)` : ''}
               </span>
             </div>
 
             <div className="pd-patient-demographics-list-item">
-              <span className={`pd-patient-demographics-icon mdi mdi-gender-${getGenderIcon(patientDetails.gender)}`}/>
+              <LegacyIcon icon={getGenderIcon(patientDetails.gender)} className="pd-patient-demographics-icon"/>
               <span className="pd-patient-demographics-data">{patientDetails.genderDesc}</span>
             </div>
 
@@ -142,30 +143,30 @@ const PatientDemographics = ({ patientId }) => {
             </div>
 
             {patientDetails.mobilePhoneNumber && (<div className="pd-patient-demographics-list-item">
-                <span className="pd-patient-demographics-icon mdi mdi-phone-outline"/>
+                <LegacyIcon icon="mdi-phone-outline" className="pd-patient-demographics-icon"/>
                 <span className="pd-patient-demographics-data">{patientDetails.mobilePhoneNumber} (M)</span>
               </div>)}
 
             <div className="pd-patient-demographics-list-item">
-              <span className="pd-patient-demographics-icon mdi mdi-email-outline"/>
+              <LegacyIcon icon="mdi-email-outline" className="pd-patient-demographics-icon"/>
               <span className="pd-patient-demographics-data">{patientDetails.email || ''}</span>
             </div>
 
             <div className="pd-patient-demographics-list-item">
-              <span className="pd-patient-demographics-icon mdi mdi-home-outline"/>
+              <LegacyIcon icon="mdi-home-outline" className="pd-patient-demographics-icon"/>
               <span className="pd-patient-demographics-data">{address}</span>
             </div>
           </div>
 
           <div className="pd-patient-demographics-ccd-generation-container ms-auto" style={{ marginRight: '1rem' }}>
             <button type="button" className="btn btn-primary border-radius-button d-flex align-items-center gap-2 text-nowrap" disabled={isDownloading} onClick={handleDownloadCCD} style={{ width: 'max-content' }}>
-              <span className="mdi mdi-download"/>
+              <LegacyIcon icon="mdi-download"/>
               {isDownloading ? 'Downloading...' : 'Download CCD'}
             </button>
           </div>
 
           <div className="pd-patient-demographics-icons">
-            <span className="mdi mdi-dots-vertical action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true"/>
+            <LegacyIcon icon="mdi-dots-vertical" className="action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true"/>
             <ul className="dropdown-menu shadow border-0">
               <li><button className="dropdown-item small" type="button">Edit Core Demographics</button></li>
             </ul>

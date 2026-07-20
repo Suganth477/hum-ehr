@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    Patient Chart Custom Elements Style Matrix (Extracted from active-patient.jsp)
    ========================================================================== */
 
@@ -62,10 +62,6 @@
     align-items: center;
 }
 
-.patient-demographics-container-node .pd-patient-profile-picture .mdi {
-    font-size: 30px;
-}
-
 .patient-demographics-container-node .pd-patient-demographics-details {
     flex-grow: 1;
     display: flex;
@@ -87,7 +83,6 @@
 }
 
 .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
-    font-size: var(--app-font18);
     padding: 0px 5px;
 }
 
@@ -138,6 +133,19 @@
    height: 23px;
 }
 
+/* Custom inline-SVG clinical icons (allergy, medication, immunization,
+   surgical history) size to match the PrimeIcons glyphs beside them.
+   Scoped to the SVG wrapper so the font-glyph pi spans are untouched. */
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-icon:has(svg) {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+}
+.patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-icon svg {
+   width: 20px;
+   height: 20px;
+}
+
 .patient-side-menu-container-node .pcm-patient-chart-menu-list .pcm-patient-chart-menu-list-item .pcm-patient-chart-menu-desc {
    font-size: var(--app-font10);
    width: 4rem;
@@ -185,8 +193,8 @@
     flex-grow: 1;
 }
 
-.patient-chart-search-input-icon-container .input-icon, 
-.patient-chart-search-input-icon-container .mdi-close {
+.patient-chart-search-input-icon-container .input-icon,
+.patient-chart-search-input-icon-container .pi-times {
     color: var(--app-color21);
     cursor: pointer;
     position: absolute;

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import {
@@ -10,6 +10,7 @@ import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTime
 import PaginatedLookupSelect from '../../../components/common/PaginatedLookupSelect';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { AccountQuestionIcon, HumanHeightIcon, LegacyIcon } from '../../../components/common/CustomIcons';
 
 const EDIT_TABS = [
     { key: 'patient_information', label: 'Patient Details', next: 'patient_identity_information' },
@@ -39,7 +40,7 @@ const ChipList = ({ items, onRemove }) => (items.length ? (
       {items.map((item) => (
         <span className="pp-selected-chip text-capitalize" key={item.conceptCode}>
           <span>{item.conceptName}{item.conceptCode !== 'ASKU' && item.categoryName ? ` - ${item.categoryName}` : ''}</span>
-          <span className="pp-chip-remove mdi mdi-close-circle-outline" role="button" onClick={() => onRemove(item.conceptCode)}/>
+          <LegacyIcon icon="mdi-close-circle-outline" className="pp-chip-remove" role="button" onClick={() => onRemove(item.conceptCode)}/>
         </span>
       ))}
     </div>
@@ -47,10 +48,12 @@ const ChipList = ({ items, onRemove }) => (items.length ? (
 
 // Hoisted so re-renders don't remount the subtree (an inline component type
 // changes identity every render, which resets DOM state and input focus).
-const Section = ({ icon, title, children }) => (
+const Section = ({ icon, IconComp, title, children }) => (
     <div className="d-flex gap-3">
       <div className="d-flex flex-column align-items-center">
-        <span className={`mdi ${icon}`} style={{ fontSize: 20 }}/>
+        {IconComp
+          ? <span style={{ fontSize: 20, lineHeight: 1 }}><IconComp/></span>
+          : <LegacyIcon icon={icon} style={{ fontSize: 20 }}/>}
         <div className="pp-demographics-sections-connector flex-grow-1"/>
       </div>
       <div className="flex-grow-1">
@@ -353,7 +356,7 @@ const PatientProfileDemographicsEdit = ({ patientId, initialSection, onClose }) 
         </div>)}
 
         {activeTab === 'patient_identity_information' && (<div>
-          <Section icon="mdi-account-question-outline" title="Identity Information">
+          <Section IconComp={AccountQuestionIcon} title="Identity Information">
             <div className="row g-3">
               <div className="col-md-3">
                 <label>Gender Identity</label>
@@ -410,7 +413,7 @@ const PatientProfileDemographicsEdit = ({ patientId, initialSection, onClose }) 
         </div>)}
 
         {activeTab === 'patient_physical_information' && (<div>
-          <Section icon="mdi-human-male-height" title="Physical Details">
+          <Section IconComp={HumanHeightIcon} title="Physical Details">
             <div className="row g-3">
               <div className="col-md-3">
                 <label>Height (inches) <span className="text-danger">*</span></label>

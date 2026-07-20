@@ -11,6 +11,7 @@ import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import PatientAllergiesReactions from './PatientAllergiesReactions';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const VERIFICATION_STATUS = {
     CONFIRMED: 'VERSTSC',
@@ -262,22 +263,22 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
             <div className="mt-2 small">
                 {verificationStatus === VERIFICATION_STATUS.ENTERED_IN_ERROR && (
                     <div className="alert-message text-danger">
-                        <i className="fa fa-exclamation-triangle me-1" />This Allergy Was Entered in Error.
+                        <LegacyIcon icon="fa-exclamation-triangle" className="me-1" />This Allergy Was Entered in Error.
                     </div>
                 )}
                 {clinicalStatus === CLINICAL_STATUS.INACTIVE && verificationStatus === VERIFICATION_STATUS.REFUTED && (
                     <div className="alert-message text-warning">
-                        <i className="fa fa-exclamation-triangle me-1" />This Allergy was marked as Inactive or Refuted.
+                        <LegacyIcon icon="fa-exclamation-triangle" className="me-1" />This Allergy was marked as Inactive or Refuted.
                     </div>
                 )}
                 {clinicalStatus === CLINICAL_STATUS.RESOLVED && verificationStatus === VERIFICATION_STATUS.UNCONFIRMED && (
                     <div className="alert-message text-warning">
-                        <i className="fa fa-exclamation-triangle me-1" />This Allergy was marked as Resolved or Unconfirmed.
+                        <LegacyIcon icon="fa-exclamation-triangle" className="me-1" />This Allergy was marked as Resolved or Unconfirmed.
                     </div>
                 )}
                 {clinicalStatus === CLINICAL_STATUS.RESOLVED && verificationStatus === VERIFICATION_STATUS.REFUTED && (
                     <div className="alert-message text-warning">
-                        <i className="fa fa-exclamation-triangle me-1" />This Allergy was marked as Resolved or Refuted.
+                        <LegacyIcon icon="fa-exclamation-triangle" className="me-1" />This Allergy was marked as Resolved or Refuted.
                     </div>
                 )}
             </div>
@@ -289,7 +290,7 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
             <div className="row mb-2 border-bottom pb-2">
                 <div className="d-flex align-items-center gap-2">
                     <button type="button" className="pc-move-list-back back-to-icon btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to allergies list">
-                        <span className="mdi mdi-arrow-left custom-pointer fs-4" />
+                        <LegacyIcon icon="mdi-arrow-left" className="custom-pointer fs-4" />
                     </button>
                     <span className="fw-bold pa-allergies-add-edit-container-title">
                         {isRecoverMode ? 'Recover Allergy' : isEditMode ? 'Edit Allergy' : 'Add Allergy'}
@@ -413,7 +414,7 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                         </button>
                         {isNKALocked && (
                             <div className="alert-message mt-2 small text-warning" id={fieldId('pa_allergy_no_known_allergies_or_drug_allergies')}>
-                                <i className="fa fa-exclamation-triangle me-1" />Reactions cannot be added when NKA/NKDA is selected.
+                                <LegacyIcon icon="fa-exclamation-triangle" className="me-1" />Reactions cannot be added when NKA/NKDA is selected.
                             </div>
                         )}
                         <div className="pa-allergies-show-added-reaction-list-container mt-2">
@@ -426,10 +427,10 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                                         <span><strong>{reaction.reaction}</strong> ({reaction.severity || '-'})</span>
                                         <span className="d-flex gap-2">
                                             <button type="button" className="btn btn-link p-0" onClick={() => openReactionModal(reaction)} title="Edit reaction">
-                                                <i className="fa-regular fa-pencil" />
+                                                <LegacyIcon icon="fa-pencil" />
                                             </button>
                                             <button type="button" className="btn btn-link p-0 text-danger" onClick={() => handleDeleteReaction(reaction.reactionId)} title="Delete reaction">
-                                                <i className="fa-regular fa-trash-can" />
+                                                <LegacyIcon icon="fa-trash-can" />
                                             </button>
                                         </span>
                                     </div>

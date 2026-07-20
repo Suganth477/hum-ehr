@@ -8,6 +8,7 @@ import {
 } from '../../../services/patientProfileService';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import { useNotify } from '../../../context/NotificationContext';
 import { ROLE_DESC_PROVIDER } from './PatientCareTeam';
@@ -198,7 +199,7 @@ const PatientSpecialtyProviders = ({ patientId }) => {
       <div className="pp-accordion-item">
         <div className="pp-accordion-header" role="button" onClick={() => setOpen((prev) => !prev)}>
           <span>Specialty {ROLE_DESC_PROVIDER}</span>
-          <span className={`mdi ${open ? 'mdi-chevron-up' : 'mdi-chevron-down'}`}/>
+          <LegacyIcon icon={open ? 'mdi-chevron-up' : 'mdi-chevron-down'}/>
         </div>
         {open && (<div className="p-2">
           <div className="d-flex align-items-center justify-content-between mx-2 flex-wrap gap-2">
@@ -211,14 +212,14 @@ const PatientSpecialtyProviders = ({ patientId }) => {
               </li>
             </ul>
             <button type="button" className="btn btn-primary btn-md border-radius-button" onClick={() => openDialog(null)}>
-              <span className="mdi mdi-plus"/> Specialty {ROLE_DESC_PROVIDER}s
+              <LegacyIcon icon="mdi-plus"/> Specialty {ROLE_DESC_PROVIDER}s
             </button>
           </div>
           <div className="mt-2">
             {records === null && <SkeletonTable columns={['S.No', 'Specialty Provider', 'Recorded Date', 'Start Date', 'End Date', 'Specialty Physician Notes', '']} rows={4}/>}
             {records !== null && records.length === 0 && (
               <div className="text-center py-4 mx-3 my-3" style={{ border: '2px solid #ddd' }}>
-                <i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
+                <LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
                 <span style={{ fontSize: 20 }}> Patient doesn&apos;t have any {recordType === 'active' ? `active specialty ${ROLE_DESC_PROVIDER.toLowerCase()}s` : `inactive ${ROLE_DESC_PROVIDER.toLowerCase()}s`} yet! </span>
               </div>
             )}
@@ -230,20 +231,20 @@ const PatientSpecialtyProviders = ({ patientId }) => {
                     <span className="text-capitalize fw-bold">{record.firstName} {record.lastName}</span>
                     <div className="d-flex gap-3">
                       {recordType === 'active' && (
-                        <span className="pp-record-action-icon edit" title="Edit" role="button" onClick={() => openDialog(record)}><i className="fa-solid fa-pen"/></span>
+                        <span className="pp-record-action-icon edit" title="Edit" role="button" onClick={() => openDialog(record)}><LegacyIcon icon="fa-pen"/></span>
                       )}
-                      <span className="pp-record-action-icon delete" title="Delete" role="button" onClick={() => handleDelete(record)}><i className="fa-solid fa-trash"/></span>
+                      <span className="pp-record-action-icon delete" title="Delete" role="button" onClick={() => handleDelete(record)}><LegacyIcon icon="fa-trash"/></span>
                     </div>
                   </div>
                   <div className="row mt-2 gy-1">
                     <div className="col-md-2 fw-bold">{record.specialityCode || '-'}</div>
-                    <div className="col-md-3"><i className="fa-solid fa-phone me-1"/><span className="fw-bold">{commNumber(record) || '-'}</span></div>
-                    <div className="col-md-3"><i className="fa-solid fa-envelope me-1"/><span className="fw-bold">{record.email || '-'}</span></div>
+                    <div className="col-md-3"><LegacyIcon icon="fa-phone" className="me-1"/><span className="fw-bold">{commNumber(record) || '-'}</span></div>
+                    <div className="col-md-3"><LegacyIcon icon="fa-envelope" className="me-1"/><span className="fw-bold">{record.email || '-'}</span></div>
                     <div className="col-md-4">Alert Communication : <span className="fw-semibold">{record.alertFlag === 'Y' ? 'Yes' : 'No'}</span></div>
                   </div>
                   <div className="row mt-2 gy-1">
-                    <div className="col-md-3 offset-md-2"><span className="mdi mdi-calendar-month-outline me-1"/>Effective Date : <span className="fw-bold">{record.effectiveDate}</span></div>
-                    <div className="col-md-4"><span className="mdi mdi-calendar-month-outline me-1"/>Last Effective Date : <span className="fw-bold">{record.lastEffectiveDate || '-'}</span></div>
+                    <div className="col-md-3 offset-md-2"><LegacyIcon icon="mdi-calendar-month-outline" className="me-1"/>Effective Date : <span className="fw-bold">{record.effectiveDate}</span></div>
+                    <div className="col-md-4"><LegacyIcon icon="mdi-calendar-month-outline" className="me-1"/>Last Effective Date : <span className="fw-bold">{record.lastEffectiveDate || '-'}</span></div>
                   </div>
                 </div>
               </div>

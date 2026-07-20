@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import {
     saveFamilyMember, saveFamilyHistory, buildFamilyHistorySavePayload,
     searchFamilyHistorySnomed,
@@ -187,8 +188,8 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
         <div className="col-md-12 d-flex justify-content-between my-2 align-items-center">
           <div className="view-edit-family-history-text fw-bold">Edit Family History</div>
           <div className="d-flex gap-2 align-items-center">
-            <button type="button" className="btn btn-primary btn-sm border-radius-button" onClick={addRelation}><span className="mdi mdi-plus"/> Add New Relation</button>
-            <button type="button" className="btn btn-primary btn-sm border-radius-button" onClick={() => setAddingCondition((v) => !v)}><span className="mdi mdi-plus"/> Add New Condition</button>
+            <button type="button" className="btn btn-primary btn-sm border-radius-button" onClick={addRelation}><LegacyIcon icon="mdi-plus"/> Add New Relation</button>
+            <button type="button" className="btn btn-primary btn-sm border-radius-button" onClick={() => setAddingCondition((v) => !v)}><LegacyIcon icon="mdi-plus"/> Add New Condition</button>
           </div>
         </div>
       </div>
@@ -247,7 +248,7 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
                 return (<td key={m.index} data-index={m.index} className="pcfh-condition-cell">
                   <input type="checkbox" className="family-member-condition" checked={!!cell.checked} disabled={!enabled} onChange={(e) => toggleCondition(c.snomedCode, m.index, e.target.checked)}/>
                   <span tabIndex={0} role="button" className={`family-member-condition-notes pcfh-condition-notes ms-1 ${cell.checked ? 'active-condition' : ''} ${cell.notes ? 'green' : ''}`} onClick={() => openNotes(c.snomedCode, m.index)}>
-                    <i className="fa fa-book"/>
+                    <LegacyIcon icon="fa-book"/>
                   </span>
                 </td>);
               })}
@@ -256,7 +257,7 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
         </table>
       </div>
 
-      {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+      {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
       <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
         <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>

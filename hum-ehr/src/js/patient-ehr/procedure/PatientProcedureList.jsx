@@ -3,6 +3,7 @@ import moment from '../../../utils/dayjs';
 import { fetchProcedureList } from '../../../services/procedureService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 // Legacy utility.convertMDY12HtoMDY: "MM-DD-YYYY hh:mm A" → "MM-DD-YYYY".
 const dateOnly = (value) => {
@@ -64,7 +65,7 @@ const PatientProcedureList = ({ patientId, searchTerm, showDeleted, refreshKey, 
     if (!visible.length)
         return (<div className="list-wrapper pc-no-list-data-container">
           <div className="nodata d-flex justify-content-start align-items-center">
-            <div className="me-1"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-1"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>Patient doesn't have {showDeleted ? 'error' : 'active'} procedure list items</div>
           </div>
         </div>);

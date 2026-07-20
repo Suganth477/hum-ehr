@@ -6,6 +6,7 @@ import {
 } from '../../../services/patientProfileService';
 import patientCache from '../../../utils/patientCache';
 import { SkeletonViewDetails } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -258,7 +259,7 @@ const PatientPhoneInformationEdit = ({ patientId, onClose }) => {
         </div>
       </div>
 
-      <div className="fw-bold ms-2 mt-3 mb-1"><i className="fa-solid fa-phone me-2"/>Patient Contact</div>
+      <div className="fw-bold ms-2 mt-3 mb-1"><LegacyIcon icon="fa-phone" className="me-2"/>Patient Contact</div>
       <div className="pp-detail-card p-2 ms-md-4">
         <div className="row g-3">
           {PHONES.map((phone) => (
@@ -299,7 +300,7 @@ const PatientPhoneInformationEdit = ({ patientId, onClose }) => {
         </div>
       </div>
 
-      <div className="fw-bold ms-2 mt-3 mb-1"><i className="fa-solid fa-message me-2"/>Text Message</div>
+      <div className="fw-bold ms-2 mt-3 mb-1"><LegacyIcon icon="fa-message" className="me-2"/>Text Message</div>
       <div className="pp-detail-card p-2 ms-md-4">
         {optedOut && <p className="text-danger small mb-2">The Patient Chose to opt out from text message.</p>}
         <div className="row g-3 align-items-end">

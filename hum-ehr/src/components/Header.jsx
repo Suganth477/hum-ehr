@@ -5,6 +5,7 @@ import { useIsTabletOrBelow } from '../hooks/useMediaQuery';
 import { useLayout } from '../context/LayoutContext';
 import { useAppSelector } from '../store/hooks';
 import { selectAuthUser } from '../store/authSlice';
+import { LegacyIcon } from './common/CustomIcons';
 const Header = ({ baseUrl = '' }) => {
 	const [isMenuOpen, setIsMenuOpen] = useState(true);
 	const { toggleSideMenu, toggleMobileNav } = useLayout();
@@ -27,7 +28,7 @@ const Header = ({ baseUrl = '' }) => {
 		<div className="container-fluid p-0" style={{ height: 'inherit' }}>
 			<div className="navbar-header hh-ehr-bg-color8">
 				<div className="navbar-brand me-0 navbar-logo-group">
-					<span className={`mdi ${isMenuOpen ? 'mdi-menu-close' : 'mdi-menu-open'} me-2 application-menu-bar-icon hh-ehr-color1`} onClick={handleToggleApplicationSideMenu} style={{ cursor: 'pointer' }} />
+					<LegacyIcon icon={isMenuOpen ? 'mdi-menu-close' : 'mdi-menu-open'} className="me-2 application-menu-bar-icon hh-ehr-color1" onClick={handleToggleApplicationSideMenu} style={{ cursor: 'pointer' }} />
 					<Link className="td-none" to={`${baseUrl}${productCode}/dashboard`}>
 						<svg viewBox="0 0 1826 2048" id="application_logo" aria-label="HumHealth logo">
 							<path d="M1090 633L1201 634L1230 635H1333L1372 636L1403 640L1432 646L1459 655L1477 663L1498 674L1515 685L1531 697L1544 708L1564 728L1570 735L1574 740V742H1576L1583 753L1599 777L1607 793L1615 811L1625 841L1633 874L1636 890L1637 902V935L1635 953L1630 976L1622 1004L1610 1034L1600 1054L1591 1070L1578 1093L1570 1107L1561 1123L1546 1149L1534 1169L1526 1183L1512 1207L1498 1232L1484 1256L1475 1271L1461 1296L1447 1320L1417 1372L1403 1396L1391 1417L1377 1441L1365 1462L1351 1486L1335 1514L1326 1529L1318 1543L1304 1567L1290 1592L1279 1611L1265 1635L1251 1660L1241 1677L1229 1698L1215 1722L1199 1750L1184 1776L1175 1792L1161 1816L1149 1835L1136 1854L1125 1867L1118 1875L1109 1885L1097 1896L1085 1905L1071 1915L1053 1926L1032 1937L1008 1946L973 1957L958 1959L931 1961H879L852 1958L828 1952L803 1943L782 1933L768 1925L752 1914L741 1906L731 1898L718 1886L704 1872L695 1861L682 1844L665 1818L655 1800L643 1780L632 1760L624 1747L614 1728L607 1717L598 1700L590 1687L587 1682L573 1657L563 1640L562 1635L559 1634L554 1624L544 1607V1604H542L535 1591V1588H533L527 1579L524 1573L515 1556L508 1546L500 1530L493 1519L487 1508L475 1487L471 1482L465 1470L463 1467V1464H461L458 1458V1455L455 1454L450 1444L446 1439L438 1423L408 1371L394 1347L382 1326L373 1310L370 1305L358 1284L352 1275L347 1265L343 1260L336 1246L332 1241L327 1231L324 1226L316 1211L307 1197L301 1186L291 1168L276 1142L264 1122L249 1096L237 1075L224 1051L216 1035L209 1019L207 1015L205 1008L202 998L193 963L190 941V891L194 865L202 835L210 812L218 794L229 773L239 756L249 742L258 732L265 724L270 718L278 711L289 701L306 688L321 678L347 664L372 653L398 645L424 640L439 638L469 636L578 635H838L929 636H958L1037 634L1090 633Z" fill="#F04863" />
@@ -53,14 +54,16 @@ const Header = ({ baseUrl = '' }) => {
 						<p className="m-0 user-time">{currentTime.format('h:mm:ss A')}</p>
 					</li>
 					<li className="icon-section">
-						<span className="mdi mdi-message-text-outline d-none" />
-						<span className="mdi mdi-email notifications-count-icon">
+						<LegacyIcon icon="mdi-message-text-outline" className="d-none" />
+						<span className="notifications-count-icon">
+							<LegacyIcon icon="mdi-email" />
 							<span className="notifications-count">30</span>
 						</span>
-						<span className="mdi mdi-bell-outline notifications-count-icon">
+						<span className="notifications-count-icon">
+							<LegacyIcon icon="mdi-bell-outline" />
 							<span className="notifications-count">25</span>
 						</span>
-						<span className="mdi mdi-power d-none" />
+						<LegacyIcon icon="mdi-power" className="d-none" />
 					</li>
 				</ul>
 			</ul>

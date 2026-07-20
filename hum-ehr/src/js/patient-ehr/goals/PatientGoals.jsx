@@ -3,6 +3,7 @@ import { Dialog } from 'primereact/dialog';
 import PatientGoalsList from './PatientGoalsList';
 import PatientGoalsViewDetails from './PatientGoalsViewDetails';
 import PatientGoalsAddEdit from './PatientGoalsAddEdit';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { fetchGoalReferenceData } from '../../../services/goalService';
 import { getLoggedInUser } from '../../../services/authService';
 import patientCache from '../../../utils/patientCache';
@@ -109,7 +110,7 @@ const PatientGoals = ({ patientId }) => {
                     </span>
                   </div>)}
                 {recordType !== 'history' && (<button type="button" className="pc-add-new-goals-btn pc-add-new-section-details-btn btn-md" onClick={() => openAddEdit(null)}>
-                    <span className="mdi mdi-plus mdi-s-20"/> {addButtonText}
+                    <LegacyIcon icon="mdi-plus" className="icon-size-20"/> {addButtonText}
                   </button>)}
               </div>
             </div>
@@ -129,7 +130,7 @@ const PatientGoals = ({ patientId }) => {
           <div className="search-goals-container icon-input-group pc-search-input-container mt-2">
             <div className="col-md-12 position-relative">
               <input id={`pc_goals_list_search_input_${patientId}`} type="text" className="form-control search-goals-name text-capitalize" placeholder="Search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}/>
-              <span className="mdi mdi-magnify" style={{ position: 'absolute', right: 10, top: 6 }}/>
+              <LegacyIcon icon="mdi-magnify" style={{ position: 'absolute', right: 10, top: 6 }}/>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchSurgicalHistoryList } from '../../../services/surgicalHistoryService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 /**
@@ -55,7 +56,7 @@ const PatientSurgicalHistoryList = ({ patientId, searchTerm, showDeleted, refres
     if (!visible.length)
         return (<div className="list-wrapper pc-no-list-data-container">
           <div className="nodata d-flex justify-content-start align-items-center">
-            <div className="me-2"><i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
+            <div className="me-2"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/></div>
             <div style={{ fontSize: 18 }}>Patient doesn't have any surgical history yet!</div>
           </div>
         </div>);

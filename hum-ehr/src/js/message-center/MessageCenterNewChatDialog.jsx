@@ -4,6 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchContactUsers } from '../../services/messageCenterService';
 import { SkeletonList } from '../../components/common/ContentLoader';
 import { useNotify } from '../../context/NotificationContext';
+import { LegacyIcon } from '../../components/common/CustomIcons';
 
 // Role filter tabs (legacy chat.jsp .ctc-chat-new-recipient-role-filter).
 const ROLE_FILTERS = [
@@ -98,7 +99,7 @@ const MessageCenterNewChatDialog = ({ visible, onHide, onSelectUser }) => {
           <div className="icon-input-group position-relative mb-2">
             <input type="text" className="form-control text-capitalize mc-chat-user-search" placeholder="Search by name"
               value={search} onChange={(e) => onSearchChange(e.target.value)}/>
-            <span className="mdi mdi-magnify" style={{ position: 'absolute', right: 14, top: 8 }}/>
+            <LegacyIcon icon="mdi-magnify" style={{ position: 'absolute', right: 14, top: 8 }}/>
           </div>
 
           <ul className="mc-newchat-role-filter">

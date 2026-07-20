@@ -4,6 +4,7 @@ import { Column } from 'primereact/column';
 import { fetchPatientDocumentsList, deleteDocument } from '../../../services/documentsService';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const upperCaseEachWord = (text) => (text || '').replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -120,7 +121,7 @@ const PatientDocumentsList = ({ patientId, subGroup, search, categoryCodes, page
 
     const actionsBody = (row) => (
         <button type="button" className="btn btn-link p-0 pc-documents-action-icon" title="Actions" data-doc-action="toggle" data-doc-id={row.docId}>
-          <span className="mdi mdi-dots-vertical action-group-icon"/>
+          <LegacyIcon icon="mdi-dots-vertical" className="action-group-icon"/>
         </button>
     );
 
@@ -146,9 +147,9 @@ const PatientDocumentsList = ({ patientId, subGroup, search, categoryCodes, page
           memoized table cells, positioned at the clicked button. */}
       {menuRowId && (
         <ul className="pc-documents-action-menu" style={{ position: 'fixed', top: menuRowId.top, left: menuRowId.left }}>
-          <li><div className="ehr-patient-documents-list-icons ehr-patient-documents-edit-icon" data-doc-action="edit" data-doc-id={menuRowId.docId}><span><i className="fa-solid fa-pen"/></span> Edit</div></li>
-          <li><div className="ehr-patient-documents-list-icons ehr-patient-documents-delete-icon" data-doc-action="delete" data-doc-id={menuRowId.docId}><span><i className="fa-regular fa-trash-can"/></span> Delete</div></li>
-          <li><div className="ehr-patient-documents-list-icons ehr-patient-documents-view-docs-icon" data-doc-action="view" data-doc-id={menuRowId.docId}><span><i className="fa-solid fa-address-card"/></span> View Docs</div></li>
+          <li><div className="ehr-patient-documents-list-icons ehr-patient-documents-edit-icon" data-doc-action="edit" data-doc-id={menuRowId.docId}><span><LegacyIcon icon="fa-pen"/></span> Edit</div></li>
+          <li><div className="ehr-patient-documents-list-icons ehr-patient-documents-delete-icon" data-doc-action="delete" data-doc-id={menuRowId.docId}><span><LegacyIcon icon="fa-trash-can"/></span> Delete</div></li>
+          <li><div className="ehr-patient-documents-list-icons ehr-patient-documents-view-docs-icon" data-doc-action="view" data-doc-id={menuRowId.docId}><span><LegacyIcon icon="fa-address-card"/></span> View Docs</div></li>
         </ul>
       )}
     </div>);

@@ -4,6 +4,7 @@ import { fetchProblemSnomedForIcd } from '../../../services/lookupService';
 import { getFormattedIcdCode } from '../../../utils/commonUtility';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import ProblemIcdLookupInput from './ProblemIcdLookupInput';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 const createDefaultForm = () => ({
     icdCode: '',
@@ -261,7 +262,7 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
       <div className="row mb-2 border-bottom pb-2">
         <div className="d-flex align-items-center gap-2">
           <button type="button" className="back-to-icon btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to problems list">
-            <span className="mdi mdi-arrow-left custom-pointer fs-4"/>
+            <LegacyIcon icon="mdi-arrow-left" className="custom-pointer fs-4"/>
           </button>
           <span className="fw-bold">{isRecoverMode ? 'Recover Problem' : isEditMode ? 'Edit Problem' : 'Add Problem'}</span>
         </div>
@@ -274,7 +275,7 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
             <ProblemIcdLookupInput id={fieldId('pp_patient_problem_icd_code')} label="Search By ICD Code (or) Description" required value={form.icdCode} disabled={isEditMode} placeholder="Type at least 3 characters" onChange={(value) => updateForm('icdCode', value)} onSelect={handleIcdSelect}/>
             {errors.icdCode && <div className="small text-danger mt-1">{errors.icdCode}</div>}
             {saveError && (<div className={`small mt-1 ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`} id={fieldId('pp_patient_problem_save_error')}>
-                <i className="fa fa-exclamation-triangle me-1"/>{saveError.message}
+                <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}
               </div>)}
           </div>
           <div className="col-12 col-sm-6 col-md-4">
@@ -314,7 +315,7 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
               {visibleVerification.map((status) => <option key={status.code} value={status.code}>{status.description}</option>)}
             </select>
             {warningMessage && (<div className={`small mt-1 ${warningMessage.tone === 'error' ? 'text-danger' : 'text-warning'}`}>
-                <i className="fa fa-exclamation-triangle me-1"/>{warningMessage.text}
+                <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{warningMessage.text}
               </div>)}
           </div>
         </div>

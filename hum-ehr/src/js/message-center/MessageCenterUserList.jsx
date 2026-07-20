@@ -6,6 +6,7 @@ import { getLoggedInUser } from '../../services/authService';
 import { mapRecentChatUser, attachmentPreviewLabel } from './messageCenterHelpers';
 import { SkeletonList } from '../../components/common/ContentLoader';
 import { useNotify } from '../../context/NotificationContext';
+import { LegacyIcon } from '../../components/common/CustomIcons';
 
 const attachmentIcon = (type) => {
     switch (type) {
@@ -109,7 +110,7 @@ const MessageCenterUserList = ({ selectedUserId, onSelect, onNewChat, refreshKey
       <div className="px-2 my-2 icon-input-group position-relative">
         <input type="text" className="form-control text-capitalize mc-chat-user-search" placeholder="Search messages"
           value={search} onChange={(e) => setSearch(e.target.value)}/>
-        <span className="mdi mdi-magnify input-icon" style={{ position: 'absolute', right: 14, top: 6 }}/>
+        <LegacyIcon icon="mdi-magnify" className="input-icon" style={{ position: 'absolute', right: 14, top: 6 }}/>
       </div>
 
       <div className="mc-recent-users-section custom-scrollbar" ref={listRef} onScroll={onScroll}>
@@ -133,7 +134,7 @@ const MessageCenterUserList = ({ selectedUserId, onSelect, onNewChat, refreshKey
                       </p>
                       <p className="mb-0 mc-chat-user-last-message">
                         {user.attachmentType
-                          ? (<><span className={`mdi ${attachmentIcon(user.attachmentType)}`}/> {attachmentPreviewLabel(user.attachmentType, user.isMessageSent)}</>)
+                          ? (<><LegacyIcon icon={attachmentIcon(user.attachmentType)}/> {attachmentPreviewLabel(user.attachmentType, user.isMessageSent)}</>)
                           : (user.decryptedMessage || '').replace(/\n/g, ' ')}
                       </p>
                     </div>

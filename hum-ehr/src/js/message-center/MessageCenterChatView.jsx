@@ -11,6 +11,7 @@ import {
 import { startAudioRecorder, blobToBase64 } from './audioRecorder';
 import { SkeletonList } from '../../components/common/ContentLoader';
 import { useNotify } from '../../context/NotificationContext';
+import { LegacyIcon } from '../../components/common/CustomIcons';
 
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // legacy "Attachment Max(10MB)"
 const MAX_RECORD_SECONDS = 30; // legacy auto-stops recording after 30s
@@ -468,12 +469,12 @@ const MessageCenterChatView = ({ user, onMessageSent }) => {
         {!deactivated && recording && (
           <div className="mc-chat-audio-recording">
             <button type="button" className="mc-chat-audio-delete" title="Delete Audio" onClick={cancelRecording}>
-              <span className="mdi mdi-delete"/>
+              <LegacyIcon icon="mdi-delete"/>
             </button>
             <span className="mc-chat-audio-timer">{formatDuration(elapsed)}</span>
             <canvas ref={waveCanvasRef} width={200} height={30} className="mc-chat-audio-wave"/>
             <button type="button" className="mc-chat-audio-save" title="Save Recording" onClick={finishRecording}>
-              <span className="mdi mdi-check"/>
+              <LegacyIcon icon="mdi-check"/>
             </button>
           </div>
         )}
@@ -481,7 +482,7 @@ const MessageCenterChatView = ({ user, onMessageSent }) => {
         {!deactivated && !recording && stagedAudio && (
           <div className="mc-chat-audio-staged">
             <button type="button" className="mc-chat-attach-remove" title="Delete Audio" onClick={clearStagedAudio} disabled={sending}>
-              <span className="mdi mdi-delete"/>
+              <LegacyIcon icon="mdi-delete"/>
             </button>
             <audio className="mc-chat-audio-player" controls controlsList="nodownload" src={stagedAudio.blobUrl}/>
             <button type="button" className="mc-chat-send-btn" title="Send Voice Message" disabled={sending} onClick={handleSend}>
@@ -498,11 +499,11 @@ const MessageCenterChatView = ({ user, onMessageSent }) => {
               <button type="button" className="mc-chat-attach-chip" title="Preview attachment" onClick={previewStagedAttachment}>
                 {attachment.fileTypeGroup === 'image'
                   ? <img src={attachment.dataUri} alt="preview" className="mc-chat-attach-thumb"/>
-                  : <span className={`mdi ${attachment.fileTypeGroup === 'video' ? 'mdi-play-circle-outline' : 'mdi-file-document-outline'} mc-chat-attach-icon`}/>}
+                  : <LegacyIcon icon={attachment.fileTypeGroup === 'video' ? 'mdi-play-circle-outline' : 'mdi-file-document-outline'} className="mc-chat-attach-icon"/>}
                 <span className="mc-chat-attach-name">{attachment.fileName}</span>
               </button>
               <button type="button" className="mc-chat-attach-remove" title="Remove file" onClick={clearAttachment} disabled={sending}>
-                <span className="mdi mdi-close"/>
+                <LegacyIcon icon="mdi-close"/>
               </button>
             </div>
           )}
@@ -510,7 +511,7 @@ const MessageCenterChatView = ({ user, onMessageSent }) => {
             <div className="mc-chat-attach-menu-wrap">
               <button type="button" className="mc-chat-attach-btn" title="Attachment Max(10MB)"
                 disabled={sending || !!attachment} onClick={() => setAttachMenuOpen((open) => !open)}>
-                <span className="mdi mdi-paperclip"/>
+                <LegacyIcon icon="mdi-paperclip"/>
               </button>
               {attachMenuOpen && (
                 <ul className="mc-chat-attach-menu">
@@ -524,7 +525,7 @@ const MessageCenterChatView = ({ user, onMessageSent }) => {
             </div>
             <button type="button" className="mc-chat-attach-btn" title="Record Audio"
               disabled={sending || !!attachment} onClick={startRecording}>
-              <span className="mdi mdi-microphone"/>
+              <LegacyIcon icon="mdi-microphone"/>
             </button>
             <textarea className="form-control mc-chat-textarea custom-scrollbar"
               placeholder={attachment ? 'Attachment ready to send' : 'Enter the text message'}

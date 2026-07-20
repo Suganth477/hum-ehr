@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { apiPost } from './services/apiClient';
 import { getAuthToken, storeAuthToken } from './services/authService';
 // Components
@@ -8,6 +8,7 @@ import Header from './components/Header';
 import PatientListFilter from './components/PatientListFilter';
 import QuickAccessNav from './components/QuickAccessNav';
 import ErrorBoundary from './components/ErrorBoundary';
+import NotFound from './components/NotFound';
 import { SkeletonTable } from './components/common/ContentLoader';
 import { LayoutProvider } from './context/LayoutProvider';
 import { NotificationProvider } from './context/NotificationProvider';
@@ -21,16 +22,12 @@ import { setCredentials } from './store/authSlice';
 // column on desktop. Loading Bootstrap last makes its grid authoritative.
 import 'primeflex/primeflex.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import 'primeicons/primeicons.css';
 import 'primereact/resources/primereact.min.css';
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'flatpickr/dist/flatpickr.min.css';
 // 2. Custom bundle (must be imported last)
 import './App.css';
-
-import "./assets/plugins/font-awesome-pro/all.min.css";
-import "./assets/css/fontawesome/css/font-awesome.css";
 
 // Responsive overrides — must load after App.css so its media queries win.
 import './styles/responsive.css';
@@ -145,36 +142,38 @@ const App = () => {
         window.addEventListener('hum-ehr:closePatientTab', onForcedClose);
         return () => window.removeEventListener('hum-ehr:closePatientTab', onForcedClose);
     }, []);
+    const AppLayout = () => (
+        <div className="application">
+            <Header baseUrl={window.location.origin} />
+            <QuickAccessNav openTabs={openTabs} activeTab={activeTab} setActiveTab={setActiveTab} onCloseTab={handleClosePatientWorkspace} />
+            <PatientListFilter />
+            <div className="container-fluid p-0">
+                <div className="row m-0">
+                    <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
+                        <ErrorBoundary>
+                            <Suspense fallback={<div className="p-3"><SkeletonTable /></div>}>
+                                <Outlet />
+                            </Suspense>
+                        </ErrorBoundary>
+                    </div>
+                </div>
+            </div>
+            <Footer />
+        </div>
+    );
     if (loading)
         return <div className="text-center mt-5">Loading application framework shell...</div>;
     return (<NotificationProvider>
         <LayoutProvider>
-            <div className="application">
-        <Header baseUrl={window.location.origin} />
-
-        <QuickAccessNav openTabs={openTabs} activeTab={activeTab} setActiveTab={setActiveTab} onCloseTab={handleClosePatientWorkspace} />
-
-        <PatientListFilter />
-
-        <div className="container-fluid p-0">
-            <div className="row m-0">
-                <div id="application_body_container" className="container-fluid hh-ehr-bg-color7">
-                    <ErrorBoundary>
-                    <Suspense fallback={<div className="p-3"><SkeletonTable /></div>}>
-                    <Routes>
-                        <Route path="/" element={<Navigate to="/patients" replace />} />
-                        <Route path="/patients" element={<ActivePatientsList activeTab={activeTab} onOpenTab={handleOpenPatientWorkspace} />} />
-                        <Route path="/dashboard" element={<div className="p-4 text-muted">Dashboard (not migrated yet).</div>} />
-                        <Route path="/message-center" element={<MessageCenter />} />
-                    </Routes>
-                    </Suspense>
-                    </ErrorBoundary>
-                </div>
-            </div>
-        </div>
-
-        <Footer />
-            </div>
+            <Routes>
+                <Route element={<AppLayout />}>
+                    <Route path="/" element={<Navigate to="/patients" replace />} />
+                    <Route path="/patients" element={<ActivePatientsList activeTab={activeTab} onOpenTab={handleOpenPatientWorkspace} />} />
+                    <Route path="/dashboard" element={<div className="p-4 text-muted">Dashboard (not migrated yet).</div>} />
+                    <Route path="/message-center" element={<MessageCenter />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+            </Routes>
         </LayoutProvider>
     </NotificationProvider>);
 };

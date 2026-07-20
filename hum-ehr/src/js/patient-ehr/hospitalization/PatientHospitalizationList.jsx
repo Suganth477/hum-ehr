@@ -2,13 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { deletePatientHospitalization, fetchPatientHospitalizations } from '../../../services/hospitalizationService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
+import { HospitalIcon, LegacyIcon } from '../../../components/common/CustomIcons';
 
 // Legacy getHospitalizationIcon / getHospitalizationActiveIcon.
 const HospitalizationIcon = ({ active }) => (active ? (<div className="p-2 rounded-circle hospitalization-record-icon active">
-    <span className="p-2 pt-3 default-background"><i className="mdi mdi-hospital-building"/></span>
+    <span className="p-2 pt-3 default-background"><HospitalIcon/></span>
     <div className="active-indicator"><span className="active-indicator-text">Active</span></div>
   </div>) : (<div className="p-2 rounded-circle hospitalization-record-icon">
-    <span className="p-2 pt-3 default-background"><i className="mdi mdi-hospital-building"/></span>
+    <span className="p-2 pt-3 default-background"><HospitalIcon/></span>
   </div>));
 
 const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, showDeleted, onShowDeletedChange, refreshKey, onAdd, onEdit, }) => {
@@ -68,7 +69,7 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
           <div className="d-flex gap-0 justify-content-end flex-wrap">
             <div className="pc-patient-hospitalization-search-wrapper patient-chart-search-input-icon-container px-1 position-relative">
               <input type="text" id={`pc_patient_chart_hospitalization_search_${patientId}`} name="pc_patient_chart_hospitalization_search" className="form-control text-capitalize" placeholder="Search Hospital Name" value={searchTerm} onChange={(event) => onSearchChange(event.target.value)}/>
-              <i className="fa fa-solid fa-magnifying-glass mdi-magnify input-icon"/>
+              <LegacyIcon icon="fa-magnifying-glass" className="input-icon"/>
             </div>
             <div className="pc-patient-hospitalization-view-marked-as-error px-1 d-flex align-items-center">
               <label htmlFor={`pc_patient_chart_hospitalization_view_${patientId}`} className="mb-0">
@@ -78,7 +79,7 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
             </div>
             <div className="pc-patient-hospitalization-add px-1">
               <button type="button" id={`pc_patient_chart_hospitalization_add_${patientId}`} className="btn btn-primary border-radius-button" onClick={onAdd}>
-                <span className="mdi mdi-plus"/>
+                <LegacyIcon icon="mdi-plus"/>
                 <span>Add Hospitalization Detail</span>
               </button>
             </div>
@@ -104,7 +105,7 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
                                 {record.hospitalName}
                               </div>
                               <div className="pch-hospital-admitted-period pch-hospital-sub-detail">
-                                {record.lastEffectiveDate ? (<>{record.effectiveDate} <i className="fa-solid fa-arrow-right px-1"/> {record.lastEffectiveDate}</>) : record.effectiveDate}
+                                {record.lastEffectiveDate ? (<>{record.effectiveDate} <LegacyIcon icon="fa-arrow-right" className="px-1"/> {record.lastEffectiveDate}</>) : record.effectiveDate}
                               </div>
                               {isMarkedAsError && (<div className="error-marked-chip-container">
                                   <span className="error-marked-chip p-1">Marked as error</span>
@@ -122,10 +123,10 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
                             </div>
                             <div className={`col-md-1 ${isMarkedAsError ? 'd-none' : ''}`}>
                               <div className="action-icon-dropdown-group ehr-hospitalization-action-items">
-                                <span className="mdi mdi-dots-vertical action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"/>
+                                <LegacyIcon icon="mdi-dots-vertical" className="action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"/>
                                 <ul className="dropdown-menu action-icon-dropdown-menu-list hospitalization-list-action-items">
-                                  <li><div className="ehr-patient-hospitalization-list-edit-icon" onClick={() => onEdit(record)}><span><i className="fa-solid fa-pen action-icon"/></span> Edit</div></li>
-                                  <li><div className="ehr-patient-hospitalization-list-delete-icon" onClick={() => handleDelete(record)}><span><i className="fa-solid fa-trash action-icon"/></span>Delete</div></li>
+                                  <li><div className="ehr-patient-hospitalization-list-edit-icon" onClick={() => onEdit(record)}><span><LegacyIcon icon="fa-pen" className="action-icon"/></span> Edit</div></li>
+                                  <li><div className="ehr-patient-hospitalization-list-delete-icon" onClick={() => handleDelete(record)}><span><LegacyIcon icon="fa-trash" className="action-icon"/></span>Delete</div></li>
                                 </ul>
                               </div>
                             </div>
@@ -142,7 +143,7 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
                   </div>);
               })}
             </div>) : (<div className="list-wrapper mt-2" style={{ border: '2px solid #ddd', padding: '30px 20px', textAlign: 'center' }}>
-              <div className="nodata"><i className="mdi mdi-information-outline" style={{ fontSize: 40, verticalAlign: 'sub' }}/>
+              <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 40, verticalAlign: 'sub' }}/>
                 <span style={{ fontSize: 20 }}> Patient doesn't any Hospitalization Record. </span>
               </div>
             </div>)}

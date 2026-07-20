@@ -1,4 +1,4 @@
-/* Preferences — list/detail reuse shared pc-* classes; section-specific bits only. */
+﻿/* Preferences â€” list/detail reuse shared pc-* classes; section-specific bits only. */
 .preferences-sub-section-toggle-group .nav-link {
     font-size: 12px;
 }
@@ -16,7 +16,7 @@
 .preferences-name {
     font-weight: 600;
 }
-.preferences-details-main-container .preferences-action-icons .mdi {
+.preferences-details-main-container .preferences-action-icons .pi {
     cursor: pointer;
     font-size: 18px;
 }

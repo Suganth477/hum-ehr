@@ -6,6 +6,7 @@ import { buildImmunizationSavePayload, fetchVaccineSiteLookup, saveImmunization 
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 
 const physicianLabel = (p) => p.name || p.fullName || p.physicianName || p.providerName || p.userName || '';
 const physicianValue = (p) => p.id ?? p.physicianId ?? p.userId ?? p.value ?? '';
@@ -196,7 +197,7 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
         </div>
       </div>
 
-      {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><i className="fa fa-exclamation-triangle me-1"/>{saveError.message}</div>)}
+      {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
       <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
         <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>

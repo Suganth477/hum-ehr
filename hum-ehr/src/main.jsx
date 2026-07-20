@@ -19,7 +19,7 @@ if (!container)
 createRoot(container).render(<StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename="/ehr">
+        <BrowserRouter basename="/emr">
           <App />
         </BrowserRouter>
       </QueryClientProvider>

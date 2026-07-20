@@ -3,6 +3,7 @@ import { Dialog } from 'primereact/dialog';
 import PatientPreferencesList from './PatientPreferencesList';
 import PatientPreferencesViewDetails from './PatientPreferencesViewDetails';
 import PatientPreferencesAddEdit from './PatientPreferencesAddEdit';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import {
     PREFERENCES_DESC_MAP, fetchPreferenceLookups, fetchPreferenceStatuses,
 } from '../../../services/preferencesService';
@@ -79,7 +80,7 @@ const PatientPreferences = ({ patientId }) => {
             </div>
             {recordType === 'active' && (
               <button type="button" className="pc-add-new-preferences-btn pc-add-new-section-details-btn btn btn-primary btn-md border-radius-button" onClick={() => openAddEdit(null)}>
-                <span className="mdi mdi-plus mdi-s-20"/> Add
+                <LegacyIcon icon="mdi-plus" className="icon-size-20"/> Add
               </button>
             )}
           </div>
@@ -104,7 +105,7 @@ const PatientPreferences = ({ patientId }) => {
           <div className="search-preferences-container icon-input-group pc-search-input-container mt-2">
             <div className="position-relative">
               <input id={`pc_preferences_list_search_input_${patientId}`} type="text" className="form-control text-capitalize" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/>
-              <span className="mdi mdi-magnify input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
+              <LegacyIcon icon="mdi-magnify" className="input-icon" style={{ position: 'absolute', right: 10, top: 6 }}/>
             </div>
           </div>
         </div>

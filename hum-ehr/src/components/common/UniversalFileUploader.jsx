@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { FolderUploadIcon, LegacyIcon } from './CustomIcons';
 import './UniversalFileUploader.css';
 
 /**
@@ -31,16 +32,18 @@ const base64ToBlobUrl = (base64, type) => {
         return URL.createObjectURL(new Blob([arr], { type }));
     } catch { return ''; }
 };
-const iconClass = (fmt) => {
+// File-type icon: PrimeIcons where an exact glyph exists (pdf/word/excel/image),
+// custom SVGs reproducing the original FontAwesome glyphs for the rest.
+const FileTypeIcon = ({ fmt, className = '', style }) => {
     const f = (fmt || '').toLowerCase();
-    if (f === 'pdf') return 'fa-regular fa-file-pdf';
-    if (['doc', 'docx'].includes(f)) return 'fa-regular fa-file-word';
-    if (['xls', 'xlsx', 'csv'].includes(f)) return 'fa-regular fa-file-excel';
-    if (['ppt', 'pptx'].includes(f)) return 'fa-regular fa-file-powerpoint';
-    if (['xml', 'html', 'json'].includes(f)) return 'fa-regular fa-file-code';
-    if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(f)) return 'fa-regular fa-file-image';
-    if (['zip', 'rar', '7z'].includes(f)) return 'fa-regular fa-file-archive';
-    return 'fa-regular fa-file-lines';
+    if (f === 'pdf') return <LegacyIcon icon="fa-file-pdf" className={className} style={style} />;
+    if (['doc', 'docx'].includes(f)) return <LegacyIcon icon="fa-file-word" className={className} style={style} />;
+    if (['xls', 'xlsx', 'csv'].includes(f)) return <LegacyIcon icon="fa-file-excel" className={className} style={style} />;
+    if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(f)) return <LegacyIcon icon="fa-file-image" className={className} style={style} />;
+    if (['ppt', 'pptx'].includes(f)) return <LegacyIcon icon="fa-file-powerpoint" className={className} style={style} />;
+    if (['xml', 'html', 'json'].includes(f)) return <LegacyIcon icon="fa-file-code" className={className} style={style} />;
+    if (['zip', 'rar', '7z'].includes(f)) return <LegacyIcon icon="fa-file-archive" className={className} style={style} />;
+    return <LegacyIcon icon="fa-file-lines" className={className} style={style} />;
 };
 const attachmentType = () => 'DOCU';
 
@@ -153,7 +156,7 @@ const UniversalFileUploader = forwardRef(({
         onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(false); }}
         onDrop={onDrop}>
         {!dragging && (<div className="uploader-area-box w-100 d-flex align-items-center flex-column gap-2 justify-content-center" onClick={() => inputRef.current?.click()}>
-          <div className="uploader-main-icon"><i className="fa-regular fa-folder-arrow-up"/></div>
+          <div className="uploader-main-icon"><FolderUploadIcon/></div>
           <div className="uploader-info-text text-center">
             <span>Drag and Drop or</span> <span className="uploader-clickable-text fw-bold">Select File to Import</span>
             <input ref={inputRef} type="file" name={name} className="d-none" multiple={maxFiles > 1}
@@ -163,7 +166,7 @@ const UniversalFileUploader = forwardRef(({
           <div className="uploader-hint-text">Supported Formats: {allowedExtensions.join(', ').toUpperCase()} &nbsp;|&nbsp; Max File Limit: {maxFiles} (Max {maxSizeMB} MB each)</div>
         </div>)}
         {dragging && (<div className="uploader-drag-overlay text-center flex-column gap-1 d-flex">
-          <i className="fa-solid fa-cloud-arrow-up fa-beat-fade"/><p className="m-0"><b>Drop files here to upload</b></p>
+          <LegacyIcon icon="fa-cloud-arrow-up"/><p className="m-0"><b>Drop files here to upload</b></p>
         </div>)}
 
         <div className="uploader-chips-output-shell">
@@ -171,19 +174,19 @@ const UniversalFileUploader = forwardRef(({
             const label = DOWNLOAD_FORMATS.includes(f.fileFormat) ? 'Click to download' : 'Click to view';
             return (<div key={`${f.fileName}_${f.attachmentSize}_${f.attachmentId || 'new'}`} className="fum-chip d-flex align-items-center justify-content-between">
               <div className="d-flex align-items-center gap-2 overflow-hidden me-2">
-                <i className={`${iconClass(f.fileFormat)} text-info`} style={{ fontSize: 16 }}/>
+                <FileTypeIcon fmt={f.fileFormat} className="text-info" style={{ fontSize: 16 }}/>
                 <div className="text-truncate text-secondary" style={{ maxWidth: 280 }} title={f.fileName}><b>{f.fileName}</b> <span className="text-muted">({f.displaySizeKb} KB)</span></div>
                 <button type="button" className="fum-chip-view" onClick={(e) => { e.stopPropagation(); viewFile(f); }}>{label}</button>
               </div>
               <div className="fum-chip-remove" onClick={(e) => { e.stopPropagation(); removeFile(f); }}>
-                <i className={`fa ${inBaseApp === 'Y' ? 'fa-trash' : 'fa-times'} text-danger fum-chip-delete-icon`}/>
+                <LegacyIcon icon={inBaseApp === 'Y' ? 'fa-trash' : 'fa-times'} className="text-danger fum-chip-delete-icon"/>
               </div>
             </div>);
           })}
         </div>
       </div>
       {error && (<div className="uploader-inline-error-banner alert alert-danger d-flex align-items-center gap-2 mt-2 p-2" style={{ fontSize: 12, borderRadius: 8 }} role="alert">
-        <i className="fa-solid fa-circle-exclamation text-danger"/><div className="flex-grow-1 text-dark">{error}</div>
+        <LegacyIcon icon="fa-circle-exclamation" className="text-danger"/><div className="flex-grow-1 text-dark">{error}</div>
       </div>)}
     </div>);
 });

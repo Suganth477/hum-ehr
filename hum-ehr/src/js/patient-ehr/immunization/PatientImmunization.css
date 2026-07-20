@@ -1,4 +1,4 @@
-/* Immunization — list/detail rows reuse the shared pc-list-each-details /
+﻿/* Immunization â€” list/detail rows reuse the shared pc-list-each-details /
    patient-chart classes; only section-specific bits are defined here. */
 
 .immunization-each-vaccine-detail-container {
@@ -13,7 +13,7 @@
     font-weight: 600;
 }
 
-.immunization-vaccine-details-main-container .vaccine-action-icons .mdi {
+.immunization-vaccine-details-main-container .vaccine-action-icons .pi {
     cursor: pointer;
     font-size: 18px;
 }

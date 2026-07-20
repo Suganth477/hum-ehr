@@ -8,6 +8,7 @@ import {
 import US_STATES from '../../../constants/usStates';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -225,7 +226,7 @@ const PatientCareGivers = ({ patientId }) => {
           </li>
         </ul>
         <button type="button" className="btn btn-primary btn-md border-radius-button" onClick={() => openDialog(null)}>
-          <span className="mdi mdi-plus"/> Add Caregiver
+          <LegacyIcon icon="mdi-plus"/> Add Caregiver
         </button>
       </div>
 
@@ -233,7 +234,7 @@ const PatientCareGivers = ({ patientId }) => {
         {records === null && <SkeletonTable columns={['S.No', 'Care Status Type', 'Recorded Date', 'Start Date', 'End Date', 'Care Notes', '']} rows={4}/>}
         {records !== null && records.length === 0 && (
           <div className="text-center py-4">
-            <i className="mdi mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
+            <LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
             <span style={{ fontSize: 20 }}> Patient doesn&apos;t have any {recordType === 'active' ? 'active caregivers' : 'inactive caregivers'} yet! </span>
           </div>
         )}
@@ -245,19 +246,19 @@ const PatientCareGivers = ({ patientId }) => {
                 <span className="text-capitalize fw-bold mt-1">{record.fullName || ''}</span>
                 <div className="d-flex gap-3">
                   {recordType === 'active' && (
-                    <span className="pp-record-action-icon edit" title="Edit" role="button" onClick={() => openDialog(record)}><i className="fa-solid fa-pen"/></span>
+                    <span className="pp-record-action-icon edit" title="Edit" role="button" onClick={() => openDialog(record)}><LegacyIcon icon="fa-pen"/></span>
                   )}
-                  <span className="pp-record-action-icon delete" title="Delete" role="button" onClick={() => handleDelete(record)}><i className="fa-solid fa-trash"/></span>
+                  <span className="pp-record-action-icon delete" title="Delete" role="button" onClick={() => handleDelete(record)}><LegacyIcon icon="fa-trash"/></span>
                 </div>
               </div>
               <div className="row mt-2 gy-1">
-                <div className="col-md-3"><i className="fa-solid fa-phone me-1"/><span className="fw-semibold">{record.phoneNumber || '-'}</span></div>
-                <div className="col-md-4"><i className="fa-solid fa-envelope me-1"/><span className="fw-semibold">{record.email || '-'}</span></div>
-                <div className="col-md-5"><i className="fa-solid fa-house me-1"/><span className="fw-semibold">{formatAddress(record) || '-'}</span></div>
+                <div className="col-md-3"><LegacyIcon icon="fa-phone" className="me-1"/><span className="fw-semibold">{record.phoneNumber || '-'}</span></div>
+                <div className="col-md-4"><LegacyIcon icon="fa-envelope" className="me-1"/><span className="fw-semibold">{record.email || '-'}</span></div>
+                <div className="col-md-5"><LegacyIcon icon="fa-house" className="me-1"/><span className="fw-semibold">{formatAddress(record) || '-'}</span></div>
               </div>
               <div className="row mt-2 gy-1">
-                <div className="col-md-3"><span className="mdi mdi-calendar-month-outline me-1"/>Effective Date &amp; Time : <span className="fw-semibold">{record.effectiveDate || '-'}</span></div>
-                <div className="col-md-4"><span className="mdi mdi-calendar-month-outline me-1"/>Last Effective Date &amp; Time : <span className="fw-semibold">{record.lastEffectiveDate || '-'}</span></div>
+                <div className="col-md-3"><LegacyIcon icon="mdi-calendar-month-outline" className="me-1"/>Effective Date &amp; Time : <span className="fw-semibold">{record.effectiveDate || '-'}</span></div>
+                <div className="col-md-4"><LegacyIcon icon="mdi-calendar-month-outline" className="me-1"/>Last Effective Date &amp; Time : <span className="fw-semibold">{record.lastEffectiveDate || '-'}</span></div>
                 <div className="col-md-5">Alert Communication : <span className="fw-semibold">{record.alertFlag === 'Y' ? 'Yes' : 'No'}</span></div>
               </div>
             </div>
@@ -314,7 +315,7 @@ const PatientCareGivers = ({ patientId }) => {
             <div className="col-md-4">
               <label>Zip Code</label>
               <input type="text" className="form-control" maxLength={5} value={form.addressZipCode} onChange={(e) => handleZipChange(e.target.value.replace(/\D/g, ''))}/>
-              {zipInvalid && <div className="small text-danger mt-1"><i className="fa fa-exclamation-triangle me-1"/><b>Invalid Zip Code</b></div>}
+              {zipInvalid && <div className="small text-danger mt-1"><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/><b>Invalid Zip Code</b></div>}
               <FieldError message={errors.addressZipCode}/>
             </div>
             <div className="col-md-4">

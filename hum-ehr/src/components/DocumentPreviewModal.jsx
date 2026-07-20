@@ -1,4 +1,5 @@
 import { base64ToBlobUrl } from '../utils/commonUtility';
+import { LegacyIcon } from './common/CustomIcons';
 const getMimeType = (format) => {
     const ext = format?.toLowerCase();
     if (ext && ['jpg', 'jpeg', 'png'].includes(ext))
@@ -26,7 +27,7 @@ const DocumentPreviewModal = ({ visible, fileDetails, onClose }) => {
           <div className="modal-body p-0 bg-light">
             <div className="modal-view-container d-flex align-items-center justify-content-center" style={{ width: '100%', height: 'min(580px, 75vh)' }}>
               {isImage ? (<img src={blobURL} alt={fileName} className="img-fluid max-height-100 shadow-sm" style={{ maxHeight: '100%', maxWidth: '100%' }}/>) : mimeType === 'application/pdf' ? (<iframe src={`${blobURL}#toolbar=0`} width="100%" height="100%" title={fileName} className="border-0"/>) : (<div className="text-center p-4">
-                  <span className="mdi mdi-file-download-outline display-1 text-muted d-block mb-3"/>
+                  <LegacyIcon icon="mdi-file-download-outline" className="display-1 text-muted d-block mb-3"/>
                   <p className="mb-3 fw-medium">Preview unavailable for this format type config.</p>
                   <a href={blobURL} download={fileName} className="btn btn-primary rounded-pill px-4">Download Resource File</a>
                 </div>)}

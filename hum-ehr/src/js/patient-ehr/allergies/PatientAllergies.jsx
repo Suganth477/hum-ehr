@@ -6,6 +6,7 @@ import PatientAllergyLookupInput from './PatientAllergyLookupInput';
 import { fetchAllergyMetadata } from '../../../services/lookupService';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
+import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientAllergies.css';
 const EMPTY_FILTERS = {
     allergyType: '',
@@ -141,16 +142,16 @@ const PatientAllergies = ({ patientId }) => {
 
                 <div className="pa-allergies-header-search-input-group position-relative ms-2">
                   <input id={`pa_search_allergy_input_${patientId}`} type="text" className="form-control pa-search-allergy-input" placeholder="Search allergies" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}/>
-                  <i className="fa fa-solid fa-magnifying-glass position-absolute end-0 top-50 translate-middle-y me-2 text-muted"/>
+                  <LegacyIcon icon="fa-magnifying-glass" className="position-absolute end-0 top-50 translate-middle-y me-2 text-muted"/>
                 </div>
               </div>
 
               <div className="pa-allergies-header-action-icons-container d-flex align-items-center gap-2">
                 <button type="button" className="btn btn-outline-secondary btn-md d-flex align-items-center gap-1 filter-icon-btn" onClick={() => setFilterVisible(true)}>
-                  <span className="mdi mdi-filter-variant"/>Filter
+                  <LegacyIcon icon="mdi-filter-variant"/>Filter
                 </button>
                 {recordType !== 'history' && (<button type="button" className="pa-add-new-allergy-btn btn btn-primary btn-md border-radius-button text-nowrap" id={`pa_add_new_allergy_btn_${patientId}`} onClick={() => openAddEdit(null, 'create')}>
-                    <span className="mdi mdi-plus"/> Add Allergy
+                    <LegacyIcon icon="mdi-plus"/> Add Allergy
                   </button>)}
               </div>
             </div>
