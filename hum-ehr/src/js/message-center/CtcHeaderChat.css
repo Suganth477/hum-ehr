@@ -1,0 +1,88 @@
+/* Header Care-Team-Communication chat dropdown.
+   Shell mirrors the legacy .eum-ehr-ctc-dropdown-view-container (400px, bordered,
+   shadowed, left-aligned). The reused message-center components are full-page
+   (col-md-3 list); the overrides below force them to fill the narrow dropdown. */
+
+.ctc-header-chat {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.ctc-chat-trigger {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0 8px;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Legacy: the chat-window icon turns orange while the dropdown is open. */
+.ctc-chat-trigger.open {
+    color: #fd6100;
+}
+
+.ctc-header-chat-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    width: 400px;
+    max-width: 92vw;
+    background: #fff;
+    color: #212529;
+    text-align: left;
+    border: 2px solid var(--app-color4);
+    border-radius: var(--app-border-radius8, 8px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    padding: 5px;
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Neutralize the reused list's bootstrap column so it fills the dropdown. */
+.ctc-header-chat-panel .mc-chat-user-list-col {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 100%;
+}
+
+.ctc-header-chat-panel .mc-recent-users-section {
+    height: 360px;
+}
+
+.ctc-ind-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ctc-ind-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    color: var(--app-color2);
+    border-bottom: 1px solid #e1e5ea;
+}
+
+/* The reused conversation view fills the dropdown height and scrolls internally. */
+.ctc-header-chat-panel .mc-chat-view {
+    height: 460px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ctc-header-chat-panel.ctc-panel-loading {
+    padding: 24px;
+    text-align: center;
+    color: var(--app-color11, #777);
+}

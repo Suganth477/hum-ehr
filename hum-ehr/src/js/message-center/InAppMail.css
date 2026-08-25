@@ -1,0 +1,288 @@
+/* In-App Mail — folder rail + conversation list.
+   Mirrors in-app-mail-conversation-list.jsp: a ~180px left rail (blue Compose button +
+   folder nav with the active folder highlighted blue) and a list panel with a sticky
+   head (select-all + bulk actions on the left; sort + page counter on the right). */
+
+.iam-container {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    background: #fff;
+    color: #212529;
+    position: relative;
+}
+
+/* ---- left rail ---- */
+.iam-rail {
+    width: 190px;
+    flex: 0 0 190px;
+    padding: 10px;
+    border-right: 1px solid #e8e8e8;
+    overflow-y: auto;
+}
+
+.iam-compose-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 46px;
+    margin-bottom: 14px;
+    border: 0;
+    border-radius: 5px;
+    background-color: #337ab7;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+}
+.iam-compose-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.iam-folder-list { list-style: none; margin: 0; padding: 0; }
+
+.iam-folder button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    background: none;
+    color: #212529;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.iam-folder-icon { margin-right: 12px; fill: #000; flex: 0 0 auto; }
+.iam-folder-label { flex: 1 1 auto; text-align: left; }
+.iam-folder-count { font-size: 0.8rem; }
+
+.iam-folder.active button { background-color: #337ab7; color: #fff; font-weight: bold; }
+.iam-folder.active .iam-folder-icon { fill: #fff; }
+
+/* ---- main panel ---- */
+.iam-main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px;
+}
+
+.iam-search-bar { position: relative; margin-bottom: 10px; }
+.iam-search-icon-wrap { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); line-height: 0; }
+.iam-search-input { padding-left: 42px; }
+
+/* ---- list ---- */
+.iam-list {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+}
+
+.iam-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid #e8e8e8;
+    border-radius: 5px 5px 0 0;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.iam-list-head-left { display: flex; align-items: center; gap: 6px; min-height: 34px; }
+.iam-list-head-right { display: flex; align-items: center; gap: 8px; }
+
+.iam-check-all, .iam-row-check { width: 14px; height: 14px; cursor: pointer; }
+
+.iam-action-bar { display: inline-flex; align-items: center; gap: 4px; }
+.iam-action-btn, .iam-page-btn, .iam-row-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: none;
+    padding: 2px 4px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+.iam-action-btn:hover, .iam-page-btn:hover:not(:disabled), .iam-row-action-btn:hover { background: #f0f2f5; }
+.iam-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.iam-sort-select { width: auto; min-width: 96px; height: 32px; padding: 2px 8px; }
+.iam-page-count { font-size: 0.85rem; white-space: nowrap; }
+
+.iam-list-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+
+/* ---- rows ---- */
+.iam-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+}
+.iam-row:hover { background: #f7f9fb; }
+
+.iam-col-select { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; width: 52px; }
+.iam-col-name { flex: 0 0 auto; width: 140px; min-height: 20px; padding-right: 6px; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.iam-col-star { flex: 0 0 auto; width: 26px; cursor: pointer; line-height: 0; }
+.iam-col-subject { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.iam-col-attach { flex: 0 0 auto; width: 24px; line-height: 0; }
+.iam-col-date { flex: 0 0 auto; width: 74px; text-align: right; font-size: 0.8rem; cursor: pointer; }
+.iam-col-action { flex: 0 0 auto; width: 58px; display: inline-flex; justify-content: flex-end; }
+
+.iam-mark-read-icon { cursor: pointer; }
+.iam-draft-text { color: #d9534f; font-weight: bold; font-size: 0.8rem; }
+.iam-mail-count { color: #526172; font-size: 0.8rem; }
+.iam-snippet { font-size: 0.9rem; }
+
+.iam-nodata { padding: 28px 10px; text-align: center; color: #777; }
+
+/* ---- thread reader (P3) ---- */
+.iam-thread { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; border: 1px solid #e8e8e8; border-radius: 5px; }
+.iam-thread-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px; border-bottom: 1px solid #e8e8e8; border-radius: 5px 5px 0 0;
+}
+.iam-thread-head-left, .iam-thread-head-right { display: flex; align-items: center; gap: 6px; }
+.iam-thread-count { font-size: 0.85rem; white-space: nowrap; }
+.iam-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; background: none; padding: 3px 5px; cursor: pointer; border-radius: 3px;
+}
+.iam-icon-btn:hover:not(:disabled) { background: #f0f2f5; }
+.iam-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.iam-thread-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; padding: 6px 10px; }
+.iam-thread-subject { padding: 8px 0 6px 5px; font-size: 18px; border-bottom: 1px solid #8080803b; }
+
+.iam-message { border-bottom: 1px solid #8080803b; }
+.iam-message-full { padding: 8px 0; }
+.iam-message-header { display: flex; justify-content: space-between; gap: 8px; }
+.iam-message-from { display: flex; align-items: flex-start; gap: 5px; font-size: 12px; }
+.iam-avatar {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto;
+    background: #337ab7; color: #fff; font-size: 14px; text-transform: uppercase;
+}
+.iam-message-parties { line-height: 1.5; }
+.iam-party-label { color: grey; font-weight: bold; }
+.iam-message-meta { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.iam-message-date { font-size: 12px; color: #333; }
+.iam-message-body { padding: 14px 0 14px 50px; cursor: pointer; word-break: break-word; }
+
+.iam-message-attachments { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 10px 50px; }
+.iam-attachment { position: relative; cursor: pointer; max-width: 150px; }
+.iam-attachment-thumb { width: 140px; height: 80px; object-fit: cover; border-radius: 4px; }
+.iam-attachment-name { font-size: 11px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iam-attachment-size { font-size: 10px; color: #666; }
+
+.iam-reply-bar { display: flex; gap: 6px; justify-content: center; padding: 6px 0 10px; }
+.iam-reply-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid #d0d5da; background: #fff; border-radius: 4px; padding: 4px 12px; cursor: pointer;
+}
+.iam-reply-btn:hover { background: #f0f2f5; }
+.iam-reply-placeholder { border: 1px dashed #c3c9d0; border-radius: 5px; padding: 10px 12px; margin: 0 0 10px 50px; }
+
+.iam-message-collapsed {
+    display: flex; align-items: center; gap: 6px; padding: 8px 0; cursor: pointer;
+}
+.iam-message-collapsed:hover { background: #f7f9fb; }
+.iam-collapsed-name { flex: 0 0 auto; width: 130px; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.iam-collapsed-snippet { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.iam-collapsed-date { flex: 0 0 auto; font-size: 12px; color: #333; white-space: nowrap; }
+
+.iam-draft-message { padding: 12px; background: #fffbe6; border-radius: 5px; margin: 8px 0; }
+.iam-draft-tag { display: inline-block; color: #d9534f; font-weight: bold; font-size: 0.8rem; margin-bottom: 6px; }
+
+.iam-preview-body { text-align: center; }
+.iam-preview-name { font-size: 0.85rem; color: #555; }
+.iam-preview-media { max-width: 100%; max-height: 65vh; }
+
+/* ---- composer (P4) ---- */
+.iam-compose-overlay { position: absolute; right: 16px; bottom: 16px; z-index: 20; width: 520px; max-width: calc(100% - 32px); }
+.iam-compose {
+    display: flex; flex-direction: column; background: #fff;
+    border: 1px solid #d0d5da; border-radius: 6px; overflow: hidden;
+}
+.iam-compose-panel { box-shadow: rgba(0, 0, 0, 0.18) 0px 8px 28px; }
+.iam-compose-inline { margin: 8px 0 12px; }
+.iam-compose-min .iam-compose-body { display: none; }
+
+.iam-compose-head {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #337ab7; color: #fff; padding: 6px 10px; font-size: 0.9rem;
+}
+.iam-compose-title { font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iam-compose-head-actions { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.iam-compose-head .iam-icon-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.2); }
+
+.iam-compose-body { display: flex; flex-direction: column; padding: 8px 10px; gap: 6px; }
+
+.iam-recipient-field { display: flex; align-items: flex-start; border-bottom: 1px solid #e8e8e8; padding-bottom: 4px; }
+.iam-recipient-label { flex: 0 0 auto; width: 34px; color: grey; margin: 4px 4px 0 0; font-size: 0.85rem; }
+.iam-tag-input { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; flex: 1 1 auto; min-height: 30px; cursor: text; }
+
+.iam-tag { display: inline-flex; align-items: center; gap: 4px; background: #eef2f6; border-radius: 12px; padding: 1px 6px 1px 2px; font-size: 0.82rem; }
+.iam-tag-initial {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%; background: #337ab7; color: #fff; font-size: 0.7rem; text-transform: uppercase;
+}
+.iam-tag-remove { display: inline-flex; cursor: pointer; line-height: 0; }
+
+.iam-autocomplete-wrap { position: relative; flex: 1 1 90px; min-width: 90px; }
+.iam-recipient-input { width: 100%; border: 0; outline: none; padding: 4px 2px; font-size: 0.9rem; background: transparent; }
+.iam-autocomplete-list {
+    position: absolute; top: 100%; left: 0; z-index: 30; min-width: 220px; max-height: 220px; overflow-y: auto;
+    background: #fff; border: 1px solid #d0d5da; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.iam-autocomplete-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer; font-size: 0.88rem; }
+.iam-autocomplete-item:hover { background: #f0f4f8; }
+
+.iam-compose-subject { display: flex; align-items: center; border-bottom: 1px solid #e8e8e8; }
+.iam-compose-subject label { flex: 0 0 auto; width: 34px; color: grey; margin: 0 4px 0 0; font-size: 0.85rem; }
+.iam-compose-subject input { flex: 1 1 auto; border: 0; outline: none; padding: 6px 2px; font-size: 0.9rem; }
+.iam-compose-subject input:disabled { background: #f5f5f5; }
+
+.iam-compose-message { width: 100%; min-height: 120px; max-height: 260px; border: 0; outline: none; resize: vertical; padding: 6px 2px; font-size: 0.9rem; }
+
+.iam-compose-files { display: flex; flex-wrap: wrap; gap: 6px; }
+.iam-compose-file { display: inline-flex; align-items: center; gap: 4px; background: #f4f6f8; border-radius: 4px; padding: 3px 6px; font-size: 0.8rem; }
+.iam-compose-file-name { color: blue; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iam-compose-file-size { color: #666; }
+.iam-compose-file-remove { border: 0; background: none; cursor: pointer; line-height: 0; padding: 0; }
+.iam-compose-file-error { color: #d9534f; font-size: 0.8rem; }
+
+.iam-compose-footer { display: flex; align-items: center; gap: 8px; padding-top: 6px; border-top: 1px solid #e8e8e8; }
+.iam-compose-footer-spacer { flex: 1 1 auto; }
+.iam-compose-draft-btn, .iam-compose-send-btn { padding: 5px 16px; border-radius: 4px; font-size: 0.88rem; }
+
+@media (max-width: 767.98px) {
+    .iam-compose-overlay { right: 8px; left: 8px; bottom: 8px; width: auto; }
+}
+
+/* ---- SweetAlert2 theme (matches the allergy module's mixin) ---- */
+.iam-swal-confirm, .iam-swal-cancel {
+    border: 0;
+    border-radius: 4px;
+    padding: 8px 20px;
+    margin: 0 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+.iam-swal-confirm { background: #337ab7; color: #fff; }
+.iam-swal-cancel { background: #e2e6ea; color: #212529; }
+
+/* ---- responsive: stack the rail above the list on tablet/mobile ---- */
+@media (max-width: 991.98px) {
+    .iam-container { flex-direction: column; }
+    .iam-rail { width: 100%; flex: 0 0 auto; border-right: 0; border-bottom: 1px solid #e8e8e8; }
+    .iam-folder-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .iam-folder button { width: auto; }
+}

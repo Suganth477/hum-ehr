@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import MessageCenterChat from './MessageCenterChat';
+import InAppMail from './InAppMail';
 import { getLoggedInUser } from '../../services/authService';
 import './MessageCenter.css';
 
@@ -9,7 +10,6 @@ const CHAT_HIDDEN_ROLES = ['CMSSUPEADM', 'CMSCLINADM'];
 /**
  * Message Center shell (legacy ehr-message-center.jsp + EhrTextMessageCenterSideMenu):
  * left icon menu toggles between Message Center Chat and In-App Mail.
- * In-App Mail is a later migration sub-phase (placeholder for now).
  */
 const MessageCenter = () => {
     const hideChat = useMemo(() => CHAT_HIDDEN_ROLES.includes(getLoggedInUser()?.roleCode), []);
@@ -47,9 +47,7 @@ const MessageCenter = () => {
         </div>
         <div className="mc-communication-body">
           {activeModule === 'INAPPCHAT' && !hideChat && <MessageCenterChat/>}
-          {activeModule === 'INAPPMAIL' && (
-            <div className="p-4 text-muted">In-App Mail is being migrated in a later phase.</div>
-          )}
+          {activeModule === 'INAPPMAIL' && <InAppMail/>}
         </div>
       </div>
     </div>);

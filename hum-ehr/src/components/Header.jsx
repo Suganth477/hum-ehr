@@ -54,7 +54,6 @@ const Header = ({ baseUrl = '' }) => {
 						<p className="m-0 user-time">{currentTime.format('h:mm:ss A')}</p>
 					</li>
 					<li className="icon-section">
-						<LegacyIcon icon="mdi-message-text-outline" className="d-none" />
 						<span className="notifications-count-icon">
 							<LegacyIcon icon="mdi-email" />
 							<span className="notifications-count">30</span>

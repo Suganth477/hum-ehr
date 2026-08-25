@@ -1,5 +1,7 @@
 import Sidebar from './Sidebar';
 import { LegacyIcon, HeartPulseIcon, DevicesIcon, ChartMultipleIcon, ListBoxIcon } from './common/CustomIcons';
+import CtcHeaderChat from '../js/message-center/CtcHeaderChat';
+
 const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 	const handleTabClickEvent = (section, tabId, e) => {
 		// The filter-icon visibility is rendered declaratively from `activeTab`
@@ -60,6 +62,7 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 				</div>
 				<div className="app-quick-access-icon-section hh-ehr-bg-color5 hh-ehr-color1">
 					<ul>
+						<li className="app-quick-access-icon-list"><CtcHeaderChat /></li>
 						<li className="app-quick-access-icon-list"><LegacyIcon icon="mdi-calendar-plus-outline" /></li>
 						<li className="app-quick-access-icon-list"><HeartPulseIcon /></li>
 						<li className="app-quick-access-icon-list"><DevicesIcon /></li>

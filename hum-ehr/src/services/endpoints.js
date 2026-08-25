@@ -189,5 +189,20 @@ const ENDPOINTS = {
 			notificationCount: '/business/message/count?communicationType=INAPCHT', // GET
 		},
 	},
+	// In-App Mail — secure internal messaging (distinct from the chat surface above).
+	// All calls hit the standard backend via apiClient (JSON). Legacy source:
+	// care-team-communication/in.app.mail.conversation.list.js.
+	inAppMail: {
+		conversationList: '/inAppMail/conversationList',   // POST json: folder list (DataTables server-side)
+		details: '/inAppMail/details',                     // POST ?parentMailId=&statusIsTrash=Y|N (null body): thread
+		contact: '/inAppMail/contact',                     // POST json: recipient (to/cc) search
+		save: '/inAppMail/save',                           // POST json: new mail / draft (no messageId)
+		update: '/inAppMail/status/update',                // POST json: existing mail (has messageId)
+		// Shared read/star/trash/permtrash endpoint (same path as chat's updateUnreadCount).
+		// Legacy constant: IN_APP_MAIL_COMMON_URL.inAppMailMessageStatusChangeApi.
+		statusChange: '/business/message/status-update',   // POST json: { statusCode, statusFlag, messageDetailsIdList }
+		count: '/inAppMail/count',                         // POST json (null body): per-folder unread counts
+		eventValidation: '/inAppMail/event/validation',    // GET ?patientId=&eventCode= (patient-scoped mail)
+	},
 };
 export default ENDPOINTS;

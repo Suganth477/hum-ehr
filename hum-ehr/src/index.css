@@ -3,9 +3,12 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Light-only EHR (matches the legacy JSP app). The Vite boilerplate defaulted
+     :root to a dark #242424 backdrop under any non-light OS setting, which showed
+     through as a black background wherever app chrome didn't paint over it. */
+  color-scheme: light;
+  color: #213547;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
