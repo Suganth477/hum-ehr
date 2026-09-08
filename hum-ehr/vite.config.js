@@ -7,6 +7,11 @@ export default defineConfig({
   plugins: [react()],
 
   server: {
+    // Pin the dev port so the harness preview (and .claude/launch.json) always
+    // target the same origin — a drifting port was opening a dead tab.
+    port: 5173,
+    strictPort: true,
+
     // Mirrors production same-origin routing during local dev: API calls
     // stay same-origin (relative), forwarded here to the real backend on
     // Tomcat instead of requiring CORS. Adjust the target/path prefix to

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildProblemSavePayload, savePatientProblem } from '../../../services/problemService';
 import { fetchProblemSnomedForIcd } from '../../../services/lookupService';
 import { getFormattedIcdCode } from '../../../utils/commonUtility';
@@ -6,6 +6,11 @@ import { getSaveOutcome } from '../../../utils/saveResponse';
 import ProblemIcdLookupInput from './ProblemIcdLookupInput';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
+import moment from '../../../utils/dayjs';
+const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
 const createDefaultForm = () => ({
     icdCode: '',
     icdDescription: '',
@@ -15,7 +20,8 @@ const createDefaultForm = () => ({
     clinicalStatus: '',
     verificationStatus: '',
     diagnosisDate: '',
-    recordedDate: '',
+    // Legacy defaults Recorded Date & Time to the current logged-in-user time for new records.
+    recordedDate: nowDateTime(),
     endDate: '',
     notes: '',
     changeLogNotes: '',
@@ -37,10 +43,14 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
     // Server save outcome for a 200 response whose envelope status is
     // warning/failure (kept separate from field validation so it can carry tone).
     const [saveError, setSaveError] = useState(null);
+    const [dob, setDob] = useState('');
+    const [dirty, setDirty] = useState(false);
+    const clinicalDefaultedRef = useRef(false);
+    const now = nowDateTime();
     const isEditMode = !!problemRecord?.diagnosisId;
     const isRecoverMode = actionType === 'recover';
-    const clinicalStatuses = statusMetadata?.clinicalStatuses || [];
-    const verificationStatuses = statusMetadata?.verificationStatuses || [];
+    const clinicalStatuses = useMemo(() => statusMetadata?.clinicalStatuses || [], [statusMetadata]);
+    const verificationStatuses = useMemo(() => statusMetadata?.verificationStatuses || [], [statusMetadata]);
     const fieldId = (base) => `${base}_${patientId}`;
     const clearFieldError = (key) => setErrors((previous) => {
         if (!previous[key])
@@ -52,6 +62,7 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
     const updateForm = (key, value) => {
         setForm((previous) => ({ ...previous, [key]: value }));
         clearFieldError(key);
+        setDirty(true);
     };
     // ---- current status classification ----
     const clinicalDesc = descOf(clinicalStatuses, form.clinicalStatus);
@@ -171,7 +182,32 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         if (problemRecord.snomedCode)
             loadSnomedForIcd(icdCode, String(problemRecord.snomedCode), problemRecord.snomedDesc || '');
     }, [problemRecord, isEditMode, loadSnomedForIcd]);
+    // Patient DOB → lower bound for the diagnosis/recorded/resolution dates
+    // (legacy floors every date at the patient's date of birth).
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(`${details.dateOfBirth} 12:00 AM`);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
+    // New record: default Clinical Status to the first (Active) status once the
+    // metadata loads, matching the legacy preselect of clinicalStatusCode[0].
+    useEffect(() => {
+        if (isEditMode || clinicalDefaultedRef.current || !clinicalStatuses.length) return;
+        clinicalDefaultedRef.current = true;
+        setForm((previous) => (previous.clinicalStatus ? previous : { ...previous, clinicalStatus: clinicalStatuses[0].code }));
+    }, [isEditMode, clinicalStatuses]);
     const handleIcdSelect = (item) => {
+        setDirty(true);
         setForm((previous) => ({
             ...previous,
             icdCode: item.code,
@@ -185,12 +221,14 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         loadSnomedForIcd(item.code);
     };
     const handleSnomedChange = (event) => {
+        setDirty(true);
         const code = event.target.value;
         const option = snomedOptions.find((item) => String(item.snomedId) === String(code));
         setForm((previous) => ({ ...previous, snomedCode: code, snomedDescription: option?.snomedDesc || '' }));
         clearFieldError('snomedCode');
     };
     const handleClinicalStatusChange = (value) => {
+        setDirty(true);
         setForm((previous) => {
             const next = { ...previous, clinicalStatus: value };
             const vStatus = verificationStatuses.find((status) => String(status.code) === String(previous.verificationStatus));
@@ -206,6 +244,11 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
             const cd = descOf(clinicalStatuses, value);
             if (!(cd.includes('inactive') || cd.includes('resolv')))
                 next.endDate = '';
+            // Legacy: clearing Clinical Status auto-selects "Entered in Error" verification.
+            if (!value) {
+                const errCode = verificationStatuses.find((status) => (status.description || '').toLowerCase().includes('error'))?.code;
+                if (errCode) next.verificationStatus = errCode;
+            }
             return next;
         });
         clearFieldError('clinicalStatus');
@@ -225,6 +268,11 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
             nextErrors.endDate = 'Date of Resolution is required.';
         if (form.endDate && !form.diagnosisDate)
             nextErrors.diagnosisDate = 'Date of Diagnosis is required when Date of Resolution is entered.';
+        if (form.endDate && form.diagnosisDate
+            && moment(form.endDate, 'MM-DD-YYYY hh:mm A').isBefore(moment(form.diagnosisDate, 'MM-DD-YYYY hh:mm A')))
+            nextErrors.endDate = 'Date of Resolution must be on or after Date of Diagnosis.';
+        if (form.notes && form.notes.trim().length < 2)
+            nextErrors.notes = 'Minimum 2 characters.';
         if (!form.changeLogNotes.trim())
             nextErrors.changeLogNotes = 'Change log message is required.';
         return nextErrors;
@@ -264,7 +312,7 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
           <button type="button" className="back-to-icon btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to problems list">
             <LegacyIcon icon="mdi-arrow-left" className="custom-pointer fs-4"/>
           </button>
-          <span className="fw-bold">{isRecoverMode ? 'Recover Problem' : isEditMode ? 'Edit Problem' : 'Add Problem'}</span>
+          <span className="fw-bold">{isRecoverMode ? 'Recover Problem' : isEditMode ? 'Edit Problems' : 'Add Problems'}</span>
         </div>
       </div>
 
@@ -324,16 +372,16 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         <div className="row g-3 mt-1">
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_diagnosis_date')}>Date of Diagnosis</label>
-            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_diagnosis_date')} value={form.diagnosisDate} onChange={(value) => updateForm('diagnosisDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM"/>
+            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_diagnosis_date')} value={form.diagnosisDate} onChange={(value) => updateForm('diagnosisDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" minDate={dob || undefined} maxDate={now}/>
             {errors.diagnosisDate && <div className="small text-danger mt-1">{errors.diagnosisDate}</div>}
           </div>
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_recorded_date')}>Recorded Date &amp; Time</label>
-            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_recorded_date')} value={form.recordedDate} onChange={(value) => updateForm('recordedDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM"/>
+            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_recorded_date')} value={form.recordedDate} onChange={(value) => updateForm('recordedDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" minDate={dob || undefined} maxDate={now}/>
           </div>
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_end_date')}>Date of Resolution {endDateEnabled && <span className="text-danger">*</span>}</label>
-            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_end_date')} value={form.endDate} onChange={(value) => updateForm('endDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" disabled={!endDateEnabled}/>
+            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_end_date')} value={form.endDate} onChange={(value) => updateForm('endDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" disabled={!endDateEnabled} minDate={form.diagnosisDate || dob || undefined} maxDate={now}/>
             {errors.endDate && <div className="small text-danger mt-1">{errors.endDate}</div>}
           </div>
         </div>
@@ -342,7 +390,7 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         <div className="row g-3 mt-1">
           <div className="col-12 col-md-6">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_icd_description')}>ICD Description <span className="text-danger">*</span></label>
-            <textarea id={fieldId('pp_patient_problem_icd_description')} className="form-control" style={{ height: 90 }} value={form.icdDescription} disabled maxLength={5000}/>
+            <textarea id={fieldId('pp_patient_problem_icd_description')} className="form-control" style={{ height: 90 }} value={form.icdCode && form.icdDescription ? `${form.icdCode} - ${form.icdDescription}` : form.icdDescription} disabled maxLength={5000}/>
           </div>
           <div className="col-12 col-md-6">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_snomed_description')}>SNOMED Description</label>
@@ -354,6 +402,10 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
           <div className="col-12">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_notes')}>Notes</label>
             <textarea id={fieldId('pp_patient_problem_notes')} className="form-control" style={{ height: 90 }} value={form.notes} onChange={(event) => updateForm('notes', event.target.value)} maxLength={5000}/>
+            <div className="d-flex justify-content-between">
+              {errors.notes ? <div className="small text-danger mt-1">{errors.notes}</div> : <span/>}
+              <div className="small text-muted mt-1">{form.notes.length}/5000</div>
+            </div>
           </div>
           <div className="col-12">
             <label className="form-label fw-bold text-danger" htmlFor={fieldId('pp_patient_problem_change_log_message')}>Audit Change Log Message <span className="text-danger">*</span></label>
@@ -362,12 +414,13 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
           </div>
         </div>
 
-        <div className="row mt-4 pt-3 border-top m-0">
-          <div className="d-flex justify-content-end gap-2 p-0">
-            <button type="button" className="btn btn-secondary px-4 rounded-pill" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-            <button type="submit" className="btn btn-primary px-4 rounded-pill" disabled={saving}>{saving ? 'Saving...' : isRecoverMode ? 'Recover Problem' : 'Save'}</button>
-          </div>
-        </div>
+        <FormStatusFooter
+          dirty={dirty}
+          saving={saving}
+          onCancel={() => onClose(false)}
+          saveLabel={isRecoverMode ? 'Recover Problem' : isEditMode ? 'Update' : 'Save'}
+          alwaysEnableSave={isRecoverMode}
+        />
       </form>
     </div>);
 };

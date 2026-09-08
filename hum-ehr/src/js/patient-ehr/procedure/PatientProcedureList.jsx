@@ -4,6 +4,7 @@ import { fetchProcedureList } from '../../../services/procedureService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 // Legacy utility.convertMDY12HtoMDY: "MM-DD-YYYY hh:mm A" → "MM-DD-YYYY".
 const dateOnly = (value) => {
@@ -73,13 +74,14 @@ const PatientProcedureList = ({ patientId, searchTerm, showDeleted, refreshKey, 
     return (<>
       {visible.map((record) => {
         const isActive = String(record.id) === String(selectedId);
-        const struck = record.invalidFlag === 'Y' ? 'pcps-deleted-record' : '';
+        const isDeleted = record.invalidFlag === 'Y';
         return (<div key={record.id} className={`row pcps-patient-procedure-each-list-container pc-list-each-details-container m-1 p-1 ${isActive ? 'active' : ''}`} data-id={record.id} onClick={() => onSelect(record)}>
             <div className="pcps-patient-procedure-name-date-container">
-              <div style={{ fontSize: 14 }} className={`text-capitalize ${struck}`}>{`${record.procedureCode} - ${record.procedureDescription}`}</div>
+              <div style={{ fontSize: 14 }} className="text-capitalize">{`${record.procedureCode} - ${record.procedureDescription}`}</div>
+              {isDeleted && <DeletedRecordBadge />}
             </div>
             <div className="pcps-patient-procedure-name-date-container">
-              <div className={`float-end ${struck}`}>{dateOnly(record.dateOfService)}</div>
+              <div className="float-end">{dateOnly(record.dateOfService)}</div>
             </div>
           </div>);
       })}

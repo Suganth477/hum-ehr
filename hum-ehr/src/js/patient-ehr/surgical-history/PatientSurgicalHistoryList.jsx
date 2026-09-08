@@ -3,6 +3,7 @@ import { fetchSurgicalHistoryList } from '../../../services/surgicalHistoryServi
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 /**
  * Surgical history list (legacy patient-surgical-history-list). One fetch returns
@@ -64,12 +65,12 @@ const PatientSurgicalHistoryList = ({ patientId, searchTerm, showDeleted, refres
     return (<>
       {visible.map((record) => {
         const isActive = String(record.id) === String(selectedId);
-        const struck = record.invalidFlag === 'Y' ? 'deleted-surgical-history-record' : '';
+        const isDeleted = record.invalidFlag === 'Y';
         const name = (record.surgeryName || '').slice(0, 50) + ((record.surgeryName || '').length > 50 ? '...' : '');
         return (<div key={record.id} className={`row surgical-history-each-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
-            <div className={`col-md-9 surgery-name text-capitalize pe-0 ${struck}`}>{name}</div>
+            <div className="col-md-9 surgery-name text-capitalize pe-0">{name}{isDeleted && <DeletedRecordBadge />}</div>
             <div className="col-md-3 pe-0">
-              <div className={`surgery-date pc-list-each-details-date-container ${struck}`}>{record.surgeryDateTime}</div>
+              <div className="surgery-date pc-list-each-details-date-container">{record.surgeryDateTime}</div>
             </div>
           </div>);
       })}

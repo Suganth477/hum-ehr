@@ -2,21 +2,25 @@ import { useMemo, useRef, useState } from 'react';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import {
     saveFamilyMember, saveFamilyHistory, buildFamilyHistorySavePayload,
     searchFamilyHistorySnomed,
 } from '../../../services/familyHistoryService';
 import { getSaveOutcome } from '../../../utils/saveResponse';
-import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import { useNotify } from '../../../context/NotificationContext';
 
 const YEARS = (() => {
+    // Legacy lists birth years ascending (1900 → current year).
     const list = [];
-    for (let y = new Date().getFullYear(); y >= 1900; y--) list.push(y);
+    for (let y = 1900; y <= new Date().getFullYear(); y++) list.push(y);
     return list;
 })();
 const MAX_MEMBERS = 10;
 const MAX_CONDITIONS = 15;
+const FH_SNOMED_MIN_CHARS = 5; // legacy family-history SNOMED autocomplete minLength
+// Legacy title-cases the first letter of every word of the SNOMED description.
+const titleCaseWords = (text) => (text || '').replace(/((^| )[a-z])/g, (a) => a.toUpperCase());
 const cellKey = (snomedCode, index) => `${snomedCode}__${index}`;
 
 /**
@@ -27,6 +31,8 @@ const cellKey = (snomedCode, index) => `${snomedCode}__${index}`;
  */
 const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDiseases, defaultSnomed, relationTypes, onClose }) => {
     const { notifyError, notifySuccess } = useNotify();
+    // Existing saved members → edit mode (heading "Edit"/save "Update"); otherwise add mode.
+    const isEdit = (initialMembers || []).some((m) => m.memberId);
 
     // ---- Build initial matrix state from the active family-history data ----
     const [members, setMembers] = useState(() => {
@@ -78,9 +84,11 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
 
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
+    const [dirty, setDirty] = useState(false);
     const [saveError, setSaveError] = useState(null);
     const [notesEditor, setNotesEditor] = useState({ open: false, key: null, value: '' });
     const [addingCondition, setAddingCondition] = useState(false);
+    const [highlightIndex, setHighlightIndex] = useState(null);
     const savingMemberRef = useRef({}); // guard against duplicate concurrent member saves
 
     const patchMember = (index, patch) => setMembers((prev) => prev.map((m) => (m.index === index ? { ...m, ...patch } : m)));
@@ -104,18 +112,26 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
     };
 
     const onNameChange = (col, value) => {
+        setDirty(true);
         patchMember(col.index, { name: value });
         // Legacy: first save fires when a new member's name reaches 3 chars; existing members save on change.
         if (col.memberId || value.trim().length === 3) persistMember({ ...col, name: value });
     };
-    const onDobChange = (col, value) => { patchMember(col.index, { dob: value }); if (col.name || value) persistMember({ ...col, dob: value }); };
-    const onDeceasedChange = (col, checked) => { const v = checked ? 'Y' : 'N'; patchMember(col.index, { isDiseased: v }); if (col.name || col.dob) persistMember({ ...col, isDiseased: v }); };
+    // Legacy also saves on the name field's change/blur, so a pasted/edited name that
+    // never passes through exactly 3 chars still creates the member.
+    const onNameBlur = (col) => {
+        if (!col.memberId && (col.name || '').trim().length >= 3) persistMember(col);
+    };
+    const onDobChange = (col, value) => { setDirty(true); patchMember(col.index, { dob: value }); if (col.name || value) persistMember({ ...col, dob: value }); };
+    const onDeceasedChange = (col, checked) => { setDirty(true); const v = checked ? 'Y' : 'N'; patchMember(col.index, { isDiseased: v }); if (col.name || col.dob) persistMember({ ...col, isDiseased: v }); };
     const onRelationChange = (col, code) => {
+        setDirty(true);
         const rel = relationTypes.find((r) => r.code === code);
         patchMember(col.index, { relationCode: code, relationDesc: rel ? rel.description : '', empty: !code });
     };
 
     const toggleCondition = (snomedCode, index, checked) => {
+        setDirty(true);
         const key = cellKey(snomedCode, index);
         if (checked) patchCell(key, { checked: true });
         else patchCell(key, { checked: false, notes: '' });
@@ -123,22 +139,29 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
     };
 
     const addRelation = () => {
-        // Legacy: if an empty relation slot already exists, don't add another.
-        if (members.some((m) => !m.fixed && !m.relationCode && !m.memberId)) return;
+        // Legacy: if an empty relation slot already exists, highlight it instead of adding another.
+        const emptySlot = members.find((m) => !m.fixed && !m.relationCode && !m.memberId);
+        if (emptySlot) {
+            setHighlightIndex(emptySlot.index);
+            setTimeout(() => setHighlightIndex((current) => (current === emptySlot.index ? null : current)), 3000);
+            return;
+        }
         if (members.length >= MAX_MEMBERS) { notifyError("You can add up to 10 family members' history for the patient."); return; }
+        setDirty(true);
         const nextIndex = Math.max(...members.map((m) => m.index)) + 1;
         setMembers((prev) => [...prev, { index: nextIndex, relationCode: '', relationDesc: '', memberId: '', name: '', dob: '', isDiseased: 'N', fixed: false, empty: true }]);
     };
 
     const loadConditionOptions = (input) => {
-        if ((input || '').trim().length < LOOKUP_MIN_CHARS) return Promise.resolve([]);
+        if ((input || '').trim().length < FH_SNOMED_MIN_CHARS) return Promise.resolve([]);
         return searchFamilyHistorySnomed({ searchSnomed: input, isDefaultValue: 'N' })
-            .then((list) => list.map((s) => ({ value: s.snomedCode, label: s.snomedDesc, snomedDesc: s.snomedDesc })));
+            .then((list) => list.map((s) => ({ value: s.snomedCode, label: titleCaseWords(s.snomedDesc), snomedDesc: titleCaseWords(s.snomedDesc) })));
     };
     const addCondition = (option) => {
         if (!option) return;
         if (conditions.some((c) => String(c.snomedCode) === String(option.value))) { notifyError('SNOMED code already exists.'); return; }
         if (conditions.length >= MAX_CONDITIONS) { notifyError("You can add up to 15 SNOMED condition's for the patient."); return; }
+        setDirty(true);
         setConditions((prev) => [...prev, { snomedCode: option.value, snomedDesc: option.snomedDesc || option.label }]);
         setAddingCondition(false);
     };
@@ -148,7 +171,7 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
         if (!cells[key]?.checked) return;
         setNotesEditor({ open: true, key, value: cells[key]?.notes || '' });
     };
-    const saveNotes = () => { patchCell(notesEditor.key, { notes: notesEditor.value.trim() }); setNotesEditor({ open: false, key: null, value: '' }); };
+    const saveNotes = () => { setDirty(true); patchCell(notesEditor.key, { notes: notesEditor.value.trim() }); setNotesEditor({ open: false, key: null, value: '' }); };
 
     const validate = () => {
         const next = {};
@@ -186,7 +209,7 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
     return (<div className="p-2">
       <div className="row">
         <div className="col-md-12 d-flex justify-content-between my-2 align-items-center">
-          <div className="view-edit-family-history-text fw-bold">Edit Family History</div>
+          <div className="view-edit-family-history-text fw-bold">{isEdit ? 'Edit Family History' : 'Add Family History'}</div>
           <div className="d-flex gap-2 align-items-center">
             <button type="button" className="btn btn-primary btn-sm border-radius-button" onClick={addRelation}><LegacyIcon icon="mdi-plus"/> Add New Relation</button>
             <button type="button" className="btn btn-primary btn-sm border-radius-button" onClick={() => setAddingCondition((v) => !v)}><LegacyIcon icon="mdi-plus"/> Add New Condition</button>
@@ -197,10 +220,10 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
       {addingCondition && (<div className="row mb-2"><div className="col-md-6">
         <AsyncSelect classNamePrefix="react-select" placeholder="Search by SNOMED Code/Condition (min 5 chars)" cacheOptions defaultOptions={false}
           loadOptions={loadConditionOptions} onChange={addCondition} value={null}
-          noOptionsMessage={({ inputValue }) => ((inputValue || '').length < LOOKUP_MIN_CHARS ? `Type at least ${LOOKUP_MIN_CHARS} characters` : 'No results found')}/>
+          noOptionsMessage={({ inputValue }) => ((inputValue || '').length < FH_SNOMED_MIN_CHARS ? `Type at least ${FH_SNOMED_MIN_CHARS} characters` : 'No results found')}/>
       </div></div>)}
 
-      <div className="pcfh-table-scroll-container" id="pcpfh_family_history_container_section">
+      <div className="pcfh-table-scroll-container custom-scrollbar" id="pcpfh_family_history_container_section">
         <table className="table pcfh-table" id="patient_family_history_detail_table">
           <thead className="thead-border-radius">
             <tr>
@@ -210,7 +233,7 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
                   ? m.relationDesc
                   : (m.memberId
                     ? m.relationDesc
-                    : (<select className="form-control form-select family-history-relation-type" value={m.relationCode} onChange={(e) => onRelationChange(m, e.target.value)}>
+                    : (<select className={`form-control form-select family-history-relation-type${highlightIndex === m.index ? ' fh-relation-highlight' : ''}`} value={m.relationCode} onChange={(e) => onRelationChange(m, e.target.value)}>
                         <option value="">Select Relation</option>
                         {relationOptions.map((r) => <option key={r.code} value={r.code}>{r.description}</option>)}
                       </select>))}
@@ -225,7 +248,7 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
                 const detailEnabled = !!m.memberId;
                 return (<td key={m.index} className="pcfh-member-cell" data-index={m.index} family-member-id={m.memberId || ''}>
                   <label className="mb-1">Name</label>
-                  <input type="text" className="form-control text-capitalize mb-2" value={m.name} disabled={!nameEnabled} onChange={(e) => onNameChange(m, e.target.value)}/>
+                  <input type="text" className="form-control text-capitalize mb-2" value={m.name} disabled={!nameEnabled} onChange={(e) => onNameChange(m, e.target.value)} onBlur={() => onNameBlur(m)}/>
                   <label className="mb-1">Birth Year</label>
                   <select className="form-control form-select mb-2" value={m.dob} disabled={!detailEnabled} onChange={(e) => onDobChange(m, e.target.value)}>
                     <option value="">Select Year</option>
@@ -259,10 +282,14 @@ const PatientFamilyHistoryAddEdit = ({ patientId, initialMembers, initialDisease
 
       {saveError && (<div className={`mt-2 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-      <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-        <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-        <button type="button" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-      </div>
+      <FormStatusFooter
+        dirty={dirty}
+        saving={saving}
+        onCancel={() => { if (window.confirm('Are you sure about cancel family history?')) onClose(false); }}
+        saveType="button"
+        onSave={handleSave}
+        saveLabel={isEdit ? 'Update' : 'Save'}
+      />
 
       <Dialog visible={notesEditor.open} onHide={() => setNotesEditor({ open: false, key: null, value: '' })} header="Condition Notes" style={{ width: '30vw' }} breakpoints={{ '768px': '90vw' }}>
         <textarea className="form-control" maxLength={5000} style={{ minHeight: 120 }} value={notesEditor.value} onChange={(e) => setNotesEditor((s) => ({ ...s, value: e.target.value }))}/>

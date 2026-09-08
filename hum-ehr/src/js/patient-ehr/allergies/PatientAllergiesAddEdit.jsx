@@ -5,11 +5,16 @@ import { z } from 'zod';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
+import Swal from 'sweetalert2';
 import { savePatientAllergy } from '../../../services/allergyService';
 import { fetchAllergyLookup } from '../../../services/lookupService';
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import PatientAllergiesReactions from './PatientAllergiesReactions';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
+import moment from '../../../utils/dayjs';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 
@@ -26,14 +31,28 @@ const CLINICAL_STATUS = {
 };
 
 const NKA_TYPES = ['NKA', 'NKDA'];
-const RESOLUTION_STATUSES = [CLINICAL_STATUS.INACTIVE, CLINICAL_STATUS.RESOLVED];
+
+// Themed confirmation dialog (matches the allergy list's SweetAlert styling) used
+// for the exit-allergy-form guard added in the legacy screen.
+const swalTheme = Swal.mixin({
+    customClass: {
+        popup: 'pa-swal-popup',
+        title: 'pa-swal-title',
+        confirmButton: 'pa-swal-confirm',
+        cancelButton: 'pa-swal-cancel',
+    },
+    buttonsStyling: false,
+    showCancelButton: true,
+    reverseButtons: false,
+    allowOutsideClick: false,
+});
 
 // Mirrors the legacy jQuery validation rules from patient.allergies.js:
 //   pa_patient_allergy_type       → required
 //   pa_patient_allergy_sub_type   → required (non-NKA), minlength:3, maxlength:300, allowOnlyLookupData
 //   pa_patient_allergy_description→ required (non-NKA), minlength:2, maxlength:5000
 //   pa_patient_allergy_clinical_status → required unless verificationStatus === VERSTSE
-//   pa_patient_allergy_end_date   → required when clinicalStatus OR verificationStatus is INACTIVE/RESOLVED
+//   pa_patient_allergy_end_date   → required when verificationStatus === VERSTSC (Confirmed) AND clinicalStatus === RESOLVED
 //   pa_patient_allergy_onset_date → required when endDate is set
 //   pa_patient_allergy_change_log_message → required
 const allergySchema = z
@@ -79,10 +98,10 @@ const allergySchema = z
             }
         }
 
-        // end date required when EITHER clinicalStatus OR verificationStatus is INACTIVE/RESOLVED
+        // end date required only when verification is Confirmed (VERSTSC) AND clinical status is RESOLVED
         const resolutionRequired =
-            RESOLUTION_STATUSES.includes(data.clinicalStatus) ||
-            RESOLUTION_STATUSES.includes(data.verificationStatus);
+            data.verificationStatus === VERIFICATION_STATUS.CONFIRMED &&
+            data.clinicalStatus === CLINICAL_STATUS.RESOLVED;
         if (resolutionRequired && !data.endDate) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'Date of Resolution is required.' });
         }
@@ -90,6 +109,11 @@ const allergySchema = z
         // onset date required whenever end date is set
         if (data.endDate && !data.onsetDate) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['onsetDate'], message: 'Onset Date and time is required.' });
+        }
+
+        // recorded date is always required (legacy pa_patient_allergy_recorded_date.required)
+        if (!data.recordedDate) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['recordedDate'], message: 'Recorded date is required' });
         }
     });
 
@@ -107,6 +131,7 @@ const toFlatpickrDateTimeValue = (value) => {
     return `${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${date.getFullYear()} ${pad(hours)}:${minutes} ${period}`;
 };
 
+const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
 const buildDefaultValues = (allergyRecord) => {
     if (!allergyRecord?.allergyId) {
         return {
@@ -114,7 +139,8 @@ const buildDefaultValues = (allergyRecord) => {
             allergySubType: '',
             allergySubTypeId: '',
             description: '',
-            recordedDate: '',
+            // Legacy defaults Recorded Date & Time to now for a new allergy.
+            recordedDate: nowDateTime(),
             onsetDate: '',
             endDate: '',
             criticalityId: '',
@@ -143,6 +169,9 @@ const FieldError = ({ message }) =>
 
 const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordType, lookups, onClose }) => {
     const [reactionsList, setReactionsList] = useState(allergyRecord?.reactionMapping || []);
+    // Reactions live outside react-hook-form, so track their dirtiness separately for the
+    // "Not Saved" status + Save-enable (legacy shows it only after a change).
+    const [reactionsDirty, setReactionsDirty] = useState(false);
     const [reactionModal, setReactionModal] = useState(false);
     const [editingReaction, setEditingReaction] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -151,7 +180,7 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
     const isEditMode = !!allergyRecord?.allergyId;
     const isRecoverMode = actionType === 'recover';
 
-    const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+    const { control, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm({
         resolver: zodResolver(allergySchema),
         defaultValues: buildDefaultValues(allergyRecord),
         mode: 'onSubmit',
@@ -161,6 +190,29 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
     const allergyType = watch('allergyType');
     const clinicalStatus = watch('clinicalStatus');
     const verificationStatus = watch('verificationStatus');
+    const onsetDate = watch('onsetDate');
+    const [dob, setDob] = useState('');
+    const now = nowDateTime();
+    // Patient DOB → lower bound for onset/recorded/resolution dates (legacy data-min).
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(`${details.dateOfBirth} 12:00 AM`);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
+    // Recover re-stamps Recorded Date to now (legacy sets it for create + recover).
+    useEffect(() => {
+        if (isRecoverMode) setValue('recordedDate', nowDateTime());
+    }, [isRecoverMode, setValue]);
     const allergySubType = watch('allergySubType');
     const allergySubTypeId = watch('allergySubTypeId');
     const description = watch('description');
@@ -238,6 +290,17 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
         }
     };
 
+    // Legacy "Exit Allergy" guard: confirm before leaving the form via the back arrow.
+    const handleExit = async () => {
+        const confirm = await swalTheme.fire({
+            title: 'Exit Allergy',
+            text: 'Are you sure about to exit allergy form?',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+        });
+        if (confirm.isConfirmed) onClose(false);
+    };
+
     const openReactionModal = (reaction = null) => {
         setEditingReaction(reaction);
         setReactionModal(true);
@@ -251,10 +314,12 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
         });
         setReactionModal(false);
         setEditingReaction(null);
+        setReactionsDirty(true);
     };
 
     const handleDeleteReaction = (reactionId) => {
         setReactionsList((previous) => previous.filter((item) => String(item.reactionId) !== String(reactionId)));
+        setReactionsDirty(true);
     };
 
     const renderWarningMessages = () => {
@@ -289,7 +354,7 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
         <div className="pa-allergies-add-edit-main-container container-fluid animate-fade-in bg-white p-3 border rounded">
             <div className="row mb-2 border-bottom pb-2">
                 <div className="d-flex align-items-center gap-2">
-                    <button type="button" className="pc-move-list-back back-to-icon btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to allergies list">
+                    <button type="button" className="pc-move-list-back back-to-icon btn btn-link p-0 text-dark" onClick={handleExit} aria-label="Back to allergies list">
                         <LegacyIcon icon="mdi-arrow-left" className="custom-pointer fs-4" />
                     </button>
                     <span className="fw-bold pa-allergies-add-edit-container-title">
@@ -496,6 +561,8 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                                     enableTime
                                     dateFormat="m-d-Y h:i K"
                                     placeholder="MM-DD-YYYY hh:mm AM/PM"
+                                    minDate={dob || undefined}
+                                    maxDate={now}
                                 />
                             )}
                         />
@@ -503,7 +570,7 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                     </div>
 
                     <div className="col-md-4">
-                        <label className="form-label fw-bold" htmlFor={fieldId('pa_patient_allergy_recorded_date')}>Recorded Date &amp; Time</label>
+                        <label className="form-label fw-bold" htmlFor={fieldId('pa_patient_allergy_recorded_date')}>Recorded Date &amp; Time <span className="text-danger">*</span></label>
                         <Controller
                             name="recordedDate"
                             control={control}
@@ -515,9 +582,12 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                                     enableTime
                                     dateFormat="m-d-Y h:i K"
                                     placeholder="MM-DD-YYYY hh:mm AM/PM"
+                                    minDate={onsetDate || dob || undefined}
+                                    maxDate={now}
                                 />
                             )}
                         />
+                        <FieldError message={errors.recordedDate?.message} />
                     </div>
 
                     <div className="col-md-4">
@@ -534,6 +604,8 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                                     dateFormat="m-d-Y h:i K"
                                     placeholder="MM-DD-YYYY hh:mm AM/PM"
                                     disabled={isEndDateDisabled}
+                                    minDate={onsetDate || dob || undefined}
+                                    maxDate={now}
                                 />
                             )}
                         />
@@ -567,16 +639,13 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                     <input type="hidden" id={fieldId('pa_patient_allergy_change_log_message')} value="" readOnly />
                 </div>
 
-                <div className="row mt-4 pt-3 border-top m-0">
-                    <div className="form-add-edit-button-group d-flex justify-content-end gap-2 p-0">
-                        <button type="button" className="btn btn-outline-secondary px-4 border-radius-button bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>
-                            Cancel
-                        </button>
-                        <button type="submit" className="btn btn-primary px-4 border-radius-button bs-modal-save-btn" disabled={saving}>
-                            {saving ? 'Saving...' : isRecoverMode ? 'Recover Allergy' : 'Save Allergy'}
-                        </button>
-                    </div>
-                </div>
+                <FormStatusFooter
+                    dirty={isDirty || reactionsDirty}
+                    saving={saving}
+                    onCancel={() => onClose(false)}
+                    saveLabel={isRecoverMode ? 'Recover Allergy' : 'Save'}
+                    alwaysEnableSave={isRecoverMode}
+                />
             </form>
 
             <Dialog

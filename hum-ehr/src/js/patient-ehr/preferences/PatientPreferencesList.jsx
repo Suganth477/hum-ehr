@@ -4,6 +4,7 @@ import { fetchPreferencesList } from '../../../services/preferencesService';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const relativeTime = (value) => {
     if (!value) return '';
@@ -64,8 +65,8 @@ const PatientPreferencesList = ({ patientId, recordType, preferencesType, lookup
         const isActive = String(record.id) === String(selectedId);
         const title = titleFor(record);
         const sliced = title && title.length > 45 ? `${title.slice(0, 45)}...` : title;
-        return (<div key={record.id} className={`row each-preferences-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} ${record.invalidFlag === 'Y' ? 'in-active-deleted-record' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
-            <div className="col-md-9 preferences-name pe-0 text-capitalize" title={title !== sliced ? title : undefined}>{sliced}</div>
+        return (<div key={record.id} className={`row each-preferences-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
+            <div className="col-md-9 preferences-name pe-0 text-capitalize" title={title !== sliced ? title : undefined}>{sliced}{record.invalidFlag === 'Y' && <DeletedRecordBadge />}</div>
             <div className="col-md-3 pe-0">
               <div className="preferences-date pc-list-each-details-date-container">{record.effectiveDate ? relativeTime(record.effectiveDate) : ''}</div>
             </div>

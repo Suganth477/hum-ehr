@@ -16,6 +16,7 @@ import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTime
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import UniversalFileUploader from '../../../components/common/UniversalFileUploader';
 import DiagnosisPicker from '../../../components/common/DiagnosisPicker';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
 import { useNotify } from '../../../context/NotificationContext';
 
@@ -58,6 +59,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dirty, setDirty] = useState(false);
 
     const initialAttachments = useMemo(() => (record?.fileDetail || []).map((f) => ({
         attachmentId: f.attachmentId,
@@ -83,7 +85,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
         return () => { ignore = true; };
     }, [patientId]);
 
-    const update = (patch) => setForm((p) => ({ ...p, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
     const loadSurgeryNames = (input) => ((input || '').trim().length < LOOKUP_MIN_CHARS
@@ -106,7 +108,11 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
         if (!form.surgeryName.trim()) next.surgeryName = 'Surgery Name is required';
         if (!form.surgeryDate) next.surgeryDate = 'Please enter surgery date.';
         if (form.surgeonName.length > 100) next.surgeonName = 'Maximum 100 characters.';
+        // Legacy pc_patient_sh_surgeon → onlyAlphabets.
+        else if (form.surgeonName.trim() && !/^([a-zA-Z][\s]?)*$/i.test(form.surgeonName)) next.surgeonName = 'Only alphabets and single space are allowed.';
         if (form.surgeonFacilityName.length > 100) next.surgeonFacilityName = 'Maximum 100 characters.';
+        // Legacy pc_patient_sh_surgeon_facility → alphaNumericWithSpace.
+        else if (form.surgeonFacilityName.trim() && !/^ ?\s*([a-zA-Z0-9.#',&-]+\s?)*$/i.test(form.surgeonFacilityName)) next.surgeonFacilityName = "Only alphanumeric characters, single space and special characters(.,#-'&) are allowed.";
         if (form.notes.length > 5000) next.notes = 'Maximum 5000 characters.';
         return next;
     };
@@ -197,7 +203,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
           </div>
           <div className="row g-3 mx-1 mt-1">
             <div className="col-md-6">
-              <DiagnosisPicker patientId={patientId} value={diagnosisList} onChange={setDiagnosisList}
+              <DiagnosisPicker patientId={patientId} value={diagnosisList} onChange={(list) => { setDirty(true); setDiagnosisList(list); }}
                 title="Reason for Surgery" labels={{ problem: 'Problem Diagnosis', encounter: 'Encounter Diagnosis' }}
                 onAddNew={openAddDiagnosis} refreshKey={diagnosisRefresh}/>
             </div>
@@ -216,7 +222,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
                 <legend className="fw-semibold" style={{ fontSize: 14, float: 'none', marginBottom: 0 }}>Upload Documents</legend>
                 <UniversalFileUploader ref={uploaderRef} name={`pc_patient_suh_surgical_report_${patientId}`}
                   maxFiles={5} maxSizeMB={5} allowedTypes="pdf,jpg,jpeg,png"
-                  initialAttachments={isEdit ? initialAttachments : null}/>
+                  initialAttachments={isEdit ? initialAttachments : null} onChange={() => setDirty(true)}/>
               </fieldset>
             </div>
             <div className="col-md-6">
@@ -229,11 +235,12 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
 
         {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-        <div className="d-flex justify-content-end gap-3 m-3">
-          <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" style={{ width: 150 }} disabled={saving}
-            onClick={() => { if (window.confirm('Are you sure about cancel surgical history form?')) onClose(false); }}>Cancel</button>
-          <button type="submit" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" style={{ width: 150 }} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-        </div>
+        <FormStatusFooter
+          dirty={dirty}
+          saving={saving}
+          onCancel={() => { if (window.confirm('Are you sure about cancel surgical history form?')) onClose(false); }}
+          saveLabel="Save"
+        />
       </form>
 
       <Dialog visible={dialogOpen} onHide={() => { setDialogOpen(false); setDiagnosisRefresh((k) => k + 1); }} header="Add Problem" style={{ width: '75vw' }} breakpoints={{ '768px': '98vw' }}>

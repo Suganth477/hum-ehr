@@ -71,7 +71,7 @@ const PatientFamilyHistory = ({ patientId }) => {
       {view === 'list' && (<>
         <div className="row add-edit-fh-btn-container">
           <div className="col-md-12 d-flex justify-content-between my-3">
-            <div className="view-edit-family-history-text align-items-center label-svg-heading d-flex">View / Edit Family History</div>
+            <div className="view-edit-family-history-text align-items-center label-svg-heading d-flex">View Family History</div>
             <button className="add-edit-family-history btn btn-primary btn-md border-radius-button" onClick={openEditor} disabled={openingEditor}>
               <LegacyIcon icon={hasData ? 'mdi-pencil' : 'mdi-plus'}/> {openingEditor ? 'Please wait...' : (hasData ? 'Edit Family History' : 'Add Family History')}
             </button>

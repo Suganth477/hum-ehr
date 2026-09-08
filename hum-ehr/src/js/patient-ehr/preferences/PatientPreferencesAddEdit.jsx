@@ -6,11 +6,14 @@ import {
     fetchPreferencesList, savePreference, buildPreferenceSavePayload,
 } from '../../../services/preferencesService';
 import { getLoggedInUser } from '../../../services/authService';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import UniversalFileUploader from '../../../components/common/UniversalFileUploader';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 
 const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -44,6 +47,25 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dob, setDob] = useState('');
+    const [dirty, setDirty] = useState(false);
+
+    // Patient DOB → lower bound for the date fields (legacy data-min = dateOfBirth 12:00 AM).
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(`${details.dateOfBirth} 12:00 AM`);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
 
     const providerName = record?.validatingUserName || getLoggedInUser()?.name || getLoggedInUser()?.fullName || '';
     const descLabel = preferencesType === 'advance-directives' ? 'Description' : PREFERENCES_DESC_MAP[preferencesType];
@@ -75,7 +97,7 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
         return () => { ignore = true; };
     }, [preferencesType, patientId, lookups]);
 
-    const update = (patch) => setForm((p) => ({ ...p, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
     const validate = () => {
@@ -154,7 +176,7 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
       <div className="row g-3 mt-1">
         <div className="col-md-4">
           <label className="form-label fw-bold">Effective Date &amp; Time <span className="text-danger">*</span></label>
-          <FlatpickrDateTimeInput value={form.effectiveDate} disabled={isEdit} {...dateProps} maxDate={nowDateTime()}
+          <FlatpickrDateTimeInput value={form.effectiveDate} disabled={isEdit} {...dateProps} minDate={dob || undefined} maxDate={nowDateTime()}
             onChange={(v) => { update({ effectiveDate: v }); clearError('effectiveDate'); }}/>
           <FieldError message={errors.effectiveDate}/>
         </div>
@@ -166,7 +188,7 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
         </div>
         <div className="col-md-4">
           <label className="form-label fw-bold">Recorded Date &amp; Time <span className="text-danger">*</span></label>
-          <FlatpickrDateTimeInput value={form.recordedDate} {...dateProps} maxDate={nowDateTime()}
+          <FlatpickrDateTimeInput value={form.recordedDate} {...dateProps} minDate={dob || undefined} maxDate={nowDateTime()}
             onChange={(v) => { update({ recordedDate: v }); clearError('recordedDate'); }}/>
           <FieldError message={errors.recordedDate}/>
         </div>
@@ -187,7 +209,7 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
           <div className="col-12">
             <label className="form-label fw-bold">Advance Directives to be linked</label>
             <Select classNamePrefix="react-select" isMulti placeholder="Select Advance Directive" options={adOptions}
-              value={selectedAds} onChange={(vals) => setSelectedAds(vals || [])}/>
+              value={selectedAds} onChange={(vals) => { setDirty(true); setSelectedAds(vals || []); }}/>
           </div>
         </div>
       )}
@@ -198,7 +220,7 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
             <label className="form-label fw-bold">Documents</label>
             <UniversalFileUploader ref={uploaderRef} name={`preferences_files_${patientId}`} maxFiles={5} maxSizeMB={5}
               allowedTypes="jpg,jpeg,png,pdf,doc,docx" initialAttachments={record?.attachment || null}
-              onChange={() => clearError('attachment')}/>
+              onChange={() => { setDirty(true); clearError('attachment'); }}/>
             <FieldError message={errors.attachment}/>
           </div>
         </div>
@@ -206,10 +228,12 @@ const PatientPreferencesAddEdit = ({ patientId, preferencesType, record, lookups
 
       {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-      <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-        <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-        <button type="submit" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-      </div>
+      <FormStatusFooter
+        dirty={dirty}
+        saving={saving}
+        onCancel={() => onClose(false)}
+        saveLabel="Save"
+      />
     </form>);
 };
 export default PatientPreferencesAddEdit;

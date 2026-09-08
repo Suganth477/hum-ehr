@@ -1,6 +1,16 @@
 /* Family Health History — matrix table (members × SNOMED conditions).
    Distilled from the legacy patient-family-history / add-edit templates. */
 
+/* Highlight an existing empty relation slot when "Add New Relation" is clicked
+   again (legacy jQuery UI effect("highlight", ..., 3000)). */
+.fh-relation-highlight {
+    animation: fh-relation-highlight-fade 3s ease-out;
+}
+@keyframes fh-relation-highlight-fade {
+    0% { background-color: #FFF3CD; box-shadow: 0 0 0 2px #F6AB2A; }
+    100% { background-color: transparent; box-shadow: none; }
+}
+
 .pcfh-table-scroll-container {
     max-width: 100%;
     overflow: auto;

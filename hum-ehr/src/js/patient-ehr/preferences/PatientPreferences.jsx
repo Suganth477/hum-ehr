@@ -74,7 +74,7 @@ const PatientPreferences = ({ patientId }) => {
                   <button type="button" className={`nav-link active-history-nav-link small ${recordType === 'active' ? 'active' : ''}`} onClick={() => changeRecordType('active')}>Active</button>
                 </li>
                 <li className="nav-item active-history-toggle-list">
-                  <button type="button" className={`nav-link active-history-nav-link small ${recordType === 'history' ? 'active' : ''}`} onClick={() => changeRecordType('history')}>Inactive</button>
+                  <button type="button" className={`nav-link active-history-nav-link small ${recordType === 'history' ? 'active' : ''}`} onClick={() => changeRecordType('history')}>History</button>
                 </li>
               </ul>
             </div>

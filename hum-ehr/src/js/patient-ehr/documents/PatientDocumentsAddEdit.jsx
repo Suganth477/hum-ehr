@@ -11,6 +11,7 @@ import UniversalFileUploader from '../../../components/common/UniversalFileUploa
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 
 const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -18,7 +19,7 @@ const FieldError = ({ message }) => (message ? <div className="small text-danger
 /**
  * Documents add/edit form (legacy PatientEhrDocumentsAddEdit). Title (required, max 100),
  * Category, Recorded Date & Time (required, DOB..now, defaults to now), Description
- * (max 1000), Document Status (DOCERRIN hidden), and the file part via the shared
+ * (max 2000), Document Status (DOCERRIN hidden), and the file part via the shared
  * Universal File Uploader (pdf/jpg/jpeg/png, max 5 files, 5MB each, at least one file).
  * Save sends deleted existing files (raw objects) + new files; untouched files are omitted.
  */
@@ -40,6 +41,7 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dirty, setDirty] = useState(false);
 
     // Recorded-date bounds: patient DOB .. now (legacy initTDDatePicker range).
     useEffect(() => {
@@ -85,7 +87,7 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
         return () => { ignore = true; };
     }, [isEdit, record, notifyError]);
 
-    const update = (patch) => setForm((p) => ({ ...p, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
     const validate = (payloadFiles) => {
@@ -93,7 +95,7 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
         if (!form.documentTitle.trim()) next.documentTitle = 'Title is required.';
         else if (form.documentTitle.length > 100) next.documentTitle = 'Maximum 100 characters.';
         if (!form.recordedDate) next.recordedDate = 'Recorded Date is required.';
-        if (form.documentDescription.length > 1000) next.documentDescription = 'Maximum 1000 characters.';
+        if (form.documentDescription.length > 2000) next.documentDescription = 'Maximum 2000 characters.';
         if ((payloadFiles.newFiles.length + payloadFiles.existingFiles.length) === 0) next.files = 'Atleast One File is required.';
         return next;
     };
@@ -159,7 +161,7 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
       <div className="row g-3 mt-1">
         <div className="col-md-4">
           <label className="form-label fw-bold" htmlFor="pc_patient_ehr_document_description">Description</label>
-          <textarea id="pc_patient_ehr_document_description" className="form-control" style={{ minHeight: 80 }} maxLength={1000} value={form.documentDescription}
+          <textarea id="pc_patient_ehr_document_description" className="form-control" style={{ minHeight: 80 }} maxLength={2000} value={form.documentDescription}
             onChange={(e) => { update({ documentDescription: e.target.value }); clearError('documentDescription'); }}/>
           <FieldError message={errors.documentDescription}/>
         </div>
@@ -178,17 +180,20 @@ const PatientDocumentsAddEdit = ({ patientId, record, categories, statuses, onCl
             ? <SkeletonList rows={2}/>
             : <UniversalFileUploader ref={uploaderRef} name={`pc_patient_ehr_document_files_${patientId}`}
                 maxFiles={5} maxSizeMB={5} allowedTypes="pdf,jpg,jpeg,png"
-                initialAttachments={initialAttachments} onChange={() => clearError('files')}/>}
+                initialAttachments={initialAttachments} onChange={() => { setDirty(true); clearError('files'); }}/>}
           <FieldError message={errors.files}/>
         </div>
       </div>
 
       {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-      <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-        <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-        <button type="submit" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" disabled={saving || (isEdit && initialAttachments === null)}>{saving ? 'Saving...' : 'Save'}</button>
-      </div>
+      <FormStatusFooter
+        dirty={dirty}
+        saving={saving}
+        onCancel={() => onClose(false)}
+        saveLabel="Save"
+        disabled={isEdit && initialAttachments === null}
+      />
     </form>);
 };
 export default PatientDocumentsAddEdit;

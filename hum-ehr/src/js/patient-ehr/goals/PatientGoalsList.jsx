@@ -4,6 +4,7 @@ import { extractAllGoals, fetchPatientGoals, fetchSdohGoals, mapSdohGoalsList } 
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const relativeTime = (value) => {
     if (!value)
@@ -74,8 +75,8 @@ const PatientGoalsList = ({ patientId, recordType, goalType, searchTerm, showDel
       {records.map((goal) => {
         const label = goalListLabel(goal, goalType);
         const isActive = String(goal.goalId) === String(selectedGoalId);
-        return (<div key={goal.goalId} className={`row goals-each-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1 ${goal.invalidFlag === 'Y' ? 'in-active-deleted-record' : ''}`} data-id={goal.goalId} onClick={() => onSelect(goal)}>
-            <div className="col-md-9 list-goal-name" title={label}>{label.length > 45 ? `${label.slice(0, 45)}...` : label}</div>
+        return (<div key={goal.goalId} className={`row goals-each-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={goal.goalId} onClick={() => onSelect(goal)}>
+            <div className="col-md-9 list-goal-name" title={label}>{label.length > 45 ? `${label.slice(0, 45)}...` : label}{goal.invalidFlag === 'Y' && <DeletedRecordBadge />}</div>
             <div className="col-md-3">
               <div className="list-goal-effective-date pc-list-each-details-date-container">{relativeTime(goal.effectiveDate)}</div>
             </div>

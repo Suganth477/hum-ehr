@@ -12,6 +12,55 @@
 .pp-problems-header-search-input-group .pa-search-problem-input {
     padding-right: 2rem;
 }
-.pp-problem-records-data {
+/* Filter button + "filters applied" count badge (legacy). */
+.pp-diagnosis-filter-icon-btn {
+    border: 1px solid #D7DDE3;
+    border-radius: 8px;
+    padding: 2px 8px;
+}
+.ehr-patient-problems-filters-applied-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    background: #08bcd4;
+    border-radius: 9px;
+}
+/* Reset / Apply pinned to the bottom of the filter panel while the body scrolls. */
+.pp-diagnosis-filter-sticky-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.06);
+    z-index: 2;
+    border-top: 0.8px solid #E5E7EB;
+    background: #F9FAFB;
+}
+.pp-diagnosis-filter-sticky-footer .btn {
+    min-width: 90px;
+}
+.pp-problem-records-data,
+.patient-chart-diagnosis-problem-record-data {
     vertical-align: top;
+    padding: 10px 8px;
+}
+/* ICD / SNOMED code cell: bold code + muted description (legacy pp-*-label-value). */
+.pp-problem-icd-code-group .pp-icd-code-desc .pp-icd-label-value,
+.pp-problem-snomed-code-group .pp-snomed-code-desc .pp-snomed-label-value {
+    color: var(--app-color20, #8798ad);
+    font-size: 12px;
+}
+.pp-problem-icd-code-group .pp-icd-code-desc,
+.pp-problem-snomed-code-group .pp-snomed-code-desc {
+    margin-top: 2px;
 }

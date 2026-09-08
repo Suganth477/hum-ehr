@@ -19,8 +19,11 @@ const PatientProblems = ({ patientId }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
     const [statusMetadata, setStatusMetadata] = useState(EMPTY_METADATA);
-    const [filterForm, setFilterForm] = useState({ type: '' });
+    const [filterForm, setFilterForm] = useState({ type: '' }); // working (in the offcanvas)
+    const [appliedFilters, setAppliedFilters] = useState({ type: '' }); // committed to the list
     const { notifyError } = useNotify();
+    const filterCount = appliedFilters.type ? 1 : 0;
+    const isFilterDirty = filterForm.type !== appliedFilters.type;
     useEffect(() => {
         let ignore = false;
         const loadMetadata = async () => {
@@ -63,12 +66,18 @@ const PatientProblems = ({ patientId }) => {
         setRecordType(type);
         setShowDeleted(false);
     };
+    const openFilter = () => {
+        setFilterForm({ ...appliedFilters }); // reflect the applied state when opening
+        setFilterVisible(true);
+    };
     const handleApplyFilters = () => {
+        setAppliedFilters({ ...filterForm });
         setFilterVisible(false);
         setRefreshKey((key) => key + 1);
     };
     const handleResetFilters = () => {
         setFilterForm({ type: '' });
+        setAppliedFilters({ type: '' });
         setRefreshKey((key) => key + 1);
     };
     return (<div className="pp-problems-section-main-container" id={`patient_problems_hub_${patientId}`}>
@@ -99,8 +108,9 @@ const PatientProblems = ({ patientId }) => {
               </div>
 
               <div className="pp-problems-header-action-icons-container d-flex align-items-center gap-2">
-                <button type="button" className="btn pp-diagnosis-filter-icon-btn d-flex align-items-center gap-2 btn-md border-0" onClick={() => setFilterVisible(true)}>
+                <button type="button" className="btn pp-diagnosis-filter-icon-btn d-flex align-items-center gap-2 btn-md" onClick={openFilter}>
                   <LegacyIcon icon="mdi-filter-variant"/>Filter
+                  {filterCount > 0 && <span className="ehr-patient-problems-filters-applied-badge">{filterCount}</span>}
                 </button>
                 {recordType !== 'history' && (<button type="button" className="pa-add-new-problem-btn btn btn-primary btn-md border-radius-button text-nowrap" id={`pp_add_new_problem_btn_${patientId}`} onClick={() => openAddEdit(null, 'create')}>
                     <LegacyIcon icon="mdi-plus"/> Add Problem
@@ -110,15 +120,15 @@ const PatientProblems = ({ patientId }) => {
           </div>
 
           <div className="pp-problems-list-body">
-            <PatientProblemsList patientId={patientId} recordType={recordType} showDeleted={showDeleted} searchTerm={searchTerm} filterType={filterForm.type} refreshKey={refreshKey} onEdit={(record) => openAddEdit(record, 'edit')} onRecoverEdit={(record) => openAddEdit(record, 'recover')} onRefresh={() => setRefreshKey((key) => key + 1)}/>
+            <PatientProblemsList patientId={patientId} recordType={recordType} showDeleted={showDeleted} searchTerm={searchTerm} filterType={appliedFilters.type} refreshKey={refreshKey} onEdit={(record) => openAddEdit(record, 'edit')} onRecoverEdit={(record) => openAddEdit(record, 'recover')} onRefresh={() => setRefreshKey((key) => key + 1)}/>
           </div>
         </div>) : (<div className="pp-problems-add-edit-main-container-wrapper">
           <PatientProblemsAddEdit patientId={patientId} problemRecord={selectedRecord} actionType={actionType} recordType={recordType} statusMetadata={statusMetadata} onClose={closeAddEdit}/>
         </div>)}
 
       <Sidebar visible={filterVisible} position="right" onHide={() => setFilterVisible(false)} className="pa-allergy-header-offcanvas-container offcanvas offcanvas-end" id={`pp_diagnosis_filter_acute_chronic_options_${patientId}`} header={<h5>Filter</h5>}>
-        <form onSubmit={(event) => { event.preventDefault(); handleApplyFilters(); }}>
-          <div className="form-group mb-3">
+        <form className="d-flex flex-column h-100" onSubmit={(event) => { event.preventDefault(); handleApplyFilters(); }}>
+          <div className="form-group mb-3 flex-grow-1">
             <label htmlFor={`problem_section_diagnosis_type_options_${patientId}`} className="form-label">Type</label>
             <select id={`problem_section_diagnosis_type_options_${patientId}`} className="form-select form-select-sm" value={filterForm.type} onChange={(event) => setFilterForm({ type: event.target.value })}>
               <option value="">Select type</option>
@@ -126,9 +136,9 @@ const PatientProblems = ({ patientId }) => {
               <option value="CHRO">Chronic</option>
             </select>
           </div>
-          <div className="mt-4 form-group d-flex justify-content-between">
-            <button type="button" className="btn btn-outline-secondary border-radius-button" onClick={handleResetFilters}>Reset</button>
-            <button type="submit" className="btn btn-primary border-radius-button" style={{ width: 120 }}>Apply</button>
+          <div className="pp-reset-apply-button-group pp-diagnosis-filter-sticky-footer">
+            <button type="button" className="btn btn-primary border-radius-button reset px-3" onClick={handleResetFilters}>Reset</button>
+            <button type="submit" className="btn btn-primary border-radius-button apply px-3" disabled={!isFilterDirty}>Apply</button>
           </div>
         </form>
       </Sidebar>

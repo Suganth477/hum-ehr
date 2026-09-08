@@ -3,6 +3,7 @@ import { deletePatientHospitalization, fetchPatientHospitalizations } from '../.
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
 import { HospitalIcon, LegacyIcon } from '../../../components/common/CustomIcons';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 // Legacy getHospitalizationIcon / getHospitalizationActiveIcon.
 const HospitalizationIcon = ({ active }) => (active ? (<div className="p-2 rounded-circle hospitalization-record-icon active">
@@ -107,9 +108,7 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
                               <div className="pch-hospital-admitted-period pch-hospital-sub-detail">
                                 {record.lastEffectiveDate ? (<>{record.effectiveDate} <LegacyIcon icon="fa-arrow-right" className="px-1"/> {record.lastEffectiveDate}</>) : record.effectiveDate}
                               </div>
-                              {isMarkedAsError && (<div className="error-marked-chip-container">
-                                  <span className="error-marked-chip p-1">Marked as error</span>
-                                </div>)}
+                              {isMarkedAsError && <DeletedRecordBadge />}
                             </div>
                             <div className="col-md-4">
                               <label className="pch-hospital-label">Admitted Diagnosis</label>

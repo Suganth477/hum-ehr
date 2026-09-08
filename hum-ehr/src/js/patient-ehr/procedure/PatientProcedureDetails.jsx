@@ -3,6 +3,7 @@ import { blobTypeFor } from '../../../services/surgicalHistoryService';
 import { getFormattedIcdCode } from '../../../utils/commonUtility';
 import { useNotify } from '../../../context/NotificationContext';
 import { PersonWalkingIcon, LegacyIcon } from '../../../components/common/CustomIcons';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const base64ToBlobUrl = (base64, type) => {
     try {
@@ -108,7 +109,7 @@ const PatientProcedureDetails = ({ patientId, record, onEdit, onDeleted }) => {
 
     return (<div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <div><span className="pcps-procedure-record-info-name-title text-capitalize">{record.procedureDescription}</span></div>
+        <div><span className="pcps-procedure-record-info-name-title text-capitalize">{record.procedureDescription}</span>{invalid && <DeletedRecordBadge />}</div>
         {!invalid && (<div className="d-flex gap-3 justify-content-end">
           <button type="button" className="pcps-record-action-btn" title="Edit" onClick={() => onEdit(record)}><LegacyIcon icon="fa-pencil" className='ehr-primary-color-icon-svg' /> Edit</button>
           <button type="button" className="pcps-record-action-btn" title="Delete" onClick={handleDelete}><LegacyIcon icon="fa-trash-can" className='ehr-primary-color-icon-svg' /></button>
@@ -154,7 +155,8 @@ const PatientProcedureDetails = ({ patientId, record, onEdit, onDeleted }) => {
         <Field label="Complication" value={record.procedureComplicationDescription}/>
       </div>
       <div className={`row my-3 ${invalid ? 'pcps-deleted-record' : ''}`}>
-        <Field label="Follow Up Details" value={record.instruction} className="col-md-12"/>
+        <Field label="Follow Up Type" value={record.procedureFollowUpDescription}/>
+        <Field label="Follow Up Description" value={record.instruction}/>
       </div>
       <div className={`row my-3 ${invalid ? 'pcps-deleted-record' : ''}`}>
         <Field label="Notes" value={record.notes} className="col-md-12"/>

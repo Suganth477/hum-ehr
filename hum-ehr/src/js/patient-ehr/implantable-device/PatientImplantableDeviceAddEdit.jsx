@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import {
@@ -6,9 +6,12 @@ import {
     fetchImplantBodySiteLookup, fetchImplantDeviceTypeLookup,
 } from '../../../services/implantDeviceService';
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 
 const dateOnly = (value) => (value ? moment(value).format('MM-DD-YYYY') : '');
 const md = (d) => (d ? moment(d, 'MM-DD-YYYY', true) : null);
@@ -54,17 +57,36 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
     const [saveError, setSaveError] = useState(null);
     const [duplicatePrompt, setDuplicatePrompt] = useState(false);
     const [linkMode, setLinkMode] = useState(''); // '' | 'PROCEDURE' | 'SURGICAL'
+    const [dirty, setDirty] = useState(false);
     const { notifyError, notifySuccess, notifyWarn } = useNotify();
 
-    const update = (patch) => setForm((p) => ({ ...p, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
+    const [dob, setDob] = useState('');
+    // Patient DOB → ultimate lower bound for all device dates (legacy data-min).
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(details.dateOfBirth);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
+
     const today = useMemo(() => moment().format('MM-DD-YYYY'), []);
-    // Interdependent date bounds (mirror the legacy datepicker min/max wiring).
-    const expiryMin = form.manufacturedDate || undefined;
+    // Interdependent date bounds (mirror the legacy datepicker min/max wiring; DOB is the floor).
+    const expiryMin = form.manufacturedDate || dob || undefined;
     const implantMax = (form.expiryDate && md(form.expiryDate)?.isSameOrBefore(moment(), 'day')) ? form.expiryDate : today;
-    const implantMin = form.manufacturedDate || undefined;
-    const explantMin = form.implantDate || undefined;
+    const implantMin = form.manufacturedDate || dob || undefined;
+    const explantMin = form.implantDate || dob || undefined;
 
     const loadBodySite = (input) => {
         if ((input || '').trim().length < LOOKUP_MIN_CHARS) return Promise.resolve([]);
@@ -183,7 +205,7 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
         <div className="row g-3 mb-1">
           <div className="col-md-3">
             <label className="pcid-label-name">Manufacture date</label>
-            <FlatpickrDateTimeInput value={form.manufacturedDate} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" maxDate={today} disabled={deviceFieldsLocked}
+            <FlatpickrDateTimeInput value={form.manufacturedDate} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={dob || undefined} maxDate={today} disabled={deviceFieldsLocked}
               onChange={(v) => { update({ manufacturedDate: v }); clearError('manufacturedDate'); }}/>
             <FieldError message={errors.manufacturedDate}/>
           </div>
@@ -312,10 +334,14 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
         </div>
       </div>)}
 
-      <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-        <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-        <button type="button" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : (isEdit ? 'Update' : 'Save')}</button>
-      </div>
+      <FormStatusFooter
+        dirty={dirty}
+        saving={saving}
+        onCancel={() => onClose(false)}
+        onSave={handleSave}
+        saveType="button"
+        saveLabel={isEdit ? 'Update' : 'Save'}
+      />
     </div>);
 };
 export default PatientImplantableDeviceAddEdit;

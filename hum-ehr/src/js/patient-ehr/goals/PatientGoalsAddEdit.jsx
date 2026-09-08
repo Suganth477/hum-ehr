@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import moment from '../../../utils/dayjs';
 import Select from 'react-select';
 import { savePatientGoal, saveSdohGoal } from '../../../services/goalService';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 
 const RANGE_OPTIONS = [
     { value: '>', label: 'Greater Than' },
@@ -54,12 +57,31 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dob, setDob] = useState('');
+    const [dirty, setDirty] = useState(false);
+    // Start/Completed/Recorded dates: floor at patient DOB, cap at now (legacy data-min/max).
+    const dateMax = isSdoh ? moment().format('MM-DD-YYYY hh:mm A') : moment().format('MM-DD-YYYY');
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(details.dateOfBirth);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
 
     const autocompleteSource = isSdoh ? referenceData.sdohGoalsAutoCompleteSource : referenceData.patientGoalsAutoCompleteSource;
     const goalOptions = useMemo(() => (autocompleteSource || []).map((item) => ({ value: item.id, label: item.value, itemDetails: item.itemDetails })), [autocompleteSource]);
     const statusOptions = useMemo(() => filterStatuses(referenceData.goalStatusCodes || [], goal?.statusCode, isEdit), [referenceData.goalStatusCodes, goal, isEdit]);
 
-    const update = (patch) => setForm((previous) => ({ ...previous, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((previous) => ({ ...previous, ...patch })); };
     const clearError = (key) => setErrors((previous) => { if (!previous[key]) return previous; const next = { ...previous }; delete next[key]; return next; });
 
     // ---- populate condition/frequency state from a selected/saved goal definition ----
@@ -137,7 +159,8 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
             startDate: goal.effectiveDate || '',
             completedDate: goal.lastEffectiveDate || '',
             recordedDate: goal.recordedDate || now,
-            description: goal.goalNotes || '',
+            // Legacy SED fix: the description lives in goalNotes, falling back to notes.
+            description: goal.goalNotes || goal.notes || '',
         };
         if (isSdoh) {
             setForm({ ...base, code: goal.sdohGoalCode || '' });
@@ -151,6 +174,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
     }, [goal, isEdit, isSdoh]);
 
     const onGoalSelected = (option) => {
+        setDirty(true);
         setSaveError(null);
         clearError('code');
         if (!option) {
@@ -426,12 +450,12 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
         </div>
         <div className="col-12 col-md-4">
           <label className="form-label fw-bold" htmlFor={fieldId('pc_patient_goals_start_date')}>{isSdoh ? 'Start Date & Time' : 'Start Date'} <span className="text-danger">*</span></label>
-          <FlatpickrDateTimeInput id={fieldId('pc_patient_goals_start_date')} value={form.startDate} onChange={(value) => { update({ startDate: value }); clearError('startDate'); }} disabled={isEdit} {...dateProps}/>
+          <FlatpickrDateTimeInput id={fieldId('pc_patient_goals_start_date')} value={form.startDate} onChange={(value) => { update({ startDate: value }); clearError('startDate'); }} disabled={isEdit} minDate={dob || undefined} maxDate={dateMax} {...dateProps}/>
           {errors.startDate && <div className="small text-danger mt-1">{errors.startDate}</div>}
         </div>
         <div className="col-12 col-md-4">
           <label className="form-label fw-bold" htmlFor={fieldId('pc_patient_goals_completed_date')}>{isSdoh ? 'Completed Date & Time' : 'End Date'} {COMPLETED_REQUIRED_STATUSES.includes(form.status) && <span className="text-danger">*</span>}</label>
-          <FlatpickrDateTimeInput id={fieldId('pc_patient_goals_completed_date')} value={form.completedDate} onChange={(value) => { update({ completedDate: value }); clearError('completedDate'); }} disabled={!completedEnabled} minDate={form.startDate || undefined} {...dateProps}/>
+          <FlatpickrDateTimeInput id={fieldId('pc_patient_goals_completed_date')} value={form.completedDate} onChange={(value) => { update({ completedDate: value }); clearError('completedDate'); }} disabled={!completedEnabled} minDate={form.startDate || dob || undefined} maxDate={dateMax} {...dateProps}/>
           {errors.completedDate && <div className="small text-danger mt-1">{errors.completedDate}</div>}
         </div>
       </div>
@@ -439,7 +463,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
       <div className="row g-3 mt-1">
         <div className="col-12 col-md-4">
           <label className="form-label fw-bold" htmlFor={fieldId('pc_patient_goals_recorded_date')}>Recorded Date &amp; Time <span className="text-danger">*</span></label>
-          <FlatpickrDateTimeInput id={fieldId('pc_patient_goals_recorded_date')} value={form.recordedDate} onChange={(value) => { update({ recordedDate: value }); clearError('recordedDate'); }} {...dateProps}/>
+          <FlatpickrDateTimeInput id={fieldId('pc_patient_goals_recorded_date')} value={form.recordedDate} onChange={(value) => { update({ recordedDate: value }); clearError('recordedDate'); }} minDate={dob || undefined} maxDate={dateMax} {...dateProps}/>
           {errors.recordedDate && <div className="small text-danger mt-1">{errors.recordedDate}</div>}
         </div>
         <div className="col-12 col-md-8">
@@ -453,12 +477,12 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
           <div className={`small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>
         </div>)}
 
-      <div className="row mt-4 pt-3 border-top m-0">
-        <div className="d-flex justify-content-end gap-2 p-0">
-          <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-          <button type="submit" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-        </div>
-      </div>
+      <FormStatusFooter
+        dirty={dirty}
+        saving={saving}
+        onCancel={() => onClose(false)}
+        saveLabel="Save"
+      />
     </form>);
 };
 export default PatientGoalsAddEdit;

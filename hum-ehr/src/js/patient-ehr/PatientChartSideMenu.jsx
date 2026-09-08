@@ -14,7 +14,6 @@ import {
     HeartPulseIcon,
     ClipboardPlayIcon,
     FilmstripIcon,
-    WalkIcon,
     NoteCheckIcon,
     FileDocumentsIcon,
     AccountArrowIcon,
@@ -88,10 +87,9 @@ const PatientChartSideMenu = ({ patientId, activeSection, onSectionChange }) => 
         {renderMenuItem('PCVIT', '', 'Vitals', HeartPulseIcon)}
         {renderMenuItem('PCIMM', '', 'Immunization', ImmunizationIcon)}
         {renderMenuItem('PCGOAL', 'mdi-bullseye', 'Goals')}
-        {renderMenuItem('NTRN', 'mdi-food-apple-outline', 'Nutrition Recommendation')}
+        {renderMenuItem('NUTRIREC', 'mdi-food-apple-outline', 'Nutrition Recommendation')}
         {renderMenuItem('PCCLT', '', 'Clinical Test', ClipboardPlayIcon)}
         {renderMenuItem('PCIMG', '', 'Imaging Orders', FilmstripIcon)}
-        {renderMenuItem('PCVIS', '', 'Visits', WalkIcon)}
         {renderMenuItem('PCHSA', '', 'Health Status Assessment', NoteCheckIcon)}
         {renderMenuItem('PCDOC', '', 'Documents', FileDocumentsIcon)}
         {renderMenuItem('PCREF', '', 'Referrals', AccountArrowIcon)}

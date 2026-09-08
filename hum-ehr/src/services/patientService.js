@@ -1,6 +1,16 @@
 // @ts-check
 import ENDPOINTS from "./endpoints";
 import { apiPost, apiPostForm } from "./apiClient";
+import moment from "../utils/dayjs";
+
+/** Legacy utility.ageCalculator(dob) + "yrs" — whole years from the MM-DD-YYYY dob. */
+const computePatientAge = (dob) => {
+	if (!dob) return "";
+	const parsed = moment(dob, "MM-DD-YYYY", true);
+	if (!parsed.isValid()) return "";
+	const years = moment().diff(parsed, "year");
+	return Number.isFinite(years) ? `${years}yrs` : "";
+};
 export const buildActivePatientListRequest = ({
 	draw = 1,
 	rows = 10,
@@ -22,6 +32,16 @@ export const buildActivePatientListRequest = ({
 		fromDate: filters.fromDate || "",
 		toDate: filters.toDate || "",
 		programStatus: filters.programStatus || "ALL",
+		// Patient-list filter (Gender / Age / Primary Provider / DSI Alert) — legacy
+		// active.patient.js _getValidDataTableObject. minAge holds the single value for
+		// the above/below operators; maxAge is null unless the range is "BETWEEN".
+		gender: filters.gender || "",
+		ageRange: filters.ageRange || "",
+		minAge: filters.minAge || "",
+		maxAge: filters.maxAge || null,
+		dsiAlertStatus: filters.dsiAlertStatus || "",
+		pcpId: filters.physicianId || "",
+		pcpRoleStatus: "CPHY",
 	},
 	order: {
 		column: sortField || "fullName",
@@ -43,6 +63,9 @@ export const mapActivePatientRow = (patient) => ({
 	gender: patient.genderDesc,
 	genderCode: patient.genderCode,
 	dob: patient.dob,
+	age: computePatientAge(patient.dob),
+	// DSI (Decision Support Intervention) alert count — drives the DSI Alert column badge.
+	dsiAlertCount: Number(patient.dsiAlertCount) || 0,
 	emrId: patient.emrId || patient.ehrEmrId || "",
 	medicareNumber: patient.medicareNumber || "",
 	mobilePhoneNumber: patient.mobilePhoneNumber || "",

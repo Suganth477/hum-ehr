@@ -6,6 +6,7 @@ import { getAuthToken, storeAuthToken } from './services/authService';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import PatientListFilter from './components/PatientListFilter';
+import { PatientListFilterProvider } from './context/PatientListFilterProvider';
 import QuickAccessNav from './components/QuickAccessNav';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
@@ -165,15 +166,17 @@ const App = () => {
         return <div className="text-center mt-5">Loading application framework shell...</div>;
     return (<NotificationProvider>
         <LayoutProvider>
-            <Routes>
-                <Route element={<AppLayout />}>
-                    <Route path="/" element={<Navigate to="/patients" replace />} />
-                    <Route path="/patients" element={<ActivePatientsList activeTab={activeTab} onOpenTab={handleOpenPatientWorkspace} />} />
-                    <Route path="/dashboard" element={<div className="p-4 text-muted">Dashboard (not migrated yet).</div>} />
-                    <Route path="/message-center" element={<MessageCenter />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-            </Routes>
+            <PatientListFilterProvider>
+                <Routes>
+                    <Route element={<AppLayout />}>
+                        <Route path="/" element={<Navigate to="/patients" replace />} />
+                        <Route path="/patients" element={<ActivePatientsList activeTab={activeTab} onOpenTab={handleOpenPatientWorkspace} />} />
+                        <Route path="/dashboard" element={<div className="p-4 text-muted">Dashboard (not migrated yet).</div>} />
+                        <Route path="/message-center" element={<MessageCenter />} />
+                    </Route>
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </PatientListFilterProvider>
         </LayoutProvider>
     </NotificationProvider>);
 };

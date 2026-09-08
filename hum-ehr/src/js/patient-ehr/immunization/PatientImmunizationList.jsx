@@ -4,6 +4,7 @@ import { fetchPatientImmunizations } from '../../../services/immunizationService
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon, NotesMedicalIcon } from '../../../components/common/CustomIcons';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const relativeTime = (value) => {
     if (!value) return '';
@@ -63,7 +64,7 @@ const PatientImmunizationList = ({ patientId, recordType, searchTerm, refreshKey
         return (<div key={record.id} className={`row immunization-each-vaccine-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
             <div className="col-md-9 vaccine-name text-capitalize pe-0">
               {record.sourceType === 'CPLNEMR' && <span className="me-1 text-info" title="EMR Entry"><NotesMedicalIcon/></span>}
-              {name}
+              {name}{record.invalidFlag === 'Y' && <DeletedRecordBadge />}
             </div>
             <div className="col-md-3 pe-0">
               <div className="vaccine-date pc-list-each-details-date-container">{recordType === 'active' ? relativeTime(record.administeredDate) : record.administeredDate}</div>

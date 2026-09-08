@@ -7,23 +7,23 @@ import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 import { useIsTabletOrBelow } from '../../../hooks/useMediaQuery';
 const NoProblemData = ({ recordType, showDeleted }) => {
-    const label = recordType === 'active' ? 'active problems' : showDeleted ? 'deleted problems' : 'history of problems';
+    const label = recordType === 'active' ? 'active problems' : showDeleted ? 'deleted problems' : 'problems in history';
     return (<div className="list-wrapper" style={{ border: '2px solid #ddd', padding: '30px 20px', textAlign: 'center' }}>
       <div className="nodata">
         <LegacyIcon icon="mdi-information-outline" style={{ fontSize: 30, verticalAlign: 'sub' }}/>
-        <span style={{ fontSize: 20 }}> No {label} recorded yet!</span>
+        <span style={{ fontSize: 20 }}> Patient doesn't have any {label} yet!</span>
       </div>
     </div>);
 };
-const IcdCodeCell = ({ record }) => (<div>
-    <div className="fw-bold text-dark pp-icd-label-value">{record.icdCode || '-'}</div>
-    {record.icdDescription && <div className="text-muted small">{record.icdDescription}</div>}
+const IcdCodeCell = ({ record }) => (<div className="pp-problem-icd-code-group">
+    <div className="pp-icd-code"><span className="pp-icd-label-value" style={{ color: '#37474F', fontWeight: 600 }}>{record.icdCode || '-'}</span></div>
+    {record.icdDescription && <div className="pp-icd-code-desc"><span className="pp-icd-label-value">{record.icdDescription}</span></div>}
   </div>);
 const SnomedCodeCell = ({ record }) => {
     if (record.snomedCode && record.snomedDesc)
-        return (<div>
-        <div className="fw-bold text-dark pp-snomed-label-value">{record.snomedCode}</div>
-        <div className="text-muted small">{record.snomedDesc}</div>
+        return (<div className="pp-problem-snomed-code-group">
+        <div className="pp-snomed-code"><span className="pp-snomed-label-value" style={{ color: '#37474F', fontWeight: 600 }}>{record.snomedCode}</span></div>
+        <div className="pp-snomed-code-desc"><span className="pp-snomed-label-value">{record.snomedDesc}</span></div>
       </div>);
     return <span className="small text-muted">There is no SNOMED CT code linked to {record.icdCode || 'this problem'}.</span>;
 };
@@ -78,15 +78,23 @@ const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, f
     if (!records.length)
         return <NoProblemData recordType={recordType} showDeleted={showDeleted}/>;
     const isDeletedRow = (record) => recordType === 'history' && record.invalidFlag === 'Y';
+    // Actions consolidated into a kebab (⋮) dropdown, matching the enhanced legacy
+    // screen (separate edit/delete icons → action-icon dropdown menu).
     const renderActions = (record) => {
+        let items = null;
         if (recordType === 'active')
-            return (<>
-                <button type="button" className="btn btn-default border-0 action-icon p-1 pp-edit-problem-details" title="Edit" onClick={() => onEdit?.(record)}><LegacyIcon icon="fa-pencil"/></button>
-                <button type="button" className="btn btn-default border-0 action-icon p-1 pp-delete-problem-details" title="Delete" onClick={() => handleDelete(record)}><LegacyIcon icon="fa-trash-can"/></button>
+            items = (<>
+                <li><div className="ehr-patient-documents-list-icons pp-edit-problem-details" onClick={() => onEdit?.(record)}><span><LegacyIcon icon="fa-pen" className="action-icon"/></span> Edit</div></li>
+                <li><div className="ehr-patient-documents-list-icons pp-delete-problem-details" onClick={() => handleDelete(record)}><span><LegacyIcon icon="fa-trash-can" className="action-icon"/></span> Delete</div></li>
               </>);
-        if (isDeletedRow(record))
-            return (<button type="button" className="btn btn-default border-0 action-icon p-1 pp-edit-problem-details" title="Recover" onClick={() => onRecoverEdit?.(record)}><LegacyIcon icon="fa-rotate"/></button>);
-        return null;
+        else if (isDeletedRow(record))
+            items = (<li><div className="ehr-patient-documents-list-icons pp-edit-problem-details" onClick={() => onRecoverEdit?.(record)}><span><LegacyIcon icon="fa-rotate" className="action-icon"/></span> Recover</div></li>);
+        if (!items)
+            return null;
+        return (<div className="action-icon-dropdown-group ehr-problem-action-items">
+            <LegacyIcon icon="mdi-dots-vertical" className="action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"/>
+            <ul className="dropdown-menu action-icon-dropdown-menu-list problem-list-action-items" style={{ minWidth: 195 }}>{items}</ul>
+          </div>);
     };
     if (showCards) {
         return (<div className="pp-problem-card-list mt-2">
@@ -109,33 +117,33 @@ const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, f
           </div>))}
         </div>);
     }
-    return (<div className="table-scroll-container table-responsive bg-white rounded border mt-2">
-      <table className="table align-middle text-start mb-0">
-        <thead className="thead-border-radius table-light">
-          <tr className="small text-muted text-uppercase">
+    return (<div className="table-scroll-container custom-scrollbar mt-2">
+      <table className="table">
+        <thead className="thead-border-radius">
+          <tr>
             <th>S.No</th>
-            <th style={{ width: 320 }}>ICD-10 Code</th>
-            <th style={{ width: 300 }}>SNOMED Code</th>
-            <th style={{ width: 90 }}>Type</th>
-            <th>Clinical Status</th>
-            <th>Verification Status</th>
-            <th>Date of Diagnosis</th>
-            {recordType === 'history' && <th>Date of Resolution</th>}
-            <th style={{ width: 90 }}/>
+            <th style={{ width: 450 }}><span>ICD-10 Code</span></th>
+            <th style={{ width: 350 }}><span>SNOMED Code</span></th>
+            <th style={{ width: 100 }}><span>Type</span></th>
+            <th><span>Clinical Status</span></th>
+            <th><span>Verification Status</span></th>
+            <th><span>Date of Diagnosis</span></th>
+            {recordType === 'history' && <th><span>Date of Resolution</span></th>}
+            <th style={{ width: 100 }}>Action</th>
           </tr>
         </thead>
-        <tbody className="tbody-border-radius font-14">
+        <tbody className="tbody-border-radius">
           {records.map((record, index) => (<tr key={record.diagnosisId || index} className={isDeletedRow(record) ? 'patient-chart-diagnosis-invalid-problem-record' : ''}>
-              <td className="pp-problem-records-data"><span>{index + 1}</span></td>
-              <td className="pp-problem-records-data"><IcdCodeCell record={record}/></td>
-              <td className="pp-problem-records-data"><SnomedCodeCell record={record}/></td>
-              <td className="pp-problem-records-data"><TypePill record={record}/></td>
-              <td className="pp-problem-records-data"><span>{record.clinicalStatus || ''}</span></td>
-              <td className="pp-problem-records-data"><span>{record.verificationStatus || ''}</span></td>
-              <td className="pp-problem-records-data"><span>{record.dateOfDiagnosis || '-'}</span></td>
-              {recordType === 'history' && <td className="pp-problem-records-data"><span>{record.dateOfResolution || '-'}</span></td>}
-              <td className="pp-problem-records-data">
-                <div className="d-flex align-items-center gap-2">{renderActions(record)}</div>
+              <td className="patient-chart-diagnosis-problem-record-data">{index + 1}</td>
+              <td className="patient-chart-diagnosis-problem-record-data"><IcdCodeCell record={record}/></td>
+              <td className="patient-chart-diagnosis-problem-record-data"><SnomedCodeCell record={record}/></td>
+              <td className="patient-chart-diagnosis-problem-record-data"><TypePill record={record}/></td>
+              <td className="patient-chart-diagnosis-problem-record-data">{record.clinicalStatus || ''}</td>
+              <td className="patient-chart-diagnosis-problem-record-data">{record.verificationStatus || ''}</td>
+              <td className="patient-chart-diagnosis-problem-record-data">{record.dateOfDiagnosis || ''}</td>
+              {recordType === 'history' && <td className="patient-chart-diagnosis-problem-record-data">{record.dateOfResolution || ''}</td>}
+              <td className="patient-chart-diagnosis-problem-record-data">
+                <div className="d-flex gap-2 align-items-center">{renderActions(record)}</div>
               </td>
             </tr>))}
         </tbody>

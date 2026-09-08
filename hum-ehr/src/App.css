@@ -51,6 +51,17 @@
   --app-color38: #e2e2e2;
   --app-color39: #8798AD;
   --app-color40: #EEF9FA;
+  --app-color41: #0B7E8E;
+  --app-color42: #55B27B;
+  --app-color43: #F6AB2A;
+  --app-color44: #FFFBEB;
+  --app-color45: #1E40AF;
+  --app-color46: #EFF6FF;
+  --app-color47: #F15555;
+  --app-color48: #FEF2F2;
+  --app-color49: #39CC6F;
+  --app-color50: #F0FDF4;
+  --app-color51: #089BAB;
 
 
   /** ====== font size ======= **/
@@ -74,6 +85,16 @@
   --app-border-radius25: 25px;
   --app-border-radius30: 30px;
   --app-border-radius50: 50px;
+}
+
+/* "Deleted Record" pill for invalidated patient-chart rows (legacy .ehr-deleted-records). */
+.ehr-deleted-records {
+   color: #EF4444;
+   background-color: #EF444415;
+   padding: 2px 8px;
+   border-radius: 4px;
+   font-size: 12px;
+   font-weight: 500;
 }
  
 /** ====== application background colors ====== **/
@@ -614,7 +635,39 @@ table thead tr th {
    border-color: var(--app-color2) !important;
 }
 
-.scroll_table .dt-scroll-head, 
+/* Add/Edit form footer "Not Saved" status dot (legacy form-add-edit-status). */
+.form-add-edit-status-dot {
+   width: 8px;
+   height: 8px;
+   border-radius: 50%;
+   background: #ef4444;
+   display: inline-block;
+}
+.custom-form-footer {
+   margin-left: -1rem;
+   margin-right: -1rem;
+   margin-bottom: -1rem;
+   border-bottom-left-radius: 0.375rem;
+   border-bottom-right-radius: 0.375rem;
+}
+
+/* Legacy calendar icon inside every Flatpickr date field (date-input-icon). */
+.date-input-wrapper {
+   position: relative;
+}
+.date-input-wrapper .form-control {
+   padding-right: 2rem;
+}
+.date-input-wrapper .date-input-icon {
+   position: absolute;
+   right: 10px;
+   top: 50%;
+   transform: translateY(-50%);
+   color: #8798ad;
+   pointer-events: none;
+}
+
+.scroll_table .dt-scroll-head,
 .thead-border-radius {
    border-radius: 10px 10px 0px 0px !important;
 }

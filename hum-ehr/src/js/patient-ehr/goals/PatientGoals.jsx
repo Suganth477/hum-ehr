@@ -20,7 +20,7 @@ const EMPTY_REFERENCE = {
 
 /**
  * Goals section. Mirrors the legacy <patient-goals> two-pane layout: a left rail
- * (Active/Inactive toggle + Patient-Goals/SDOH-Goals sub-sections + search +
+ * (Active/History toggle + Patient-Goals/SDOH-Goals sub-sections + search +
  * Show-Deleted + Add) with the goal list, and a right detail pane. Add/Edit opens
  * in a modal (legacy used the shared XL modal).
  */
@@ -94,7 +94,7 @@ const PatientGoals = ({ patientId }) => {
                     <button type="button" className={`nav-link active-history-nav-link small ${recordType === 'active' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('active')}>Active</button>
                   </li>
                   <li className="nav-item active-history-toggle-list">
-                    <button type="button" className={`nav-link active-history-nav-link small ${recordType === 'history' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('history')}>Inactive</button>
+                    <button type="button" className={`nav-link active-history-nav-link small ${recordType === 'history' ? 'active' : ''}`} onClick={() => handleRecordTypeChange('history')}>History</button>
                   </li>
                 </ul>
               </div>

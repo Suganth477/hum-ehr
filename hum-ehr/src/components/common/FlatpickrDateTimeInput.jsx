@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import { LegacyIcon } from './CustomIcons';
 /**
  * Keeps value as a formatted string to match the legacy JSP/backend contract.
+ * Renders the legacy calendar icon (mdi-calendar-month-outline) inside the field.
  */
-const FlatpickrDateTimeInput = ({ id, name, value, onChange, onBlur, className = 'form-control', placeholder = '', disabled = false, required = false, enableTime = true, dateFormat = 'm-d-Y h:i K', minDate, maxDate, options = {}, }) => {
+const FlatpickrDateTimeInput = ({ id, name, value, onChange, onBlur, className = 'form-control', placeholder = '', disabled = false, required = false, enableTime = true, dateFormat = 'm-d-Y h:i K', minDate, maxDate, options = {}, showIcon = true, }) => {
 	const flatpickrOptions = useMemo(() => ({
 		enableTime,
 		dateFormat,
@@ -17,6 +19,9 @@ const FlatpickrDateTimeInput = ({ id, name, value, onChange, onBlur, className =
 		...options,
 	}), [enableTime, dateFormat, minDate, maxDate, options]);
 	const emit = (_dates, dateStr) => onChange?.(dateStr || '');
-	return (<Flatpickr id={id} name={name || id} value={value || ''} className={className} placeholder={placeholder} disabled={disabled} required={required} options={flatpickrOptions} onChange={emit} onClose={emit} onBlur={onBlur} />);
+	return (<div className="date-input-wrapper position-relative">
+		<Flatpickr id={id} name={name || id} value={value || ''} className={className} placeholder={placeholder} disabled={disabled} required={required} options={flatpickrOptions} onChange={emit} onClose={emit} onBlur={onBlur} />
+		{showIcon && <LegacyIcon icon="mdi-calendar-month-outline" className="date-input-icon input-icon" />}
+	</div>);
 };
 export default FlatpickrDateTimeInput;

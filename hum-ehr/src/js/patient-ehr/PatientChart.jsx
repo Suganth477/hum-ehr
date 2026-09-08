@@ -54,7 +54,7 @@ const PatientChart = ({ patientId }) => {
                 return <PatientImmunization patientId={patientId}/>;
             case 'PCGOAL':
                 return <PatientGoals patientId={patientId}/>;
-            case 'NTRN':
+            case 'NUTRIREC':
                 return <patient-nutrition-recommandation patient-id={patientId} record-type="active"/>;
             case 'PCCLT':
                 return <ehr-orders-main-element patient-id={patientId} order-type="EHR-CLINIC-ORDER" is-patient-chart="Y"/>;

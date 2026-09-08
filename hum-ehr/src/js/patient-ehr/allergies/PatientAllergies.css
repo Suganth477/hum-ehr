@@ -2,6 +2,86 @@
    Patient Allergies Module Style Sheet (Extracted Verbatim from JSP)
    ========================================================================== */
 
+/* --- Master-detail layout (left card list + right detail pane) --- */
+.pa-allergies-list-main-container .pc-left-side-main-container {
+    max-height: 72vh;
+    overflow-y: auto;
+    border-right: 1px solid #e5eaf0;
+}
+.pcps-patient-allergy-record-information {
+    max-height: 72vh;
+    overflow-y: auto;
+}
+.pa-allergy-left-card-list .allergy-card,
+.allergy-card.allergy-list-card {
+    border: 1px solid #76d8f7;
+    border-radius: 10px;
+    background: #fff;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.allergy-card.allergy-list-card:hover {
+    box-shadow: 0 2px 8px rgba(8, 188, 212, 0.18);
+}
+.allergy-card.allergy-list-card.selected {
+    border-color: #08bcd4;
+    background: #ecfbfe;
+    box-shadow: 0 2px 8px rgba(8, 188, 212, 0.25);
+}
+.pa-allergy-card-date-badge {
+    color: #08bcd4;
+    background: #ecfbfe;
+    border-radius: 6px;
+    padding: 1px 8px;
+}
+.cursor-pointer { cursor: pointer; }
+/* Detail-pane typography (mirrors the legacy allergy-details-common-class). */
+.allergy-details-common-class {
+    font-size: 14px;
+    color: #8798ad;
+}
+.allergy-details-common-class.label {
+    font-weight: 400;
+    margin-bottom: 2px;
+}
+.patient-chart-list-selected-item-title {
+    font-size: 18px;
+    color: #0b7e8e;
+}
+/* No-Known-Allergy / No-Known-Drug-Allergy quick-add cards (left rail). */
+.pcps-patient-no-allergy-container .allergy-icon {
+    font-size: 22px;
+    color: #08bcd4;
+    line-height: 1;
+}
+.pcps-patient-no-allergy-container .allergy-title {
+    font-size: 14px;
+    color: #212b36;
+}
+.pcps-patient-no-allergy-container .allergy-subtitle {
+    font-size: 12px;
+}
+.pcps-patient-no-allergy-container .blocked-pill {
+    background: #fdecec;
+    color: #ef4444;
+    border-radius: 6px;
+    padding: 2px 8px;
+    width: fit-content;
+}
+.pcps-patient-no-allergy-container .allergy-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+/* Add/Edit form footer "Not Saved" status dot (legacy form-add-edit-status). */
+.form-add-edit-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    display: inline-block;
+}
+
 @keyframes pa-shimmer {
     0% { background-position: -400px 0; }
     100% { background-position: 400px 0; }

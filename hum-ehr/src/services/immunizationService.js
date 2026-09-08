@@ -63,12 +63,14 @@ export const fetchVaccineSiteLookup = async (term) => {
  * Mirrors PatientImmunizationAddEdit.getImmunizationDetailsSaveParam.
  * `form` carries the selected lookup ids alongside the typed values.
  */
-export const buildImmunizationSavePayload = ({ patientId, careplanId, form, changeLogMessage = '', encounterId = null }) => ({
+export const buildImmunizationSavePayload = ({ patientId, careplanId, form, changeLogMessage = '', encounterId = null, validatedUserId = '' }) => ({
 	id: form.id || null,
 	patientId,
 	careplanId: careplanId ?? null,
 	vaccineName: form.vaccineName || null,
 	administeringPhysician: form.administeringPhysician || '',
+	// Recorded By — the logged-in user, always sent (legacy immunization_validated_recorded_by).
+	validatedUserId,
 	administeredDate: form.administeredDate || '',
 	vaccineId: form.vaccineId || null,
 	routeId: form.routeId || null,

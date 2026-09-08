@@ -3,6 +3,7 @@ import { fetchPatientHealthInsurance } from '../../../services/healthInsuranceSe
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const PatientHealthInsuranceList = ({ patientId, recordType, showDeleted, refreshKey, selectedId, onSelect, onMeta, }) => {
     const [records, setRecords] = useState(null); // null = fetching (skeleton)
@@ -59,7 +60,7 @@ const PatientHealthInsuranceList = ({ patientId, recordType, showDeleted, refres
         const isActive = String(record.id) === String(selectedId);
         return (<div key={record.id} className={`row health-insurance-each-detail-container ${record.invalidFlag === 'Y' ? 'health-insurance-each-detail-deleted-container' : ''} pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
             <div className="col-md-9 health-insurance-name text-capitalize pe-0">
-              {record.payerName} <br /> ({record.policyNumber})
+              {record.payerName} <br /> ({record.policyNumber}){record.invalidFlag === 'Y' && <DeletedRecordBadge />}
             </div>
             <div className="col-md-3 pe-0 align-items-center d-flex">
               <div className="health-insurance-type pc-list-each-details-type-radius-container">{record.insuranceTypeDesc}</div>

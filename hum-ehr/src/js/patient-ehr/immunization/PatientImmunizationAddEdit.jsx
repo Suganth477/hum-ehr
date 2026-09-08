@@ -3,10 +3,13 @@ import moment from '../../../utils/dayjs';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { buildImmunizationSavePayload, fetchVaccineSiteLookup, saveImmunization } from '../../../services/immunizationService';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 
 const physicianLabel = (p) => p.name || p.fullName || p.physicianName || p.providerName || p.userName || '';
 const physicianValue = (p) => p.id ?? p.physicianId ?? p.userId ?? p.value ?? '';
@@ -27,13 +30,35 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dob, setDob] = useState('');
+    const [dirty, setDirty] = useState(false);
+
+    // Patient DOB → lower bound for administered/expiration dates (legacy data-min).
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(`${details.dateOfBirth} 12:00 AM`);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
 
     const vaccineOptions = useMemo(() => (reference.vaccines || []).map((v) => ({ value: v.id, label: v.value, code: v.code })), [reference.vaccines]);
     const routeOptions = useMemo(() => (reference.routes || []).map((r) => ({ value: r.id, label: r.value })), [reference.routes]);
     const doseFormOptions = useMemo(() => (reference.doseForms || []).map((d) => ({ value: d.id, label: d.value })), [reference.doseForms]);
     const physicianOptions = useMemo(() => (physicians || []).map((p) => ({ value: physicianValue(p), label: physicianLabel(p) })).filter((o) => o.value !== ''), [physicians]);
+    // Recorded By — the logged-in user, always shown disabled + sent as validatedUserId
+    // (legacy reads the sidebar .user-name text, e.g. "John Doe (EST)" → "John Doe").
+    const recordedBy = useMemo(() => (document.querySelector('.user-name')?.textContent || '').split('(')[0].trim(), []);
 
-    const update = (patch) => setForm((p) => ({ ...p, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
     useEffect(() => {
@@ -97,7 +122,7 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
         setSaving(true);
         try {
             const changeLogMessage = `${isEdit ? 'An existing' : 'A new'} immunization "${form.vaccineName}" has been ${isEdit ? 'modified' : 'added'}`;
-            const response = await saveImmunization(buildImmunizationSavePayload({ patientId, careplanId, form, changeLogMessage }));
+            const response = await saveImmunization(buildImmunizationSavePayload({ patientId, careplanId, form, changeLogMessage, validatedUserId: recordedBy }));
             const outcome = getSaveOutcome(response, 'Failed to update immunization details. Please try again.');
             if (outcome.ok) { onClose(true); return; }
             setSaveError(outcome);
@@ -127,7 +152,7 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
         </div>
         <div className="col-md-4">
           <label className="form-label fw-bold">Vaccination administered on / will administer <span className="text-danger">*</span></label>
-          <FlatpickrDateTimeInput value={form.administeredDate} onChange={(v) => { update({ administeredDate: v }); clearError('administeredDate'); }} {...dateProps} maxDate={administeredMax}/>
+          <FlatpickrDateTimeInput value={form.administeredDate} onChange={(v) => { update({ administeredDate: v }); clearError('administeredDate'); }} {...dateProps} minDate={dob || undefined} maxDate={administeredMax}/>
           <FieldError message={errors.administeredDate}/>
         </div>
       </div>
@@ -142,7 +167,7 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
         </div>
         <div className="col-md-4">
           <label className="form-label fw-bold">Expiration Date &amp; Time</label>
-          <FlatpickrDateTimeInput value={form.expirationDate} onChange={(v) => update({ expirationDate: v })} {...dateProps}/>
+          <FlatpickrDateTimeInput value={form.expirationDate} onChange={(v) => update({ expirationDate: v })} {...dateProps} minDate={dob || undefined}/>
         </div>
       </div>
       <div className="row g-3 mt-1">
@@ -164,6 +189,12 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
             loadOptions={loadSiteOptions}
             onChange={(o) => update({ siteId: o?.value || '', siteName: o?.label || '' })}
             noOptionsMessage={({ inputValue }) => (inputValue || '').length < LOOKUP_MIN_CHARS ? `Type at least ${LOOKUP_MIN_CHARS} characters` : 'No results found'}/>
+        </div>
+      </div>
+      <div className="row g-3 mt-1">
+        <div className="col-md-4">
+          <label className="form-label fw-bold">Recorded By</label>
+          <input className="form-control text-capitalize" value={recordedBy} disabled readOnly/>
         </div>
       </div>
       <div className="row g-3 mt-1">
@@ -199,10 +230,12 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
 
       {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-      <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-        <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-        <button type="submit" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-      </div>
+      <FormStatusFooter
+        dirty={dirty}
+        saving={saving}
+        onCancel={() => onClose(false)}
+        saveLabel="Save"
+      />
     </form>);
 };
 export default PatientImmunizationAddEdit;

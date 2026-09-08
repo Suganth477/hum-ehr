@@ -11,10 +11,17 @@ import { fetchPatientDetails } from '../../../services/patientService';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import US_STATES from '../../../constants/usStates';
 
 const ALPHA_NUMERIC = /^[a-zA-Z0-9]*$/;
 const PHONE_DIGITS = /\d/g;
+// Legacy jQuery-validate methods (validation.add.methods.js): subscriber/member names use
+// alphaNumericWithSpace; group name uses alphaNumericWithCommonCharacters.
+const ALPHA_NUMERIC_SPACE = /^ ?\s*([a-zA-Z0-9.#',&-]+\s?)*$/i;
+const ALPHA_NUMERIC_SPACE_MSG = "Only alphanumeric characters, single space and special characters(.,#-'&) are allowed.";
+const ALPHA_NUMERIC_COMMON = /^[a-zA-Z0-9 .,'&/-]+$/;
+const ALPHA_NUMERIC_COMMON_MSG = "Only alphanumeric characters, single spaces, and common characters (-, /, ., &, ', ,) are allowed.";
 
 const emptyAddressParty = () => ({
     number: '', phoneNumber: '', firstName: '', middleName: '', lastName: '', dob: '',
@@ -71,6 +78,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dirty, setDirty] = useState(false);
     const [subscriberOpen, setSubscriberOpen] = useState(true);
     const [memberOpen, setMemberOpen] = useState(false);
 
@@ -84,9 +92,9 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
     const showLastEffective = !isMedicareProvider;
     const showQmb = form.insuranceType === 'PRIMARY';
 
-    const updateRoot = (patch) => setForm((p) => ({ ...p, ...patch }));
-    const updateSubscriber = (key, value) => setForm((p) => ({ ...p, subscriber: { ...p.subscriber, [key]: value } }));
-    const updateMember = (key, value) => setForm((p) => ({ ...p, member: { ...p.member, [key]: value } }));
+    const updateRoot = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
+    const updateSubscriber = (key, value) => { setDirty(true); setForm((p) => ({ ...p, subscriber: { ...p.subscriber, [key]: value } })); };
+    const updateMember = (key, value) => { setDirty(true); setForm((p) => ({ ...p, member: { ...p.member, [key]: value } })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
     // ---- load reference data, active list (for disabling), patient details ----
@@ -148,6 +156,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
 
     // ---- relationship change: SELF auto-fills subscriber from patient + disables member; others fill member ----
     const handleRelationshipChange = (relationShipTypeId) => {
+        setDirty(true);
         const match = metadata.relationships.find((r) => String(r.id) === String(relationShipTypeId));
         const code = match?.code || '';
         clearError('relationShipTypeId');
@@ -183,6 +192,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
         updateRoot({ payerId: option?.value || '', payerTypeCode: option?.payerTypeCode || '' });
     };
     const handlePolicyChange = (value) => {
+        setDirty(true);
         // Legacy: when relationship is SELF, mirror the policy number into the subscriber number.
         setForm((p) => ({ ...p, policyNumber: value, subscriber: isSelf ? { ...p.subscriber, number: value } : p.subscriber }));
         clearError('policyNumber');
@@ -208,6 +218,7 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
         if (!form.policyNumber) next.policyNumber = 'Policy Number is required.';
         else if (!ALPHA_NUMERIC.test(form.policyNumber) || form.policyNumber.length > 50) next.policyNumber = 'Maximum 50 alphanumeric characters.';
         if (form.groupNumber && form.groupNumber.length > 50) next.groupNumber = 'Maximum 50 characters.';
+        if (form.groupName && !ALPHA_NUMERIC_COMMON.test(form.groupName)) next.groupName = ALPHA_NUMERIC_COMMON_MSG;
         if (!form.effectiveDate) next.effectiveDate = 'Effective date is required.';
         if (!form.insuranceStatusCode) next.insuranceStatusCode = 'Insurance Status is required';
         if (form.insuranceStatusCode === 'CANCELLED' && !form.lastEffectiveDate) next.lastEffectiveDate = 'Last Effective Date is required.';
@@ -217,14 +228,20 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
         if (!form.subscriber.number) next.subscriberNumber = 'Subscriber number is required.';
         else if (!ALPHA_NUMERIC.test(form.subscriber.number) || form.subscriber.number.length > 50) next.subscriberNumber = 'Maximum 50 alphanumeric characters.';
         if (!form.subscriber.firstName.trim()) next.subscriberFirstName = 'First name is required.';
+        else if (!ALPHA_NUMERIC_SPACE.test(form.subscriber.firstName)) next.subscriberFirstName = ALPHA_NUMERIC_SPACE_MSG;
+        if (form.subscriber.middleName.trim() && !ALPHA_NUMERIC_SPACE.test(form.subscriber.middleName)) next.subscriberMiddleName = ALPHA_NUMERIC_SPACE_MSG;
         if (!form.subscriber.lastName.trim()) next.subscriberLastName = 'Last name is required.';
+        else if (!ALPHA_NUMERIC_SPACE.test(form.subscriber.lastName)) next.subscriberLastName = ALPHA_NUMERIC_SPACE_MSG;
         if (!form.subscriber.dob) next.subscriberDob = 'Date of birth is required.';
         if (form.subscriber.phoneNumber && (form.subscriber.phoneNumber.match(PHONE_DIGITS) || []).length !== 10) next.subscriberPhone = 'Phone number is invalid.';
         // member (only when not SELF)
         if (!isSelf) {
             if (!form.member.number) next.memberNumber = 'Member number is required';
             if (!form.member.firstName.trim()) next.memberFirstName = 'First name is required.';
+            else if (!ALPHA_NUMERIC_SPACE.test(form.member.firstName)) next.memberFirstName = ALPHA_NUMERIC_SPACE_MSG;
+            if (form.member.middleName.trim() && !ALPHA_NUMERIC_SPACE.test(form.member.middleName)) next.memberMiddleName = ALPHA_NUMERIC_SPACE_MSG;
             if (!form.member.lastName.trim()) next.memberLastName = 'Last name is required.';
+            else if (!ALPHA_NUMERIC_SPACE.test(form.member.lastName)) next.memberLastName = ALPHA_NUMERIC_SPACE_MSG;
             if (!form.member.dob) next.memberDob = 'Date of birth is required.';
             if (form.member.phoneNumber && (form.member.phoneNumber.match(PHONE_DIGITS) || []).length !== 10) next.memberPhone = 'Phone number is invalid.';
         }
@@ -299,7 +316,8 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
           </div>
           <div className="col-md-4">
             <label className="form-label fw-bold">Group Name</label>
-            <input className="form-control text-capitalize" maxLength={200} value={form.groupName} onChange={(e) => updateRoot({ groupName: e.target.value })}/>
+            <input className="form-control text-capitalize" maxLength={200} value={form.groupName} onChange={(e) => { updateRoot({ groupName: e.target.value }); clearError('groupName'); }}/>
+            <FieldError message={errors.groupName}/>
           </div>
           <div className="col-md-4">
             <label className="form-label fw-bold">Effective Date <span className="text-danger">*</span></label>
@@ -356,7 +374,8 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
                 <input className="form-control text-capitalize" maxLength={200} value={form.subscriber.firstName} onChange={(e) => { updateSubscriber('firstName', e.target.value); clearError('subscriberFirstName'); }}/>
                 <FieldError message={errors.subscriberFirstName}/></div>
               <div className="col-md-4"><label className="form-label">Middle Name</label>
-                <input className="form-control text-capitalize" maxLength={200} value={form.subscriber.middleName} onChange={(e) => updateSubscriber('middleName', e.target.value)}/></div>
+                <input className="form-control text-capitalize" maxLength={200} value={form.subscriber.middleName} onChange={(e) => { updateSubscriber('middleName', e.target.value); clearError('subscriberMiddleName'); }}/>
+                <FieldError message={errors.subscriberMiddleName}/></div>
               <div className="col-md-4"><label className="form-label">Last Name <span className="text-danger">*</span></label>
                 <input className="form-control text-capitalize" maxLength={200} value={form.subscriber.lastName} onChange={(e) => { updateSubscriber('lastName', e.target.value); clearError('subscriberLastName'); }}/>
                 <FieldError message={errors.subscriberLastName}/></div>
@@ -391,7 +410,8 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
                 <input className="form-control text-capitalize" maxLength={200} value={form.member.firstName} onChange={(e) => { updateMember('firstName', e.target.value); clearError('memberFirstName'); }}/>
                 <FieldError message={errors.memberFirstName}/></div>
               <div className="col-md-4"><label className="form-label">Middle Name</label>
-                <input className="form-control text-capitalize" maxLength={200} value={form.member.middleName} onChange={(e) => updateMember('middleName', e.target.value)}/></div>
+                <input className="form-control text-capitalize" maxLength={200} value={form.member.middleName} onChange={(e) => { updateMember('middleName', e.target.value); clearError('memberMiddleName'); }}/>
+                <FieldError message={errors.memberMiddleName}/></div>
               <div className="col-md-4"><label className="form-label">Last Name <span className="text-danger">*</span></label>
                 <input className="form-control text-capitalize" maxLength={200} value={form.member.lastName} onChange={(e) => { updateMember('lastName', e.target.value); clearError('memberLastName'); }}/>
                 <FieldError message={errors.memberLastName}/></div>
@@ -401,10 +421,12 @@ const PatientHealthInsuranceAddEdit = ({ patientId, record, onClose }) => {
 
         {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-        <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-          <button type="button" className="btn btn-secondary px-4 rounded-pill" onClick={() => onClose(false)} disabled={saving}>Cancel</button>
-          <button type="submit" className="btn btn-primary px-4 rounded-pill" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-        </div>
+        <FormStatusFooter
+          dirty={dirty}
+          saving={saving}
+          onCancel={() => onClose(false)}
+          saveLabel="Save"
+        />
       </form>
     </div>);
 };

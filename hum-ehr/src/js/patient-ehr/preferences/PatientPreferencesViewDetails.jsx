@@ -26,10 +26,11 @@ const openBase64 = (base64, fileName, fileFormat) => {
 };
 
 /**
- * Right-pane preference detail view (legacy EhrPatientChartPreferencesViewDetails):
- * title, description/notes (View More), validating provider, effective / last-effective /
- * recorded dates, status, attachments (advance directives) and linked advance directives
- * (treatment preferences). Edit is available on active records only.
+ * Right-pane preference detail view (legacy pc_patient_chart_preferences_show_details_template):
+ * title (+ deleted badge), care-preferences/notes (View More), linked advance directives,
+ * uploaded documents, then Preferences Status / Validating Provider / Effective & Last-Effective
+ * Date & Time, Recorded Date & Time and the deleted-reason row. Edit is available on active,
+ * non-deleted records.
  */
 const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lookups, onEdit }) => {
     const [expanded, setExpanded] = useState(false);
@@ -43,6 +44,7 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
 
     const lookupItem = (lookups || []).find((l) => l.code === record.code);
     const title = lookupItem ? lookupItem.label : (record.description || record.code || 'Preference');
+    // Legacy: advance-directives label the notes field "Description"; the others use the type name.
     const notesLabel = preferencesType === 'advance-directives' ? 'Description' : PREFERENCES_DESC_MAP[preferencesType];
     const notes = record.notes || '';
     const notesTooLong = notes.length > NOTES_MAX;
@@ -76,69 +78,79 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
     };
 
     return (<div className="preferences-details-main-container show-details-main-container">
-      <div className="row mx-3 my-4">
-        <div className="col-md-11 view-preferences-name fw-bold patient-chart-list-selected-item-title text-capitalize">{title}</div>
-        <div className="col-md-1 preferences-action-icons d-flex gap-2">
+      <div className="row mx-3 my-3 mb-3">
+        <div className="col-md-11 view-preferences-name fw-bold patient-chart-list-selected-item-title text-capitalize">
+          {title}
+          {isDeleted && <span className="ehr-deleted-records ms-2">Deleted Record</span>}
+        </div>
+        <div className="col-md-1 d-flex justify-content-end gap-2 preferences-action-container">
           {canEdit && !isDeleted && <LegacyIcon icon="mdi-pencil" className="edit-preferences-icon" role="button" title={`Edit ${PREFERENCES_DESC_MAP[preferencesType] || 'Preference'}`} onClick={() => onEdit(record)}/>}
         </div>
       </div>
 
-      <div className="row mx-3 my-4">
-        <div className="col-md-12">
-          <div className="label">{notesLabel}</div>
-          <div className="fw-bold view-care-preferences">{notesText}{notesTooLong && !expanded ? '' : ''}</div>
-          {notesTooLong && <span className="view-more-care-preferences-btn" role="button" onClick={() => setExpanded((v) => !v)}>{expanded ? 'View Less' : '...View More'}</span>}
-        </div>
-      </div>
-
-      <div className="row mx-3 my-4">
-        <div className="col-md-4"><div className="label">Validating Provider</div><div className="fw-bold text-capitalize">{record.validatingUserName || '-'}</div></div>
-        <div className="col-md-4"><div className="label">Effective Date</div><div className="fw-bold">{record.effectiveDate || '-'}</div></div>
-        <div className="col-md-4"><div className="label">Last Effective Date</div><div className="fw-bold">{record.lastEffectiveDate || '-'}</div></div>
-      </div>
-      <div className="row mx-3 my-4">
-        <div className="col-md-4"><div className="label">Recorded Date &amp; Time</div><div className="fw-bold">{record.recordedDate || '-'}</div></div>
-        <div className="col-md-4"><div className="label">Status</div><div className="fw-bold">{record.statusCodeDesc || '-'}</div></div>
-      </div>
-
-      {preferencesType === 'treatment-preferences' && Array.isArray(record.advanceDirectives) && record.advanceDirectives.length > 0 && (
-        <div className="row mx-3 my-4 pc-patient-preferences-view-linked-ad-row">
-          <div className="col-md-10 form-group">
-            <div className="label fw-bold">Linked Advance Directives</div>
-            <div className="row mt-2 border rounded py-2 px-2">
-              {record.advanceDirectives.map((ad) => (
-                <div key={ad.id} className="mb-2 border rounded p-2">
-                  <span>{ad.description || ad.code} ({ad.attachmentCount || 0} doc(s))</span>
-                  {ad.attachmentCount > 0 && <a href="#" className="ms-2 text-decoration-underline" onClick={(e) => { e.preventDefault(); toggleLinkedDocs(ad); }}>{linkedDocs[ad.id]?.open ? 'Hide documents' : 'Click to view documents'}</a>}
-                  {linkedDocs[ad.id]?.open && (<div className="border rounded mt-2 px-2 pt-2">
-                    {linkedDocs[ad.id].loading ? <div className="cl-skeleton-bar mb-2" style={{ width: '60%' }}/>
-                      : (linkedDocs[ad.id].files.length ? linkedDocs[ad.id].files.map((f, i) => (
-                          <div key={f.attachmentId || i} className="small mb-1"><span className="pc-patient-view-preferences-report" role="button" onClick={() => viewAttachment(f)}>{f.fileName}</span></div>
-                        )) : <div className="text-muted small">No documents found</div>)}
-                  </div>)}
-                </div>
-              ))}
+      <div className="show-details-data-container custom-scrollbar">
+        <div className="row mx-3 my-4">
+          <div className="col-md-11">
+            <div className="label">{notesLabel}</div>
+            <div className="view-care-preferences fw-bold" style={{ wordBreak: 'break-word' }}>{notesText}
+              {notesTooLong && <span className="view-more-care-preferences-btn ms-1" role="button" style={{ color: 'var(--app-color2)', cursor: 'pointer', fontWeight: 600, fontSize: 13 }} onClick={() => setExpanded((v) => !v)}>{expanded ? ' View Less' : '...View More'}</span>}
             </div>
           </div>
         </div>
-      )}
 
-      {Array.isArray(record.attachment) && record.attachment.length > 0 && (
-        <div className="row mx-3 my-4 pc-patient-preferences-view-attachments-row">
-          <div className="col-md-12">
-            <div className="label fw-bold">Attachments</div>
-            <div className="pc-patient-preferences-view-attachments-container mt-1">
-              {record.attachment.map((att, i) => (
-                <div key={att.attachmentId || i} className="pc-patient-preferences-each-file-container mb-1">
-                  <span className="pc-patient-view-preferences-report pc-patient-view-upload-report" role="button" onClick={() => viewAttachment(att)}>
-                    <LegacyIcon icon={((att.fileFormat || '').toLowerCase() === 'pdf') ? 'fa-file-pdf' : 'fa-file-lines'} className="me-1"/>{att.fileName}
-                  </span>
-                </div>
-              ))}
+        {preferencesType === 'treatment-preferences' && Array.isArray(record.advanceDirectives) && record.advanceDirectives.length > 0 && (
+          <div className="row mx-3 my-4 pc-patient-preferences-view-linked-ad-row">
+            <div className="col-md-10 form-group">
+              <div className="label fw-bold">Linked Advance Directives</div>
+              <div className="row mt-2 border rounded py-2 px-2">
+                {record.advanceDirectives.map((ad) => (
+                  <div key={ad.id} className="mb-2 border rounded p-2">
+                    <span>{ad.description || ad.code} ({ad.attachmentCount || 0} doc(s))</span>
+                    {ad.attachmentCount > 0 && <a href="#" className="ms-2 text-decoration-underline click-to-view-documents" onClick={(e) => { e.preventDefault(); toggleLinkedDocs(ad); }}>{linkedDocs[ad.id]?.open ? 'Hide documents' : 'Click to view documents'}</a>}
+                    {linkedDocs[ad.id]?.open && (<div className="border rounded mt-2 px-2 pt-2">
+                      {linkedDocs[ad.id].loading ? <div className="cl-skeleton-bar mb-2" style={{ width: '60%' }}/>
+                        : (linkedDocs[ad.id].files.length ? linkedDocs[ad.id].files.map((f, i) => (
+                            <div key={f.attachmentId || i} className="small mb-1"><span className="pc-patient-view-preferences-report" role="button" onClick={() => viewAttachment(f)}>{f.fileName}</span></div>
+                          )) : <div className="text-muted small">No documents found</div>)}
+                    </div>)}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+        )}
+
+        {Array.isArray(record.attachment) && record.attachment.length > 0 && (
+          <div className="row mx-3 my-4 pc-patient-preferences-view-attachments-row">
+            <div className="col-md-12">
+              <div className="label">Uploaded Documents</div>
+              <div className="pc-patient-preferences-view-attachments-container mt-2 col-md-8 p-2">
+                {record.attachment.map((att, i) => (
+                  <div key={att.attachmentId || i} className="pc-patient-preferences-each-file-container mb-1">
+                    <span className="pc-patient-view-preferences-report pc-patient-view-upload-report" role="button" onClick={() => viewAttachment(att)}>
+                      <LegacyIcon icon={((att.fileFormat || '').toLowerCase() === 'pdf') ? 'fa-file-pdf' : 'fa-file-lines'} className="me-1"/>{att.fileName}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="row mx-3 my-4">
+          <div className="col-md-3"><div className="label">Preferences Status</div><div className="view-preferences-status fw-bold text-capitalize">{record.statusCodeDesc || '-'}</div></div>
+          <div className="col-md-3"><div className="label">Validating Provider</div><div className="view-validating-provider fw-bold text-capitalize">{record.validatingUserName || '-'}</div></div>
+          <div className="col-md-3"><div className="label">Effective Date &amp; Time</div><div className="view-effective-date fw-bold">{record.effectiveDate || '-'}</div></div>
+          <div className="col-md-3"><div className="label">Last Effective Date &amp; Time</div><div className="view-last-effective-date fw-bold">{record.lastEffectiveDate || '-'}</div></div>
         </div>
-      )}
+        <div className="row mx-3 my-4">
+          <div className="col-md-3"><div className="label">Recorded Date &amp; Time</div><div className="view-preferences-recorded-date-and-time fw-bold">{record.recordedDate || '-'}</div></div>
+          {isDeleted && (<div className="col-md-6 mb-3 view-preferences-deleted-reason-container">
+              <div className="label">Deleted Reason</div>
+              <div className="view-preferences-deleted-reason fw-bold" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>{record.deleteReason || '-'}</div>
+            </div>)}
+        </div>
+      </div>
     </div>);
 };
 export default PatientPreferencesViewDetails;

@@ -93,7 +93,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
         </div>)}
       </div>
 
-      {expiryAlert && (<div className="row mx-3 my-3 implant-device-expiration-alert-container">
+      {expiryAlert && (<div className="row mx-3 my-3 implant-device-expiration-alert-container" style={{ backgroundColor: '#FFE2E2', borderRadius: 10 }}>
         <div className="col-md-12">
           <div className="label py-2">
             <LegacyIcon icon="fa-warning" style={{ fontSize: 20, color: '#E7000B' }}/>&nbsp;
@@ -139,7 +139,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
         <div className="row mx-3 my-3">
           <Field label="Lot or Batch Number" value={record.lotNumber} strike={strike}/>
           <Field label="Serial Number" value={record.serialNumber} strike={strike}/>
-          <Field label="Distinct Identification Code for HCT/P" value={record.hcpCode} strike={strike}/>
+          <Field label="Distinct Identification Code" value={record.hcpCode} strike={strike}/>
         </div>
         <div className="row mx-3 my-3">
           <Field label="Brand Name" value={record.brandName} strike={strike}/>

@@ -17,6 +17,7 @@ import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import UniversalFileUploader from '../../../components/common/UniversalFileUploader';
 import DiagnosisPicker from '../../../components/common/DiagnosisPicker';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
 import PatientImplantableDeviceUDI from '../implantable-device/PatientImplantableDeviceUDI';
 import PatientImplantableDeviceAddEdit from '../implantable-device/PatientImplantableDeviceAddEdit';
@@ -77,9 +78,10 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState(null);
+    const [dirty, setDirty] = useState(false);
     const devicePickerRef = useRef(null);
 
-    const update = (patch) => setForm((p) => ({ ...p, ...patch }));
+    const update = (patch) => { setDirty(true); setForm((p) => ({ ...p, ...patch })); };
     const clearError = (key) => setErrors((prev) => { if (!prev[key]) return prev; const n = { ...prev }; delete n[key]; return n; });
 
     // Active implantable devices for the linkage dropdown.
@@ -126,6 +128,7 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
 
     const deviceChecked = (deviceId) => deviceLinks.some((l) => String(l.deviceId) === String(deviceId) && !l.removed);
     const toggleDevice = (device, checked) => {
+        setDirty(true);
         setDeviceLinks((prev) => {
             const idx = prev.findIndex((l) => String(l.deviceId) === String(device.id));
             if (checked) {
@@ -147,6 +150,8 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
         if (!form.dateOfService) next.dateOfService = 'Performed date is required';
         if (!form.performedBy.trim()) next.performedBy = 'performer is required.';
         else if (form.performedBy.length > 100) next.performedBy = 'Maximum 100 characters.';
+        // Legacy pcps_patient_procedure_performer_name → onlyAlphabets.
+        else if (!/^([a-zA-Z][\s]?)*$/i.test(form.performedBy)) next.performedBy = 'Only alphabets and single space are allowed.';
         if (!form.procedureStatus) next.procedureStatus = 'Status is required.';
         if (!form.referralReasonId) next.referralReason = 'Reason for referral is required';
         if (form.followUp) {
@@ -251,7 +256,7 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
         </div>
         <div className="row g-3 mt-1">
           <div className="col-md-6">
-            <DiagnosisPicker patientId={patientId} value={diagnosisList} onChange={setDiagnosisList}
+            <DiagnosisPicker patientId={patientId} value={diagnosisList} onChange={(list) => { setDirty(true); setDiagnosisList(list); }}
               labels={{ problem: 'Problem List', encounter: 'Encounter List' }}
               onAddNew={openAddDiagnosis} refreshKey={diagnosisRefresh}/>
           </div>
@@ -357,7 +362,7 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
           <div className="col-md-6">
             <label className="label-name fw-bold">Upload Documents</label>
             <UniversalFileUploader ref={uploaderRef} name={`patient_procedure_report_${patientId}`} maxFiles={5} maxSizeMB={5}
-              allowedTypes="jpeg,jpg,png,docx,doc,pdf" initialAttachments={record?.fileDetail || null}/>
+              allowedTypes="jpeg,jpg,png,docx,doc,pdf" initialAttachments={record?.fileDetail || null} onChange={() => setDirty(true)}/>
           </div>
           <div className="col-md-6">
             <label className="label-name fw-bold">Notes</label>
@@ -367,11 +372,12 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
 
         {saveError && (<div className={`mt-3 small ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`}><LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}</div>)}
 
-        <div className="d-flex justify-content-end gap-3 mt-3 pt-3 border-top">
-          <button type="button" className="btn btn-secondary px-4 rounded-pill bs-modal-cancel-btn" disabled={saving}
-            onClick={() => { if (window.confirm('Are you sure about cancel procedure form?')) onClose(false); }}>Cancel</button>
-          <button type="submit" className="btn btn-primary px-4 rounded-pill bs-modal-save-btn" disabled={saving}>{saving ? 'Saving...' : (isEdit ? 'Update' : 'Save')}</button>
-        </div>
+        <FormStatusFooter
+          dirty={dirty}
+          saving={saving}
+          onCancel={() => { if (window.confirm('Are you sure about cancel procedure form?')) onClose(false); }}
+          saveLabel={isEdit ? 'Update' : 'Save'}
+        />
       </form>
 
       {/* Add New Diagnosis → reuse the migrated Problems form */}

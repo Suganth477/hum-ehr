@@ -14,7 +14,10 @@ import {
 } from '../../../services/hospitalizationService';
 import { fetchProblemStatusMetadata } from '../../../services/lookupService';
 import { getSaveOutcome } from '../../../utils/saveResponse';
+import { fetchPatientDetails } from '../../../services/patientService';
+import patientCache from '../../../utils/patientCache';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
 
 const OTHER_DISPOSITION = 'OTH';
@@ -24,6 +27,9 @@ const OTHER_DISPOSITION = 'OTH';
 //   pch_patient_chart_hospitalization_admitted_date → required (+ date range via picker)
 //   pch_patient_chart_hospitalization_other_discharged_disposition → required when disposition === OTH
 //   pch_patient_chart_hospitalization_notes → required + noWhitespace
+// Legacy alphaNumericWithSingleSpaceAndPunctuation (validation.add.methods.js) — hospital name
+// allows alphanumerics + . , ' & / ( ) - with single spaces between words.
+const HOSPITAL_NAME_REGEX = /^[a-zA-Z0-9.,'&/()-]+( [a-zA-Z0-9.,'&/()-]+)*$/;
 const hospitalizationSchema = z
     .object({
         hospitalName: z.string(),
@@ -38,6 +44,8 @@ const hospitalizationSchema = z
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['hospitalName'], message: 'Hospitalization name is required.' });
         else if (!data.hospitalName.trim())
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['hospitalName'], message: 'Enter Valid Hospitalization Name.' });
+        else if (!HOSPITAL_NAME_REGEX.test(data.hospitalName.trim()))
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['hospitalName'], message: 'Enter Valid Hospital Name.' });
 
         if (!data.admittedDate)
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['admittedDate'], message: 'Admitted date is required.' });
@@ -79,8 +87,10 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
     const [saveError, setSaveError] = useState(null);
     const [problemModalOpen, setProblemModalOpen] = useState(false);
     const [problemStatusMetadata, setProblemStatusMetadata] = useState(null);
+    // Diagnosis chips live outside react-hook-form, so track their edits for the dirty gate.
+    const [diagnosisDirty, setDiagnosisDirty] = useState(false);
 
-    const { control, handleSubmit, watch, formState: { errors } } = useForm({
+    const { control, handleSubmit, watch, formState: { errors, isDirty } } = useForm({
         resolver: zodResolver(hospitalizationSchema),
         defaultValues: buildDefaultValues(hospitalizationRecord),
         mode: 'onSubmit',
@@ -88,6 +98,23 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
     });
     const admittedDate = watch('admittedDate');
     const dischargeDisposition = watch('dischargeDisposition');
+    const [dob, setDob] = useState('');
+    // Patient DOB → lower bound for admitted/discharged dates (legacy data-min).
+    useEffect(() => {
+        let ignore = false;
+        (async () => {
+            try {
+                let details = patientCache.get(`${patientId}_details`);
+                if (!details) {
+                    const response = await fetchPatientDetails(patientId);
+                    details = response?.status === 'success' ? response.data?.patientDetails : null;
+                }
+                if (!ignore && details?.dateOfBirth) setDob(details.dateOfBirth);
+            }
+            catch (error) { console.error('Failed to load patient details.', error); }
+        })();
+        return () => { ignore = true; };
+    }, [patientId]);
 
     // ---- reference data ----
     const loadDiagnosisProblems = useCallback(async (autoSelectAgainst) => {
@@ -167,6 +194,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
     const isChecked = useCallback((isEncounter, id) => activeSelected.some((item) => item.key === diagnosisKey(isEncounter, id)), [activeSelected]);
 
     const toggleDiagnosis = (problem, isEncounter, checked) => {
+        setDiagnosisDirty(true);
         const problemId = problem.diagnosisId;
         const key = diagnosisKey(isEncounter, problemId);
         setSelectedDiagnoses((previous) => {
@@ -288,7 +316,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
               <div className="col-12 col-sm-6 col-md-3">
                 <div className="form-group">
                   <label htmlFor={fieldId('pch_patient_chart_hospitalization_admitted_date')}>Admitted Date <span className="mandatory text-danger">*</span></label>
-                  <Controller name="admittedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_admitted_date')} value={field.value} onChange={(value) => { field.onChange(value); setDateRangeError(''); }} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" maxDate="today"/>)}/>
+                  <Controller name="admittedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_admitted_date')} value={field.value} onChange={(value) => { field.onChange(value); setDateRangeError(''); }} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={dob || undefined} maxDate="today"/>)}/>
                   <FieldError message={errors.admittedDate?.message}/>
                   {dateRangeError && <div className="small text-danger mt-1">{dateRangeError}</div>}
                 </div>
@@ -296,7 +324,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
               <div className="col-12 col-sm-6 col-md-3">
                 <div className="form-group">
                   <label htmlFor={fieldId('pch_patient_chart_hospitalization_discharged_date')}>Discharged Date</label>
-                  <Controller name="dischargedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_discharged_date')} value={field.value} onChange={field.onChange} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={admittedDate || undefined}/>)}/>
+                  <Controller name="dischargedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_discharged_date')} value={field.value} onChange={field.onChange} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={admittedDate || dob || undefined} maxDate="today"/>)}/>
                 </div>
               </div>
               <div className="col-12 col-sm-6 col-md-3">
@@ -398,12 +426,12 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
                   <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}
                 </div>
               </div>)}
-            <div className="row">
-              <div className="form-add-edit-button-group d-flex justify-content-end gap-2">
-                <button type="button" className="btn btn-secondary border-radius-button px-4 rounded-pill" onClick={handleCancel} disabled={saving}>Cancel</button>
-                <button type="submit" className="btn btn-primary border-radius-button px-4 rounded-pill save-hospitalization-button" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-              </div>
-            </div>
+            <FormStatusFooter
+              dirty={isDirty || diagnosisDirty}
+              saving={saving}
+              onCancel={handleCancel}
+              saveLabel="Save"
+            />
           </div>
         </div>
       </form>
