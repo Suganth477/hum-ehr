@@ -3,15 +3,23 @@ import moment from '../../../utils/dayjs';
 import { deleteImplantDevice } from '../../../services/implantDeviceService';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import DetailField from '../../../components/common/DetailField';
 
 const dateOnly = (value) => (value ? moment(value).format('MM-DD-YYYY') : '');
 
-// Small labelled value cell. `strike` adds the marked-as-error strikethrough (error-in).
+// Implant field cell = the shared DetailField carrying the implant-device-details-common-class
+// hook + the marked-as-error strike (error-in) on both label and value; values are not
+// title-cased here (legacy implantable template has no text-capitalize).
 const Field = ({ label, value, className = 'col-md-3', strike }) => (
-    <div className={className}>
-      <div className={`label implant-device-details-common-class ${strike ? 'error-in' : ''}`}>{label}</div>
-      <div className={`fw-bold implant-device-details-common-class ${strike ? 'error-in' : ''}`}>{value || '-'}</div>
-    </div>
+    <DetailField
+      col={className}
+      label={label}
+      value={value}
+      cap={false}
+      strike={strike}
+      labelClass={`implant-device-details-common-class ${strike ? 'error-in' : ''}`.trim()}
+      valueClass="implant-device-details-common-class"
+    />
 );
 
 /**

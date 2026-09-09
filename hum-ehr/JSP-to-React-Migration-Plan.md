@@ -3,7 +3,7 @@
 > **Document version:** 4.0 (synced to the hum-ehr codebase as actually built)
 > **Change summary v2:** coexistence architecture, CSRF, auth handoff, testing/visual-regression, Vite build/deploy, HIPAA specifics, plugin lifecycle, sequencing/rollback. Marked **[ADDED]**.
 > **Change summary v3:** libraries adopted during active migration; form validation, SweetAlert2, react-select, PrimeReact, Redux auth, TanStack Table, Chart.js, Quill, js-cookie, icons. Marked **[v3]**.
-> **Change summary v4 (this revision):** Reconciled the doc with the real codebase. Corrections marked **[v4]**: (1) **DayJS WAS adopted** — Moment.js removed (v3 said the opposite); (2) **icons are now exact-vector SVGs via `LegacyIcon`** — all icon *fonts* (FA Pro, MDI, MUI) removed; (3) removed dead libraries (react-bootstrap, @mui/*, @tanstack/react-table, datatables.net, jquery-confirm, tempus-dominus, bootstrap-daterangepicker) — **PrimeReact `DataTable`** is the table standard; (4) **TanStack Query + Virtual adopted Message-Center-only**; (5) observability = **Bugsnag**; (6) types = **JSDoc + jsconfig checkJs**; (7) Bootstrap JS = **native (data-bs-*/refs)**, react-bootstrap removed; (8) base path `/emr/`; (9) testing **parked**, verification is manual "drive the running app"; (10) added **Migration Status** and corrected the folder structure to what exists. Several v2 `[DECISION]` items are now **[RESOLVED]**.
+> **Change summary v4 (this revision):** Reconciled the doc with the real codebase. Corrections marked **[v4]**: (1) **DayJS WAS adopted** — Moment.js removed (v3 said the opposite); (2) **icons are now exact-vector SVGs via `LegacyIcon`** — all icon *fonts* (FA Pro, MDI, MUI) removed; (3) removed dead libraries (react-bootstrap, @mui/*, @tanstack/react-table, datatables.net, jquery-confirm, tempus-dominus, bootstrap-daterangepicker) — **PrimeReact `DataTable`** is the table standard; (4) **TanStack Query + Virtual adopted Message-Center-only**; (5) observability = **Bugsnag**; (6) types = **JSDoc + jsconfig checkJs**; (7) Bootstrap JS = **native (data-bs-*/refs)**, react-bootstrap removed; (8) base path `/emr/`; (9) testing **parked**, verification is manual "drive the running app"; (10) added **Migration Status** and corrected the folder structure to what exists; (11) added a **Problem Statement — Legacy Architecture Issues** section (scriptlet dependencies, architectural bottlenecks, tight coupling) grounded in the current legacy source. Several v2 `[DECISION]` items are now **[RESOLVED]**.
 
 ---
 
@@ -24,6 +24,82 @@ Convert the existing Spring MVC + JSP + jQuery frontend into a React + Vite app 
 **Backend:** Java 17 · Spring MVC 6 · Hibernate · MySQL · Tomcat 10 · JSP · JSTL.
 **Frontend:** HTML5 · CSS3 · Bootstrap · JavaScript · jQuery · Flatpickr · Font Awesome Pro · Moment.js · DataTables · custom JS utility framework.
 **Auth:** Session + Cookie + `X-Auth-Token` + Spring Session.
+
+---
+
+# Problem Statement — Legacy Architecture Issues **[v4 — NEW]**
+
+> Grounded in the current legacy source (Workspace 3 snapshot: `hum-js.zip`, `hum-application.zip`, `ehr-layout.jsp`, `services/utility.js`, `services/api.utility.js`, `services/request.js`, `services/active.session.handle.js`, `css/hum-css/ehr-theme-style.css`, `css/hum-css/patient-chart-style.css`). These are the **architectural drivers** for the migration — what the React target is built to remove. They are documented here as *problems to eliminate*, not behaviors to preserve (the conversion still preserves every user-facing **business** behavior; see "Important Rule").
+
+## 1. Scriptlet dependencies — the frontend cannot boot without the servlet container
+
+`ehr-layout.jsp` is not HTML; it is a Java template whose runtime config and page structure are produced by **JSP scriptlets at request time**, so the client cannot be served as static assets or run outside Spring MVC:
+
+- **Java executes in the view.** Eight `<%@ page import %>` declarations (`UserLoginDetailsDto`, `WebServiceUtil`, `Environment`, `LocalDate`, …) and inline Java pull request attributes (`request.getAttribute("userLoginDetails")`, `environment.getRequiredProperty(...)`).
+- **All global runtime config is server-injected into JS via `<%= %>`.** `const api`, `const env`, `const signalUrl`, `const appVersion`, `const screenLockDuration` (computed server-side as `getTimeOutDuration()*60*1000`), `WRIGHT_CENTER_CARE_GROUP_ID`, `EAST_ALABAMA_CARE_GROUP_ID`, `CHIME_URL`, `FORM_TIME_OUT_DURATION`, plus role/care-team constants from EL (`${ROLE_DESC_*}`, `${CARE_TEAM_ROLE_TYPE_*}`, `${token}`, `${baseUrl}`, `${productCode}`). **Every downstream JS module reads these page-scoped globals.**
+- **Page structure is gated by server-side role scriptlets** — `<% if (userRoleCode.equals(PHYSICIAN_ROLE_CODE) …) { %> <jsp:include …/> <% } %>` wrap the notification tray and the entire message-center include; the DOM composition depends on Java role checks.
+- **Server data flows straight into the DOM** — `<body data-care-group-name="<%= …getCareGroupName() %>" data-group-id="<%= … %>">`, `<meta name="X-Auth-Token" content="${token}">`, and the whole body assembled by `<jsp:include page="${content}" />`.
+
+**Impact:** no static hosting/CDN, no independent frontend build or deploy, config changes need a JSP redeploy, and the client is welded to the request lifecycle. The React target replaces this with build-time `import.meta.env` + a runtime bootstrap, so the SPA ships as static assets behind `/emr/`.
+
+## 2. Architectural bottlenecks
+
+- **God-object singletons carry the whole app.** Four always-loaded globals total ~11k lines:
+  `utility.js` (**5,707 lines**, one `const utility = new Utility()` — ICD formatting, badge HTML, toasts, JWT parsing, loaders, cookie access, all in one object), `api.utility.js` (**4,498 lines**, one `ApiUtility` singleton with **368 endpoint methods** and a single `API_END_POINT_URL` map — every screen's data access funnels through it), `request.js` (184), `active.session.handle.js` (543). A single point of contention and a change-amplifier.
+- **Blocking, CDN-heavy boot.** `ehr-layout.jsp` loads ~40 render-blocking `<script>`/`<link>` tags on **every** page (jQuery, jQuery-UI, Moment + moment-timezone + moment-timezone-**with-data**, DataTables, Bootstrap, Flatpickr, Tempus-Dominus, daterangepicker, jquery-confirm, jquery-validate, inputmask, Firebase, spin.js, hotkeys, floating-ui, popper, bootstrap-multiselect, iconify, Font-Awesome-Pro …), most from third-party CDNs — no bundling, tree-shaking, or code-splitting.
+- **Synchronous XHR on the failure path.** `request.js` `onerror` fires `$.ajax({ async: false, url: api + "/get/app/version" })` — a **main-thread-freezing** call to disambiguate CORS/offline, and both the 503 branch and that network branch hard-`location.reload()` the whole app.
+- **The transport navigates the entire app on auth failure.** A `401` in `request.js` does `window.location.href = appUrl + "/logout"` — no token refresh, no queued replay; a single background 401 tears the session down (the exact behavior that broke React live-verification and had to be worked around). Every response is hand-`JSON.parse`d; there is no retry/backoff/interceptor layer.
+- **Chatty, server-round-trip concurrency.** Every form open/close/idle hits `lock` / `un-lock` / `resume` / `heartbeat` (`active.session.handle.js`), coordinated through `sessionStorage` counters (`lockEditSessionCount`, `uiSessionId`) and a `beforeunload` keepalive unlock.
+
+## 3. Tight coupling
+
+- **Nothing runs without the layout-scriptlet globals.** `request.js` needs `api`/`appUrl`; `active.session.handle.js` needs `productUrl`/`url`/`api`; modules everywhere read `env`, `signalUrl`, and role constants. No module is unit-testable or runnable outside the JSP-rendered page.
+- **Transport ↔ UI ↔ auth are welded together.** `request.js` calls `utility.failureMessage(...)` **from inside the HTTP layer** and `utility.parseJwt().userId` / `utility.getCookieValue('X-Auth-Token')` on every request; each of `api.utility.js`'s 368 methods calls `request.*` **and** `utility.failureMessage(...)`. The API layer cannot exist without both the transport singleton and the toast/JWT utility singleton.
+- **The session-lock service is hardwired to every clinical section.** `active.session.handle.js`'s `refreshCustomElementBasedOnConcurrentCode()` is a single **`switch` of ~40 `resourceNavigationCode` cases** (`PATGOAL`, `CAREPREF`, `IMDD`, `PROBLEM`, `IMMUNIZATION`, `SURGHIS`, …) that reaches into DOM custom elements by attribute selector (`$('patient-goals-list[patient-id="…"][goal-type="…"]')`) and fires string-named jQuery events (`.trigger("sectionList:refreshSectionList")`). The central concurrency service has **hardcoded knowledge of every section's tag name, attributes, and event names** — converting or adding a section means editing this switch — and it further branches on `productUrl.replace(url+'/','').toUpperCase()==="EHR"`.
+- **DOM-as-state + jQuery/web-component hybrid.** State is stashed on elements via `$(el).data(...)`; sections are custom elements (`patient-*-list`) driven by jQuery and cross-triggered by string event names — no store, no typed contract between producer and consumer.
+- **CSS coupled to component tag names.** `ehr-theme-style.css` / `patient-chart-style.css` target custom-element selectors directly (`patient-allergies .pa-…`, `patient-problems .pp-…`, `patient-procedure-record-information …`), lean on pervasive `!important`, and mix 51 global `--app-color*` tokens with scattered hard-coded hex — so restyling one section can bleed into others.
+
+**The approach that removes each of these problems is the next section.**
+
+---
+
+# Migration Approach — Addressing the Legacy Architecture Issues **[v4 — NEW]**
+
+> Companion to the Problem Statement above: each legacy problem class → the concrete React strategy used in hum-ehr. This is the *narrative*; the enforceable per-concern rules live in the Rules sections below (Service Layer & Axios, React, Component, Icon, Legacy-JS, CSRF/Auth-Handoff/Coexistence, Sequencing & Rollback).
+
+## 0. Overall shape — incremental strangler-fig, backend untouched
+
+- JSP and React **coexist behind the same origin** (base path `/emr/`); Nginx routes converted screens to the React SPA and everything else stays on JSP. No big-bang rewrite; ship screen by screen.
+- **Backend APIs are frozen** — every URL, request/response body, field, and param is preserved verbatim (see Important Rule). React adapts to the backend, never the reverse.
+- **Convert → verify in the running app → move on.** Automated tests are parked (see Testing — Parked); each screen is verified by driving the real app before it is called done.
+
+## 1. Scriptlet dependencies → static SPA + runtime bootstrap
+
+- The server-injected `<%= %>` globals (`api`, `env`, `signalUrl`, `appVersion`, care-group IDs, `FORM_TIME_OUT_*`, role/EL constants) become build-time **`import.meta.env` (`VITE_*`)** plus a small runtime config/bootstrap, so the SPA ships as **static assets** — config changes no longer need a JSP redeploy.
+- `${token}` / `<meta X-Auth-Token>` → the **cookie stays the source of truth**, read **only** inside the Axios interceptor (js-cookie) and mirrored into Redux `authSlice` (decoded JWT). Role gating that was `<% if (role…) %>` scriptlets becomes **client-side checks** off the decoded JWT / auth state.
+- `<jsp:include page="${content}">` server-side composition → **React Router 7** routes + React layout components.
+
+## 2. Bottlenecks → layered service architecture + real bundling
+
+- The **5,707-line `utility.js` + 4,498-line `api.utility.js` god-objects** are decomposed into **per-domain service modules** (`allergyService`, `goalService`, `immunizationService`, `preferencesService`, …) behind **one `apiClient`** (single Axios instance). Strict path: **page → service → apiClient → Axios**; a page never calls Axios directly. The single `API_END_POINT_URL` map becomes `constants/endpoints.js`.
+- `request.js` transport pathologies are replaced by **Axios interceptors**: request interceptor injects `X-Auth-Token`; response interceptor unwraps `response.data`; a **single 401 handler** (refresh/replay — not a full-page `window.location='/logout'` nuke). No synchronous XHR, no transport-level `location.reload()`, and **no `utility.failureMessage` welded into the transport** — notifications move to a `NotificationContext` used only inside handlers.
+- ~40 render-blocking CDN `<script>`/`<link>` tags → **Vite bundling + tree-shaking + route-based code-splitting** (`React.lazy` / `Suspense`). Icon fonts → exact-vector `LegacyIcon`; Moment → **dayjs**; jQuery plugins → their React equivalents (see Target Stack).
+
+## 3. Tight coupling → owned state + shared components, no cross-section event bus
+
+- **No module depends on page-scoped globals** — config/auth/notify arrive via `import.meta.env` / Redux / Context / hooks. Each section is a self-contained React component tree owning its **own** state (Redux for **auth only**, Context for layout/notification/session, local hooks + in-memory `patientCache` otherwise) — no `$(el).data()` DOM-as-state.
+- The `active.session.handle.js` **~40-case refresh `switch`** (custom-element selectors + string jQuery events) is **not replicated** — its concurrency *mechanics* are, but the change-amplifying section-refresh dispatch is replaced by a tiny keyed pub/sub (`utils/sectionRefreshBus.js`, keyed `${resourceNavigationCode}:${patientId}`), so adding a section no longer means editing a global switch.
+- **Section-lock concurrency + change-log — ported as reusable React infrastructure** (first consumer: Problems). The legacy singletons become services + a hook, page → service → apiClient like everything else:
+  - `services/sessionLockService.js` — `lock` / `un-lock` / `resume` / `heartbeat` (`/navigation-resource/*`), `uiSessionId` + `lockEditSessionCount` in sessionStorage, a `beforeunload` keepalive unlock, and a warning subscription (server `status:"warning"` ⇒ notify).
+  - `hooks/useSectionLock.js` — owns the **whole** lock lifecycle for a mounted edit form (acquire on mount → heartbeat every `FORM_ACTIVE_HEART_BEAT_DURATION` while active+visible → idle after `FORM_TIME_OUT_DURATION`s → resume on activity → release on unmount unless saved). Acquire+release are symmetric in one effect so it stays correct under **StrictMode** (a list-locks/form-unlocks split releases the lock on the StrictMode unmount and never re-acquires — avoided).
+  - `utils/activityTracker.js` — the `layouts.common.js` idle/activity stamping (mouse/key/click/visibility) + resume subscribers.
+  - `services/changeLogService.js` — the `patient.change.log.js` per-section audit accumulation (`logId` grouping + running `careplanLogMessage`), **with a `DIAGNOSIS` case added** (legacy had none) and call sites fixed to the intended argument order.
+  - `components/common/SessionLockWarningModal.jsx` — the `active_session_warning_message_modal`, mounted once at app root; **Refresh** publishes to the section-refresh bus.
+  - Wiring: save payloads carry `logId` / `careplanLogMessage` / `careplanLogMessageUserInput` / `sessionId` verbatim; the save's `sessionId` releases the lock server-side (form-saved ⇒ no explicit unlock). Verified live against staging: lock→heartbeat(5s)→resume→un-lock cycle and the change-log save payload.
+- Cross-cutting UI the legacy duplicated through `utility` HTML-builders (`constructEditDeleteIcons`, `renderDiagnosisListView`, `constructDeletedRecordsBadge…`) becomes **shared React components** — `RecordActionIcons`, `DiagnosisListView`, `DeletedRecordBadge`, `DetailField`, `FormStatusFooter` — that every section consumes, so **one change propagates to all sections** (the legacy's shared-helper intent, minus the global coupling).
+- CSS coupled to component tag selectors + pervasive `!important` → **scoped component CSS** with the `--app-color*` tokens carried into `App.css`; restyling one section no longer bleeds into others.
+
+**Guardrail:** this is a **framework conversion, not a redesign** — the approach removes architectural coupling, never user-facing **business** behavior (see Important Rule + Preservation Rules). When a legacy behavior's intent is unclear, **preserve it and leave a `TODO`** rather than dropping it.
 
 ---
 

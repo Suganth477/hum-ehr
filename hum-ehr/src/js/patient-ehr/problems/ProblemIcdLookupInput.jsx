@@ -70,20 +70,24 @@ const ProblemIcdLookupInput = ({ id, label, value, disabled = false, required = 
         setOpen(false);
     };
     const showMenu = open && !disabled && options.length > 0;
-    return (<div className="icon-input-group position-relative" data-list-id={listId}>
+    return (<div className="position-relative" data-list-id={listId}>
       {label && (<label className="form-label fw-bold" htmlFor={id}>
           {label} {required && <span className="text-danger">*</span>}
         </label>)}
-      <input id={id} type="text" autoComplete="off" className="form-control text-capitalize" value={value || ''} placeholder={placeholder} disabled={disabled} onChange={(event) => { onChange?.(event.target.value); setOpen(true); }} onFocus={() => { if (options.length) setOpen(true); }} onBlur={() => { blurTimer.current = window.setTimeout(() => setOpen(false), 150); }}/>
-      <LegacyIcon icon="mdi-magnify" className="problem-lookup-search-icon input-icon input-icon-left-align"/>
-      {searching && (<span className="cl-skeleton-bar position-absolute end-0 me-2" style={{ top: label ? 42 : 12, width: 60 }}/>)}
-      {showMenu && (<ul className="dropdown-menu show w-100" role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1080, maxHeight: 240, overflowY: 'auto' }}>
-          {options.map((option) => (<li key={`${option.code}_${option.description.slice(0, 16)}`}>
-              <button type="button" className="dropdown-item text-wrap small" role="option" onMouseDown={(event) => { event.preventDefault(); handleSelect(option); }}>
-                {option.label}
-              </button>
-            </li>))}
-        </ul>)}
+      {/* Label sits outside the icon group (as in the legacy template) so the search
+          magnifier positions to the right of the INPUT, not over the label. */}
+      <div className="icon-input-group position-relative">
+        <input id={id} type="text" autoComplete="off" className="form-control text-capitalize" style={{ paddingRight: '2rem' }} value={value || ''} placeholder={placeholder} disabled={disabled} onChange={(event) => { onChange?.(event.target.value); setOpen(true); }} onFocus={() => { if (options.length) setOpen(true); }} onBlur={() => { blurTimer.current = window.setTimeout(() => setOpen(false), 150); }}/>
+        <LegacyIcon icon="mdi-magnify" className="problem-lookup-search-icon input-icon" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}/>
+        {searching && (<span className="cl-skeleton-bar position-absolute" style={{ right: 30, top: '50%', transform: 'translateY(-50%)', width: 50 }}/>)}
+        {showMenu && (<ul className="dropdown-menu show w-100" role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1080, maxHeight: 240, overflowY: 'auto' }}>
+            {options.map((option) => (<li key={`${option.code}_${option.description.slice(0, 16)}`}>
+                <button type="button" className="dropdown-item text-wrap small" role="option" onMouseDown={(event) => { event.preventDefault(); handleSelect(option); }}>
+                  {option.label}
+                </button>
+              </li>))}
+          </ul>)}
+      </div>
     </div>);
 };
 export default ProblemIcdLookupInput;

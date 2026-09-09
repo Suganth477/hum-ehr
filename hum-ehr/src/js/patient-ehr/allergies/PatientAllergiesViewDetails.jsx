@@ -2,6 +2,7 @@ import Swal from 'sweetalert2';
 import { buildDeletePayload, buildRecoverPayload, deletePatientAllergy, recoverPatientAllergy } from '../../../services/allergyService';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import DetailField from '../../../components/common/DetailField';
 import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const swalTheme = Swal.mixin({
@@ -12,11 +13,10 @@ const swalTheme = Swal.mixin({
     allowOutsideClick: false,
 });
 
+// Allergy field cell = the shared DetailField carrying the allergy-details-common-class
+// hooks the legacy template styles (font/colour) on both label and value.
 const Field = ({ label, value }) => (
-    <div className="col-md-4 mb-3">
-        <div className="label allergy-details-common-class">{label}</div>
-        <div className="text-capitalize fw-bold allergy-details-common-class">{value || '-'}</div>
-    </div>
+    <DetailField col="col-md-4 mb-3" label={label} value={value} labelClass="allergy-details-common-class" valueClass="allergy-details-common-class"/>
 );
 
 /**
@@ -73,8 +73,8 @@ const PatientAllergiesViewDetails = ({ patientId, record, recordType, onEdit, on
         <div className="show-details-main-container mb-3">
             <div className="row mx-3 my-4 mb-0 align-items-center">
                 <div className="col-md-10 pc-health-insurance-view-Allergy fw-bold patient-chart-list-selected-item-title text-capitalize">
-                    {record.allergyType || 'Allergy'}
-                    {isDeletedHistoryRecord && <DeletedRecordBadge />}
+                    {record.allergySubType || 'Allergy'}
+                    {record.invalidFlag === 'Y' && <DeletedRecordBadge inline/>}
                 </div>
                 <div className="col-md-2 allergy-record-action-icons d-flex justify-content-end gap-2">
                     {recordType === 'active' && (<>
@@ -90,24 +90,22 @@ const PatientAllergiesViewDetails = ({ patientId, record, recordType, onEdit, on
             <div className="row mx-3 my-4 mb-0">
                 <div className="col-md-12">
                     <div className="row">
-                        <Field label="Allergy Subtype" value={record.allergySubType} />
+                        <Field label="Allergy Type" value={record.allergyType} />
                         <Field label="Criticality" value={record.criticality} />
                         <Field label="Clinical Status" value={record.allergyClinicalStatus} />
                     </div>
-                    <div className="row">
+                    <div className="row mt-3">
                         <Field label="Clinical Reactions" value={reactionText} />
                         <Field label="Verification Status" value={record.verificationStatus} />
                     </div>
-                    <div className="row">
+                    <div className="row mt-3">
                         <Field label="Onset Date and Time" value={record.onSetDate} />
                         <Field label="Recorded Date and Time" value={record.effectiveDate} />
                         <Field label="Date of Resolution" value={record.lastEffectiveDate} />
                     </div>
-                    <div className="row">
-                        <div className="col-md-12 mb-3">
-                            <div className="label allergy-details-common-class">Description</div>
-                            <div className="text-capitalize fw-bold allergy-details-common-class">{record.description || '-'}</div>
-                        </div>
+                    <div className="row mt-3">
+                        <Field label="Description" value={record.description} />
+                        {record.invalidFlag === 'Y' && <Field label="Delete Reason" value={record.deleteReason} />}
                     </div>
                 </div>
             </div>

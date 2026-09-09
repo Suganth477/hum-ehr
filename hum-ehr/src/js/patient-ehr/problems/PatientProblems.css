@@ -64,3 +64,76 @@
 .pp-problem-snomed-code-group .pp-snomed-code-desc {
     margin-top: 2px;
 }
+
+/* ====== Add / Edit modal (legacy Bootstrap modal → PrimeReact Dialog) ====== */
+.pp-problem-modal .p-dialog-header {
+    background-color: var(--app-color2) !important;
+    padding: 14px 20px !important;
+    border-radius: 6px 6px 0 0 !important;
+}
+.pp-problem-modal .p-dialog-header .p-dialog-title {
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+.pp-problem-modal .p-dialog-header .p-dialog-header-icon {
+    color: #fff !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.pp-problem-modal .p-dialog-header .p-dialog-header-icon:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+/* Modal body scrolls (only if needed) between a pinned patient strip and a pinned
+   footer — PrimeReact caps .p-dialog-content at 90vh with overflow-y:auto. */
+.pp-problem-modal .p-dialog-content {
+    padding: 0 !important;
+}
+.pp-problem-modal .pp-problem-form-body {
+    padding: 16px 20px;
+}
+/* Cancel / Save bar stays pinned to the bottom while the fields scroll (legacy sticky footer). */
+.pp-problem-modal .custom-form-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin-top: 0 !important;
+}
+
+/* Patient-details strip stays pinned below the teal header while the fields scroll. */
+.pp-problem-modal-patient-strip {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    justify-content: space-evenly;
+    border-bottom: 1px solid var(--app-color13, #D7DDE3);
+    padding: 10px 20px;
+    gap: 12px;
+    background: #fff;
+}
+
+/* Save/Update confirmation popup must sit above the modal. */
+.pp-swal-container {
+    z-index: 20000 !important;
+}
+.pp-problem-modal-patient-strip .pp-modal-strip-label {
+    font-size: 13px;
+    color: var(--app-color11, #777);
+}
+.pp-problem-modal-patient-strip .pp-modal-strip-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #49454F;
+}
+.pp-problem-modal-patient-strip .pp-modal-patient-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--app-color2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--app-color2);
+    flex-shrink: 0;
+}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
@@ -19,6 +19,7 @@ import UniversalFileUploader from '../../../components/common/UniversalFileUploa
 import DiagnosisPicker from '../../../components/common/DiagnosisPicker';
 import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
+import { mergeSelectedDiagnosis } from '../../../utils/diagnosisSelection';
 import PatientImplantableDeviceUDI from '../implantable-device/PatientImplantableDeviceUDI';
 import PatientImplantableDeviceAddEdit from '../implantable-device/PatientImplantableDeviceAddEdit';
 import { useNotify } from '../../../context/NotificationContext';
@@ -201,8 +202,8 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
     };
 
     const dateTimeProps = { enableTime: true, dateFormat: 'm-d-Y h:i K', placeholder: 'MM-DD-YYYY HH:MM AM/PM' };
-    const now = useMemo(() => moment().format('MM-DD-YYYY hh:mm A'), []);
-    const followUpMax = useMemo(() => moment().add(10, 'years').format('MM-DD-YYYY'), []);
+    const now = useMemo(() => userNow().format('MM-DD-YYYY hh:mm A'), []);
+    const followUpMax = useMemo(() => userNow().add(10, 'years').format('MM-DD-YYYY'), []);
     const optionFor = (id, label) => (id ? { value: id, label } : null);
 
     return (<div className="container-fluid">
@@ -384,7 +385,12 @@ const PatientProcedureAddEdit = ({ patientId, record, reference, onClose }) => {
       <Dialog visible={dialog.type === 'diagnosis'} onHide={() => { setDialog({ type: null }); setDiagnosisRefresh((k) => k + 1); }} header="Add Problem" style={{ width: '75vw' }} breakpoints={{ '768px': '98vw' }}>
         {dialog.type === 'diagnosis' && problemMetadata && (
           <PatientProblemsAddEdit patientId={patientId} problemRecord={null} actionType="add" statusMetadata={problemMetadata}
-            onClose={() => { setDialog({ type: null }); setDiagnosisRefresh((k) => k + 1); }}/>
+            onClose={(saved, newDiagnosis) => {
+              setDialog({ type: null });
+              setDiagnosisRefresh((k) => k + 1);
+              // Auto-select the newly-added diagnosis (legacy constructNewSelectedDiagnosis).
+              if (saved && newDiagnosis) { setDirty(true); setDiagnosisList((list) => mergeSelectedDiagnosis(list, newDiagnosis)); }
+            }}/>
         )}
       </Dialog>
 

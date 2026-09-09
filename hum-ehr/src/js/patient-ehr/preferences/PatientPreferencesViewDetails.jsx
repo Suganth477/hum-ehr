@@ -5,6 +5,8 @@ import {
 import '../../../components/common/ContentLoader.css';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import DetailField from '../../../components/common/DetailField';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
 const NOTES_MAX = 200;
 
@@ -81,7 +83,7 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
       <div className="row mx-3 my-3 mb-3">
         <div className="col-md-11 view-preferences-name fw-bold patient-chart-list-selected-item-title text-capitalize">
           {title}
-          {isDeleted && <span className="ehr-deleted-records ms-2">Deleted Record</span>}
+          {isDeleted && <DeletedRecordBadge inline/>}
         </div>
         <div className="col-md-1 d-flex justify-content-end gap-2 preferences-action-container">
           {canEdit && !isDeleted && <LegacyIcon icon="mdi-pencil" className="edit-preferences-icon" role="button" title={`Edit ${PREFERENCES_DESC_MAP[preferencesType] || 'Preference'}`} onClick={() => onEdit(record)}/>}
@@ -138,17 +140,14 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
         )}
 
         <div className="row mx-3 my-4">
-          <div className="col-md-3"><div className="label">Preferences Status</div><div className="view-preferences-status fw-bold text-capitalize">{record.statusCodeDesc || '-'}</div></div>
-          <div className="col-md-3"><div className="label">Validating Provider</div><div className="view-validating-provider fw-bold text-capitalize">{record.validatingUserName || '-'}</div></div>
-          <div className="col-md-3"><div className="label">Effective Date &amp; Time</div><div className="view-effective-date fw-bold">{record.effectiveDate || '-'}</div></div>
-          <div className="col-md-3"><div className="label">Last Effective Date &amp; Time</div><div className="view-last-effective-date fw-bold">{record.lastEffectiveDate || '-'}</div></div>
+          <DetailField label="Preferences Status" value={record.statusCodeDesc}/>
+          <DetailField label="Validating Provider" value={record.validatingUserName}/>
+          <DetailField label="Effective Date &amp; Time" value={record.effectiveDate} cap={false}/>
+          <DetailField label="Last Effective Date &amp; Time" value={record.lastEffectiveDate} cap={false}/>
         </div>
         <div className="row mx-3 my-4">
-          <div className="col-md-3"><div className="label">Recorded Date &amp; Time</div><div className="view-preferences-recorded-date-and-time fw-bold">{record.recordedDate || '-'}</div></div>
-          {isDeleted && (<div className="col-md-6 mb-3 view-preferences-deleted-reason-container">
-              <div className="label">Deleted Reason</div>
-              <div className="view-preferences-deleted-reason fw-bold" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>{record.deleteReason || '-'}</div>
-            </div>)}
+          <DetailField label="Recorded Date &amp; Time" value={record.recordedDate} cap={false}/>
+          {isDeleted && <DetailField col="col-md-6 mb-3" label="Deleted Reason" value={record.deleteReason} cap={false} valueStyle={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}/>}
         </div>
       </div>
     </div>);

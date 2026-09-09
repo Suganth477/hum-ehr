@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
 import {
@@ -18,6 +18,7 @@ import UniversalFileUploader from '../../../components/common/UniversalFileUploa
 import DiagnosisPicker from '../../../components/common/DiagnosisPicker';
 import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
+import { mergeSelectedDiagnosis } from '../../../utils/diagnosisSelection';
 import { useNotify } from '../../../context/NotificationContext';
 
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
@@ -162,7 +163,7 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
         finally { setSaving(false); }
     };
 
-    const today = useMemo(() => moment().format('MM-DD-YYYY'), []);
+    const today = useMemo(() => userNow().format('MM-DD-YYYY'), []);
 
     return (<div className="pc-patient-surgical-history-add-edit-main-container">
       <div className="mb-3 d-flex align-items-center gap-2">
@@ -246,7 +247,12 @@ const PatientSurgicalHistoryAddEdit = ({ patientId, record, onClose }) => {
       <Dialog visible={dialogOpen} onHide={() => { setDialogOpen(false); setDiagnosisRefresh((k) => k + 1); }} header="Add Problem" style={{ width: '75vw' }} breakpoints={{ '768px': '98vw' }}>
         {dialogOpen && problemMetadata && (
           <PatientProblemsAddEdit patientId={patientId} problemRecord={null} actionType="add" statusMetadata={problemMetadata}
-            onClose={() => { setDialogOpen(false); setDiagnosisRefresh((k) => k + 1); }}/>
+            onClose={(saved, newDiagnosis) => {
+              setDialogOpen(false);
+              setDiagnosisRefresh((k) => k + 1);
+              // Auto-select the newly-added diagnosis (legacy constructNewSelectedDiagnosis).
+              if (saved && newDiagnosis) { setDirty(true); setDiagnosisList((list) => mergeSelectedDiagnosis(list, newDiagnosis)); }
+            }}/>
         )}
       </Dialog>
     </div>);

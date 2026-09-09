@@ -2,6 +2,21 @@ const ENDPOINTS = {
 	auth: {
 		logout: '/logout',
 	},
+	// Section-level concurrency locks (legacy active.session.handle.js). A lock is
+	// taken when a user opens an existing record for edit; heartbeats keep it alive,
+	// resume re-checks it, and un-lock releases it. All are POST form-encoded.
+	navigationResource: {
+		lock: '/navigation-resource/lock',
+		unlock: '/navigation-resource/un-lock',
+		resume: '/navigation-resource/lock/resume',
+		heartbeat: '/navigation-resource/lock/heartbeat',
+	},
+	// Decision Support Intervention (DSI) — re-evaluated after a clinical change
+	// (e.g. a saved/deleted problem may raise a drug-disease interaction alert).
+	// Legacy utility.fetchEhrPatientDsiAlertDetails: POST { patientId, productCode:'DSI' }.
+	intervention: {
+		eventBased: '/intervention/event-based-intervention',
+	},
 	patient: {
 		details: '/patient/details',
 		activeList: '/patient/list/all',
