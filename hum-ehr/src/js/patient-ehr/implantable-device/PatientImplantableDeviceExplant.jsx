@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import { buildImplantDeviceExplantPayload, saveImplantDeviceExplant } from '../../../services/implantDeviceService';
 import { getSaveOutcome } from '../../../utils/saveResponse';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
@@ -24,7 +24,7 @@ const PatientImplantableDeviceExplant = ({ patientId, record, onClose }) => {
     const { notifySuccess } = useNotify();
 
     const minDate = dateOnly(record?.implantDate);
-    const maxDate = moment().format('MM-DD-YYYY');
+    const maxDate = userNow().format('MM-DD-YYYY');
 
     const validate = () => {
         const next = {};

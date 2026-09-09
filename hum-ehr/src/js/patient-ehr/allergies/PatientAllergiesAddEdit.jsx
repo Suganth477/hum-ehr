@@ -14,7 +14,7 @@ import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTime
 import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import { fetchPatientDetails } from '../../../services/patientService';
 import patientCache from '../../../utils/patientCache';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 
@@ -131,7 +131,7 @@ const toFlatpickrDateTimeValue = (value) => {
     return `${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${date.getFullYear()} ${pad(hours)}:${minutes} ${period}`;
 };
 
-const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
+const nowDateTime = () => userNow().format('MM-DD-YYYY hh:mm A');
 const buildDefaultValues = (allergyRecord) => {
     if (!allergyRecord?.allergyId) {
         return {

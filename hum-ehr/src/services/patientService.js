@@ -1,7 +1,7 @@
 // @ts-check
 import ENDPOINTS from "./endpoints";
 import { apiPost, apiPostForm } from "./apiClient";
-import moment from "../utils/dayjs";
+import moment, { userNow } from "../utils/dayjs";
 import { publishSectionRefresh, sectionRefreshKey } from "../utils/sectionRefreshBus";
 
 /** Legacy utility.ageCalculator(dob) + "yrs" — whole years from the MM-DD-YYYY dob. */
@@ -9,7 +9,7 @@ const computePatientAge = (dob) => {
 	if (!dob) return "";
 	const parsed = moment(dob, "MM-DD-YYYY", true);
 	if (!parsed.isValid()) return "";
-	const years = moment().diff(parsed, "year");
+	const years = userNow().diff(parsed, "year");
 	return Number.isFinite(years) ? `${years}yrs` : "";
 };
 export const buildActivePatientListRequest = ({

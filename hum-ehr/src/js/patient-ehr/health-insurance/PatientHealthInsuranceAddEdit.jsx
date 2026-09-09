@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import Select from 'react-select';
 import {
     buildHealthInsuranceSavePayload,
@@ -29,7 +29,7 @@ const emptyAddressParty = () => ({
 });
 const createDefaultForm = () => ({
     id: '', payerId: '', payerTypeCode: '', insuranceType: '', policyNumber: '', groupNumber: '',
-    groupName: '', effectiveDate: moment().format('MM-DD-YYYY'), lastEffectiveDate: '',
+    groupName: '', effectiveDate: userNow().format('MM-DD-YYYY'), lastEffectiveDate: '',
     insuranceStatusCode: 'ACTIVE', qualifiedMedicareBeneficiary: false,
     subscriber: { relationShipTypeId: '', otherRelationShip: '', ...emptyAddressParty() },
     member: emptyAddressParty(),

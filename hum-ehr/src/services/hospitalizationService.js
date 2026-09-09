@@ -1,4 +1,4 @@
-import moment from '../utils/dayjs';
+import { userNow } from '../utils/dayjs';
 import ENDPOINTS from './endpoints';
 import { apiGet, apiPost, apiPostForm } from './apiClient';
 import { fetchHumCodeList, humCodeListToArray } from './lookupService';
@@ -69,7 +69,7 @@ export const buildHospitalizationSavePayload = ({ patientId, form, record, diagn
 	careNotes: form.notes,
 	// Legacy uses utility.getCurrentDateInUserTimeZone() (MM-DD-YYYY hh:mm A).
 	// TODO: thread the logged-in user's timezone through moment-timezone for exact parity.
-	recordedDate: moment().format('MM-DD-YYYY hh:mm A'),
+	recordedDate: userNow().format('MM-DD-YYYY hh:mm A'),
 	invalidFlag: 'N',
 	dischargeDispositionOther: form.otherDischargeDisposition || '',
 });

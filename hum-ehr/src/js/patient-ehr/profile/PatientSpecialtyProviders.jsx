@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
 import {
@@ -46,7 +46,7 @@ const PatientSpecialtyProviders = ({ patientId }) => {
         getPatientDetails(patientId).then((details) => setDob(details?.dateOfBirth || '')).catch(() => {});
     }, [patientId]);
 
-    const today = moment().format('MM-DD-YYYY');
+    const today = userNow().format('MM-DD-YYYY');
 
     const openDialog = async (record = null) => {
         try {

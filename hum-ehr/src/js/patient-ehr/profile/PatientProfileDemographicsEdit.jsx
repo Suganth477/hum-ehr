@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import {
     getPatientDetails, refreshPatientDetails, fetchDemographicsHumCodes, fetchProfileTimeZones,
@@ -168,7 +168,7 @@ const PatientProfileDemographicsEdit = ({ patientId, initialSection, onClose }) 
         setDirty(true);
     };
 
-    const yesterday = useMemo(() => moment().subtract(1, 'day').format('MM-DD-YYYY'), []);
+    const yesterday = useMemo(() => userNow().subtract(1, 'day').format('MM-DD-YYYY'), []);
 
     // ---- validation (legacy rules + messages) ----
     const validate = () => {

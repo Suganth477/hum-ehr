@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import { fetchFamilyHistory, deleteFamilyMember } from '../../../services/familyHistoryService';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
@@ -92,7 +92,7 @@ const PatientFamilyHistoryList = ({ patientId, refreshKey, onDataLoaded }) => {
               <td key={m.memberId} className="pcfh-member-cell" data-member-id={m.memberId}>
                 <div className="text-capitalize" style={{ whiteSpace: 'nowrap' }}><span className="pcfh-label-color">Name:</span> {m.fullName}</div>
                 <div><span className="pcfh-label-color">Birth Year:</span> {m.memberDob || ''}</div>
-                <div><span className="pcfh-label-color">Age:</span> {m.memberDob ? moment().year() - Number(m.memberDob) : ''}</div>
+                <div><span className="pcfh-label-color">Age:</span> {m.memberDob ? userNow().year() - Number(m.memberDob) : ''}</div>
                 <div><span className="pcfh-label-color">Deceased:</span> {m.isDiseased === 'Y' ? 'Yes' : 'No'}</div>
               </td>
             ))}

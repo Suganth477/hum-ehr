@@ -6,7 +6,7 @@ import PatientAllergiesAddEdit from './PatientAllergiesAddEdit';
 import PatientAllergyLookupInput from './PatientAllergyLookupInput';
 import { fetchAllergyMetadata } from '../../../services/lookupService';
 import { savePatientAllergy, deletePatientAllergy, buildDeletePayload } from '../../../services/allergyService';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
@@ -151,7 +151,7 @@ const PatientAllergies = ({ patientId }) => {
         allergySubType: null,
         allergySubTypeId: null,
         description: null,
-        effectiveDate: moment().format('MM-DD-YYYY hh:mm A'),
+        effectiveDate: userNow().format('MM-DD-YYYY hh:mm A'),
         lastEffectiveDate: null,
         onSetDate: null,
         criticalityId: null,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import Select from 'react-select';
 import {
     PREFERENCES_DESC_MAP, ALLOWED_STATUS_TRANSITIONS, NEW_STATUS_CODES,
@@ -15,7 +15,7 @@ import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import FormStatusFooter from '../../../components/common/FormStatusFooter';
 
-const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
+const nowDateTime = () => userNow().format('MM-DD-YYYY hh:mm A');
 const FieldError = ({ message }) => (message ? <div className="small text-danger mt-1">{message}</div> : null);
 
 /**

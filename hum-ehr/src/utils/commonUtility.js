@@ -1,4 +1,4 @@
-import moment from './dayjs';
+import moment, { userNow } from './dayjs';
 import { legacyIconHtml } from '../components/common/iconPaths';
 /** Global selector strings retained for cross-script reference stability. */
 export const SELECTORS = {
@@ -36,7 +36,7 @@ export const dateTimeFormats = {
 };
 /** Human-readable relative time from a "MM-DD-YYYY hh:mm A" timestamp. */
 export const getRelativeTime = (dateAndTime) => {
-    const now = moment();
+    const now = userNow();
     const inputDate = moment(dateAndTime, 'MM-DD-YYYY hh:mm A');
     if (inputDate.isSame(now, 'day'))
         return 'Today';

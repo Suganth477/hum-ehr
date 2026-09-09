@@ -2,7 +2,7 @@ import ENDPOINTS from './endpoints';
 import { apiGet, apiPost, apiPostForm } from './apiClient';
 import { getLoggedInUser } from './authService';
 import { humCodeListToArray } from './lookupService';
-import moment from '../utils/dayjs';
+import { userNow } from '../utils/dayjs';
 
 /**
  * Patient Preferences data layer. Mirrors patient.chart.preferences.js + api.utility.js:
@@ -83,7 +83,7 @@ export const buildPreferenceSavePayload = ({
 	preferencesId, patientId, preferencesType, code, title, effectiveDate, lastEffectiveDate,
 	recordedDate, notes, statusCode, attachment, advanceDirectiveIds, deletePreferenceCode,
 }) => {
-	const lastEffective = statusCode === 'ENTERED_ERR' ? moment().format('MM-DD-YYYY hh:mm A') : (lastEffectiveDate || null);
+	const lastEffective = statusCode === 'ENTERED_ERR' ? userNow().format('MM-DD-YYYY hh:mm A') : (lastEffectiveDate || null);
 	return {
 		id: preferencesId && preferencesId !== '0' ? parseInt(preferencesId, 10) : null,
 		patientId: parseInt(patientId, 10),

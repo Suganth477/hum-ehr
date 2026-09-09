@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import { deleteImplantDevice } from '../../../services/implantDeviceService';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
@@ -46,7 +46,7 @@ const PatientImplantableDeviceDetails = ({ recordType, invalidFlag, record, onEd
         return <div className="implant-device-details-main-container show-details-main-container"/>;
 
     const strike = invalidFlag === 'Y';
-    const today = moment();
+    const today = userNow();
     const title = record.deviceName || record.deviceType || '-';
     const expiry = dateOnly(record.expiryDate);
     const expired = expiry && moment(expiry, 'MM-DD-YYYY').isSameOrBefore(today, 'day');
