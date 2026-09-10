@@ -87,8 +87,12 @@
   --app-border-radius50: 50px;
 }
 
+.p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon {
+   color: var(--app-color4);
+}
+
 /* "Deleted Record" pill for invalidated patient-chart rows (legacy .ehr-deleted-records). */
-.ehr-deleted-records {
+.ehr-deleted-records { 
    color: #EF4444;
    background-color: #EF444415;
    padding: 2px 8px;
@@ -1711,8 +1715,10 @@ body.expanded-view.ignore-menu-icon-view #application_body_container {
    }
 }
 
+/* The Patient List tab sizes to its label + count. A % width here rescaled it with
+   the viewport and wrapped "Patient List" onto two lines on narrow screens. */
 .patient-list-nav-tabs li.patient-list-nav-item:first-child{
-   width: 10% !important;
+   width: auto !important;
 }
 
 .patient-list-nav-tabs:has(> li.patient-list-nav-item[data-section='patient_list']:first-child:last-child) {

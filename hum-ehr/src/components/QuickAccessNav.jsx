@@ -75,7 +75,7 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 				    on a patient chart AND on every other screen (Message Center, Dashboard). */}
 				<div className={`list-filter-access-icon ${isPatientListScreen && activeTab === 'patient_list' ? '' : 'd-none'}`}>
 					<ul className="list-unstyled m-0 me-1 hh-ehr-color1">
-						<li className="app-quick-access-icon-list" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+						<li className="app-quick-access-icon-list filter-shortcut-trigger hide" data-bs-toggle="offcanvas" data-bs-target="#patient_list_filter_offcanvas" aria-controls="patient_list_filter_offcanvas">
 							<LegacyIcon icon="mdi-filter-variant" />
 						</li>
 					</ul>

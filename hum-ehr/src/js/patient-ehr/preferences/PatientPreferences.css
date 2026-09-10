@@ -34,3 +34,25 @@
     font-weight: 600;
     text-decoration: underline;
 }
+/* Detail-pane action icons (LegacyIcon SVGs, not .pi) — edit + delete. */
+.preferences-action-container .edit-preferences-icon,
+.preferences-action-container .delete-preferences-icon {
+    cursor: pointer;
+}
+.preferences-action-container .delete-preferences-icon {
+    color: #D50B0B;
+}
+.preferences-action-container .delete-preferences-icon.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+/* Inline add/edit (replaces the list+detail — legacy preferences-add-edit-container). */
+.preferences-add-edit-container {
+    padding: 8px 4px;
+}
+.Preferences-add-edit-header .ehr-preferences-add-edit-back-btn {
+    color: var(--app-color2, #01c1d1);
+}
+.advance-directive-delete-modal .linked-preference-item {
+    background-color: var(--app-color9, #f8fcfc);
+}

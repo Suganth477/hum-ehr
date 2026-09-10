@@ -16,15 +16,21 @@
 #application_body_container,
 #application_body_container > * { min-width: 0; }
 
-/* The legacy patient-list search box has a fixed ~940px width + a 470px left
-   margin sized for a very wide desktop header; it overflows every screen below
-   ~1410px. Normalize it to a sensible, responsive search box at ALL widths: no
-   stray margin, capped width, and the row wraps the action button when narrow.
-   (!important to beat the legacy stylesheet.) */
-.patient-chart-header-input-container { flex-wrap: wrap; gap: 0.5rem; }
-.patient-chart-search-input-icon-container { margin-left: 0 !important; width: 100%; }
-.patient-chart-header-search-input-group { width: 100% !important; max-width: 360px; }
+/* Patient-list header. On desktop it keeps the legacy geometry exactly: the
+   Active/Deactivated toggle at the left, the fixed 470px search box centred in the
+   remaining space, and Filter + Create New Patient right-aligned. The earlier
+   global width cap here (max-width 360px) predated the legacy header redesign and
+   stopped the search group from growing, which left the whole row packed to the
+   left. Below lg the fixed 470px no longer fits beside the actions, so the box goes
+   fluid and the row wraps — that is also where the list itself switches to cards. */
+.patient-chart-header-input-container { gap: 0.5rem; }
 #patient_chart_patient_list_search_input { width: 100%; }
+
+@media (max-width: 991.98px) {
+   .patient-chart-header-input-container { flex-wrap: wrap; }
+   .patient-chart-search-input-icon-container { margin-left: 0 !important; width: 100% !important; }
+   .patient-chart-header-search-input-group { width: 100% !important; max-width: 360px; }
+}
 
 /* Notifications banner: keep its centered text clear of the absolute close icon. */
 #application_info_container { padding-right: 2.5rem; }
@@ -80,6 +86,10 @@
    #application_quick_access_nav_container > #application_quick_access_nav_container_1 { min-width: 0; }
    #application_quick_access_nav_container > #application_quick_access_nav_container_2 { flex-shrink: 0; }
 
+   /* Compact the action icons so the patient tabs keep usable width. */
+   #application_quick_access_nav_container .app-quick-access-icon-section ul .app-quick-access-icon-list { margin: 4px 3px; }
+   #application_quick_access_nav_container .app-quick-access-icon-section ul .app-quick-access-icon-list .pi { font-size: var(--app-font20); }
+
    /* Patient tab bar: scroll horizontally instead of overflowing the row. */
    #patient_list_nav_tabs {
       flex-wrap: nowrap;
@@ -108,27 +118,45 @@
       all breakpoints (per design); the content keeps its original left margin so
       it clears the rail. Only the demographics header below is made to wrap. */
 
-   /* Patient demographics header: wrap onto multiple rows on small screens. */
-   .patient-demographics-container-node .pd-patient-demographics-main-container { flex-wrap: wrap; }
-   .patient-demographics-container-node .pd-patient-demographics-details { flex-wrap: wrap; gap: 0.5rem; }
-   .patient-demographics-container-node .pd-patient-demographics-list { width: 100%; }
-   .patient-demographics-container-node .pd-patient-demographics-ccd-generation-container { margin-right: 0 !important; }
+   /* NOTE: the patient demographics bar's own breakpoints live in
+      src/js/patient-ehr/PatientChart.css — that stylesheet ships in the lazily
+      loaded patient-chart chunk, so it loads AFTER this file and would out-rank
+      anything written here. See RESPONSIVE.md ("Load order"). */
 }
 
 /* ---------------------------------------------------------------------------
-   Phones (< md / 768px): the demographics header packs its fields in a row with
-   vertical separator borders (a desktop layout). Once that wraps it looks
-   messy, so stack it as a clean vertical list — one field per line, no
-   separators, image top-aligned.
+   Phones (< md / 768px).
    --------------------------------------------------------------------------- */
 @media (max-width: 767.98px) {
-   .patient-demographics-container-node .pd-patient-demographics-main-container { align-items: flex-start; }
-   .patient-demographics-container-node .pd-patient-demographics-list { flex-direction: column; align-items: flex-start; gap: 2px; }
-   .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item {
-      width: 100%;
-      border-right: 0;
-      padding: 3px 0;
+   /* Quick-access nav becomes TWO stacked rows so nothing is pushed off-screen:
+      the patient tabs (primary nav) get a full-width scrollable row, and the
+      action icons get their own full-width scrollable row underneath. The
+      container is `height: inherit` on desktop, so it must be allowed to grow. */
+   #application_quick_access_side_nav_container,
+   #application_quick_access_nav_container { height: auto !important; }
+   #application_quick_access_nav_container {
+      flex-wrap: wrap !important;
+      flex-direction: column;
+      align-items: stretch;
    }
+   #application_quick_access_nav_container > #application_quick_access_nav_container_1,
+   #application_quick_access_nav_container > #application_quick_access_nav_container_2 {
+      width: 100%;
+      min-width: 0;
+      height: auto;
+   }
+   /* Right-align the icon row and let it scroll if it outgrows the width, rather
+      than clipping the icons (they used to be display:none here). */
+   #application_quick_access_nav_container > #application_quick_access_nav_container_2 {
+      justify-content: flex-end;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+   }
+   #application_quick_access_nav_container > #application_quick_access_nav_container_2::-webkit-scrollbar { display: none; }
+   #application_quick_access_nav_container .app-quick-access-icon-section { flex-shrink: 0; }
+   #application_quick_access_nav_container .app-quick-access-icon-section ul .app-quick-access-icon-list { margin: 3px 2px; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -144,9 +172,4 @@
    .pa-allergies-main-header .pa-allergies-header-input-container { gap: 0.5rem; }
    .patient-chart-header-main-container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
 
-   /* The 6 quick-access icons are non-functional placeholders (no handlers yet)
-      and consume ~204px, squeezing the patient tabs off-screen on phones. Hide
-      them here so the patient tabs (primary nav) get the full width. Re-show /
-      revisit when those actions are wired up. */
-   #application_quick_access_nav_container .app-quick-access-icon-section { display: none; }
 }

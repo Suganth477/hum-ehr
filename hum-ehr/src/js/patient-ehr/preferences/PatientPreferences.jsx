@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Dialog } from 'primereact/dialog';
 import PatientPreferencesList from './PatientPreferencesList';
 import PatientPreferencesViewDetails from './PatientPreferencesViewDetails';
 import PatientPreferencesAddEdit from './PatientPreferencesAddEdit';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import {
-    PREFERENCES_DESC_MAP, fetchPreferenceLookups, fetchPreferenceStatuses,
+    PREFERENCES_DESC_MAP, PREFERENCES_CONCURRENT_CODE, fetchPreferenceLookups, fetchPreferenceStatuses,
 } from '../../../services/preferencesService';
+import { subscribeSectionRefresh, sectionRefreshKey } from '../../../utils/sectionRefreshBus';
 import patientCache from '../../../utils/patientCache';
 import { useNotify } from '../../../context/NotificationContext';
 import './PatientPreferences.css';
@@ -54,6 +54,15 @@ const PatientPreferences = ({ patientId }) => {
         return () => { ignore = true; };
     }, [notifyError]);
 
+    // The concurrency warning modal's Refresh publishes per-category (CAREPREF/TREATPREF/DIRCTPREF);
+    // subscribe to all three so it reloads whichever sub-section is showing (legacy
+    // refreshPatientChartPreferencesListCustomElements).
+    useEffect(() => {
+        const unsubscribes = Object.values(PREFERENCES_CONCURRENT_CODE).map((code) =>
+            subscribeSectionRefresh(sectionRefreshKey(code, patientId), () => { setSelectedRecord(null); setRefreshKey((k) => k + 1); }));
+        return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    }, [patientId]);
+
     const changeRecordType = (type) => { setRecordType(type); setSearchTerm(''); setShowDeleted(false); setSelectedRecord(null); };
     const changeSubSection = (type) => { setPreferencesType(type); setSearchTerm(''); setSelectedRecord(null); };
     const openAddEdit = useCallback((record = null) => setAddEdit({ open: true, record }), []);
@@ -64,7 +73,8 @@ const PatientPreferences = ({ patientId }) => {
 
     const lookupsForType = reference.lookups[preferencesType] || [];
 
-    return (<div className="preferences-main-container row" id={`patient_preferences_hub_${patientId}`}>
+    return (<div className="preferences-section-outer">
+      <div className={`preferences-main-container row${addEdit.open ? ' d-none' : ''}`} id={`patient_preferences_hub_${patientId}`}>
       <div className="col-md-3 preferences-list-container pc-left-side-main-container">
         <div className="pc-patient-preferences-main-header container-fluid p-0 my-2">
           <div className="toggle-and-add-btn-container d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -119,13 +129,20 @@ const PatientPreferences = ({ patientId }) => {
 
       <div className="col-md-9 preferences-detail-container pc-section-selected-detail-view-container ps-0">
         <PatientPreferencesViewDetails patientId={patientId} recordType={recordType} preferencesType={preferencesType}
-          record={selectedRecord} lookups={lookupsForType} onEdit={(record) => openAddEdit(record)}/>
+          record={selectedRecord} lookups={lookupsForType} treatmentLookups={reference.lookups['treatment-preferences'] || []}
+          onEdit={(record) => openAddEdit(record)} onDeleted={() => { setSelectedRecord(null); setRefreshKey((k) => k + 1); }}/>
+      </div>
       </div>
 
-      <Dialog visible={addEdit.open} onHide={() => closeAddEdit(false)} header={`${addEdit.record ? 'Edit' : 'Add'} ${PREFERENCES_DESC_MAP[preferencesType]}`} style={{ width: '70vw' }} breakpoints={{ '768px': '95vw' }}>
-        {addEdit.open && (<PatientPreferencesAddEdit patientId={patientId} preferencesType={preferencesType} record={addEdit.record}
-          lookups={lookupsForType} statuses={reference.statuses} onClose={closeAddEdit}/>)}
-      </Dialog>
+      {/* Add / Edit swaps IN PLACE of the list+detail (legacy preferences-add-edit-container) — not a
+          modal — mirroring onClickAddEditPreferencesBtnEvent hiding preferences-main-container. */}
+      {addEdit.open && (
+        <div className="preferences-add-edit-container">
+          <PatientPreferencesAddEdit patientId={patientId} preferencesType={preferencesType} record={addEdit.record}
+            lookups={lookupsForType} statuses={reference.statuses} treatmentLookups={reference.lookups['treatment-preferences'] || []}
+            onClose={closeAddEdit}/>
+        </div>
+      )}
     </div>);
 };
 export default PatientPreferences;

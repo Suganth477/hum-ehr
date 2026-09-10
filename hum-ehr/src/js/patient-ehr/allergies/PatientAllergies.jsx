@@ -3,11 +3,18 @@ import { Sidebar } from 'primereact/sidebar';
 import PatientAllergiesList from './PatientAllergiesList';
 import PatientAllergiesViewDetails from './PatientAllergiesViewDetails';
 import PatientAllergiesAddEdit from './PatientAllergiesAddEdit';
-import PatientAllergyLookupInput from './PatientAllergyLookupInput';
-import { fetchAllergyMetadata } from '../../../services/lookupService';
+import CommonSelect from '../../../components/common/CommonSelect';
+import LookupAsyncSelect from '../../../components/common/LookupAsyncSelect';
+import { fetchAllergyMetadata, fetchAllergyLookup } from '../../../services/lookupService';
 import { savePatientAllergy, deletePatientAllergy, buildDeletePayload } from '../../../services/allergyService';
+import { getUserSessionId } from '../../../services/sessionLockService';
+import { triggerPatientDsiRefresh } from '../../../services/patientService';
+import { getCarePlanChangeLogSessionId, getCurrentSessionChangeLogMessagesForSection } from '../../../services/changeLogService';
+import { subscribeSectionRefresh, sectionRefreshKey } from '../../../utils/sectionRefreshBus';
 import { userNow } from '../../../utils/dayjs';
 import patientCache from '../../../utils/patientCache';
+// Fixed audit message for the "No Known Allergies" quick-add (legacy).
+const NKA_MESSAGE = 'A new allergy "No Known Allergies" has been added ';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import './PatientAllergies.css';
@@ -86,6 +93,9 @@ const PatientAllergies = ({ patientId }) => {
             ignore = true;
         };
     }, [patientId, notifyError]);
+    // The session-lock warning modal's "Refresh" publishes here (legacy
+    // refreshCustomElementBasedOnConcurrentCode → ALLERGY) to reload the stale list.
+    useEffect(() => subscribeSectionRefresh(sectionRefreshKey('ALLERGY', patientId), () => setRefreshKey((key) => key + 1)), [patientId]);
     const openAddEdit = useCallback((record = null, action = 'create') => {
         setSelectedRecord(record);
         setActionType(action);
@@ -98,6 +108,23 @@ const PatientAllergies = ({ patientId }) => {
         if (shouldRefresh)
             setRefreshKey((key) => key + 1);
     }, []);
+    // Filter-panel concept lookups — same 3-character search the add/edit form uses
+    // (LookupAsyncSelect owns the gate/debounce; these just fetch and map).
+    const mapConcept = (item) => ({
+        value: String(item.id),
+        label: item.conceptName || item.value || item.description || '',
+        code: item.code,
+    });
+    const loadSubTypeOptions = useCallback(
+        (searchTerm) => fetchAllergyLookup({ conceptCategory: 'ALST', searchParameter: searchTerm })
+            .then((res) => (res?.status === 'success' ? res.data || [] : []).map(mapConcept)),
+        [],
+    );
+    const loadReactionFilterOptions = useCallback(
+        (searchTerm) => fetchAllergyLookup({ conceptCategory: 'ALRE', searchParameter: searchTerm })
+            .then((res) => (res?.status === 'success' ? res.data || [] : []).map(mapConcept)),
+        [],
+    );
     const updateFilter = (key, value) => {
         setFilterForm((previous) => {
             const nextValue = { ...previous, [key]: value };
@@ -160,8 +187,10 @@ const PatientAllergies = ({ patientId }) => {
         allergyClinicalstatus: '',
         reactionMapping: [],
         allergyReactions: [],
-        PatientLogMessageUserInput: 'A new allergy "No Known Allergies" has been added ',
-        PatientLogMessage: 'A new allergy "No Known Allergies" has been added ',
+        logId: getCarePlanChangeLogSessionId('ALLERGY', patientId),
+        careplanLogMessageUserInput: NKA_MESSAGE,
+        careplanLogMessage: getCurrentSessionChangeLogMessagesForSection('ALLERGY', NKA_MESSAGE, null, patientId),
+        sessionId: getUserSessionId(),
         actionType: 'create',
     });
 
@@ -179,7 +208,7 @@ const PatientAllergies = ({ patientId }) => {
             }
             try {
                 const response = await savePatientAllergy(buildNoKnownPayload(allergyType));
-                if (!response || response.status === 'success') { notifySuccess('Allergy details saved successfully.'); setRefreshKey((key) => key + 1); }
+                if (!response || response.status === 'success') { triggerPatientDsiRefresh(patientId); notifySuccess('Allergy details saved successfully.'); setRefreshKey((key) => key + 1); }
                 else notifyError(response.message || 'Failed to save allergy data');
             } catch (error) {
                 console.error('Failed to save no-known allergy.', error);
@@ -190,6 +219,7 @@ const PatientAllergies = ({ patientId }) => {
             if (!record) return;
             try {
                 await deletePatientAllergy(buildDeletePayload({ patientId, allergyRecord: record, changeLogNotes: 'An existing allergy "No Known Allergies" has been deleted' }));
+                triggerPatientDsiRefresh(patientId);
                 notifySuccess('Allergy record deleted.');
                 setRefreshKey((key) => key + 1);
             } catch (error) {
@@ -279,26 +309,30 @@ const PatientAllergies = ({ patientId }) => {
         <form id={`pa_allergy_filter_multiple_options_form_id_${patientId}`} className="ignore-auto-save" onSubmit={(event) => { event.preventDefault(); handleApplyFilters(); }}>
           <div className="form-group mb-3">
             <label htmlFor={`pa_allergy_section_allergy_intolerance_type_options_${patientId}`} className="form-label">Allergy Type</label>
-            <select id={`pa_allergy_section_allergy_intolerance_type_options_${patientId}`} className="form-select form-select-sm" value={filterForm.allergyType} onChange={(event) => updateFilter('allergyType', event.target.value)}>
-              <option value="">Select Type</option>
-              {lookups.allergyTypes.map((type) => <option key={type.code} value={type.code}>{type.description}</option>)}
-            </select>
+            <CommonSelect inputId={`pa_allergy_section_allergy_intolerance_type_options_${patientId}`} value={filterForm.allergyType} placeholder="Select Type"
+              onChange={(value) => updateFilter('allergyType', value)}
+              options={lookups.allergyTypes.map((type) => ({ value: type.code, label: type.description }))}/>
           </div>
 
           <div className="mt-3 form-group pc-search-input-container">
-            <PatientAllergyLookupInput id={`pa_allergy_section_allergen_type_${patientId}`} label="Allergy Subtype" conceptCategory="ALST" value={filterForm.subType} disabled={isNkaOrNkdaFilter} onChange={(value) => setFilterForm((previous) => ({ ...previous, subType: value, subTypeCode: '' }))} onSelect={(selected) => setFilterForm((previous) => ({ ...previous, subType: selected.value, subTypeCode: String(selected.code) }))}/>
+            <label htmlFor={`pa_allergy_section_allergen_type_${patientId}`} className="form-label">Allergy Subtype</label>
+            <LookupAsyncSelect inputId={`pa_allergy_section_allergen_type_${patientId}`} loadOptions={loadSubTypeOptions} isDisabled={isNkaOrNkdaFilter}
+              value={filterForm.subType ? { value: filterForm.subTypeCode || filterForm.subType, label: filterForm.subType } : null}
+              onChange={(selected) => setFilterForm((previous) => ({ ...previous, subType: selected ? selected.label : '', subTypeCode: selected ? String(selected.code) : '' }))}/>
           </div>
 
           <div className="mt-3 form-group pc-search-input-container">
-            <PatientAllergyLookupInput id={`pa_allergy_section_allergen_reaction_${patientId}`} label="Reaction" conceptCategory="ALRE" value={filterForm.reaction} disabled={isNkaOrNkdaFilter} onChange={(value) => setFilterForm((previous) => ({ ...previous, reaction: value, reactionCode: '' }))} onSelect={(selected) => setFilterForm((previous) => ({ ...previous, reaction: selected.value, reactionCode: String(selected.code) }))}/>
+            <label htmlFor={`pa_allergy_section_allergen_reaction_${patientId}`} className="form-label">Reaction</label>
+            <LookupAsyncSelect inputId={`pa_allergy_section_allergen_reaction_${patientId}`} loadOptions={loadReactionFilterOptions} isDisabled={isNkaOrNkdaFilter}
+              value={filterForm.reaction ? { value: filterForm.reactionCode || filterForm.reaction, label: filterForm.reaction } : null}
+              onChange={(selected) => setFilterForm((previous) => ({ ...previous, reaction: selected ? selected.label : '', reactionCode: selected ? String(selected.code) : '' }))}/>
           </div>
 
           <div className="mt-3 form-group">
             <label htmlFor={`pa_allergy_section_severity_type_options_${patientId}`} className="form-label">Severity</label>
-            <select id={`pa_allergy_section_severity_type_options_${patientId}`} className="form-select form-select-sm" value={filterForm.severity} disabled={isNkaOrNkdaFilter} onChange={(event) => updateFilter('severity', event.target.value)}>
-              <option value="">Select Severity</option>
-              {lookups.severities.map((severity) => <option key={severity.id} value={severity.id}>{severity.conceptName}</option>)}
-            </select>
+            <CommonSelect inputId={`pa_allergy_section_severity_type_options_${patientId}`} value={filterForm.severity} placeholder="Select Severity" isDisabled={isNkaOrNkdaFilter}
+              onChange={(value) => updateFilter('severity', value)}
+              options={lookups.severities.map((severity) => ({ value: severity.id, label: severity.conceptName }))}/>
           </div>
 
           <div className="pp-reset-apply-button-group mt-4 form-group d-flex justify-content-between">

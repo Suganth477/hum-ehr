@@ -242,6 +242,23 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
     }, [isEditMode, clinicalStatuses]);
     const handleIcdSelect = (item) => {
         setDirty(true);
+        // Clearing the ICD search resets everything derived from it (description, auto-picked
+        // type and the dependent SNOMED list), so a stale SNOMED code can't be saved.
+        if (!item) {
+            setForm((previous) => ({
+                ...previous,
+                icdCode: '',
+                icdDescription: '',
+                diagnosisType: '',
+                snomedCode: '',
+                snomedDescription: '',
+            }));
+            setSnomedOptions([]);
+            setSnomedLocked(false);
+            setNoSnomed(false);
+            clearFieldError('icdCode');
+            return;
+        }
         setForm((previous) => ({
             ...previous,
             icdCode: item.code,
@@ -289,8 +306,11 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
     };
     const validateForm = () => {
         const nextErrors = {};
+        // Legacy pp_patient_problem_icd_code: required → "ICD Code is required." The
+        // allowOnlyProblemLookupData rule ("select from the search list") is now structurally
+        // enforced — the lookup only yields a value when an option is actually picked.
         if (!form.icdCode || !form.icdDescription)
-            nextErrors.icdCode = 'Please select a problem from the ICD search list.';
+            nextErrors.icdCode = 'ICD Code is required.';
         if (!noSnomed && snomedOptions.length > 0 && !form.snomedCode)
             nextErrors.snomedCode = 'SNOMED Code is required.';
         if (!form.diagnosisType)
@@ -378,7 +398,9 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         {/* Row 1 — identification: ICD search · SNOMED code · Type. */}
         <div className="row g-3">
           <div className="col-12 col-sm-6 col-md-4">
-            <ProblemIcdLookupInput id={fieldId('pp_patient_problem_icd_code')} label="Search By ICD Code (or) Description" required value={form.icdCode} disabled={isEditMode} placeholder="ICD Code" onChange={(value) => updateForm('icdCode', value)} onSelect={handleIcdSelect}/>
+            <ProblemIcdLookupInput id={fieldId('pp_patient_problem_icd_code')} label="Search By ICD Code (or) Description" required
+              code={form.icdCode} description={form.icdDescription} disabled={isEditMode} invalid={!!errors.icdCode}
+              placeholder="Type at least 3 characters…" onSelect={handleIcdSelect}/>
             {errors.icdCode && <div className="small text-danger mt-1">{errors.icdCode}</div>}
             {saveError && (<div className={`small mt-1 ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`} id={fieldId('pp_patient_problem_save_error')}>
                 <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}

@@ -3,7 +3,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Dialog } from 'primereact/dialog';
+import Swal from 'sweetalert2';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import { useSectionLock } from '../../../hooks/useSectionLock';
+import { userNow } from '../../../utils/dayjs';
 import {
     buildHospitalizationSavePayload,
     buildHospitalizationValidatePayload,
@@ -21,6 +24,18 @@ import FormStatusFooter from '../../../components/common/FormStatusFooter';
 import PatientProblemsAddEdit from '../problems/PatientProblemsAddEdit';
 
 const OTHER_DISPOSITION = 'OTH';
+// Legacy locks hospitalization under the CARE-STATUS resource code (a hospitalization IS a
+// care-status record of type HOSP) — not a "HOSPITALIZATION" code.
+const CONCURRENT_CODE = 'CARE-STATUS';
+// Legacy notes textarea: maxlength="1000" + the length-indication counter class.
+const NOTES_MAX = 1000;
+
+// Themed confirmation (legacy utility.initJqueryPopUpConfirmationWithSelector /
+// initBootstrapConfirmationPopover) — never a raw window.confirm.
+const swalConfirm = Swal.mixin({
+    customClass: { container: 'pp-swal-container', popup: 'pa-swal-popup', title: 'pa-swal-title', confirmButton: 'pa-swal-confirm', cancelButton: 'pa-swal-cancel' },
+    buttonsStyling: false, showCancelButton: true, reverseButtons: true, allowOutsideClick: false, allowEscapeKey: false,
+});
 
 // Mirrors the legacy jQuery validation rules in patient.ehr.hospitalization.js:
 //   pch_patient_chart_hospitalization_name  → required + noWhitespace
@@ -90,6 +105,18 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
     // Diagnosis chips live outside react-hook-form, so track their edits for the dirty gate.
     const [diagnosisDirty, setDiagnosisDirty] = useState(false);
 
+    // Concurrency lock (existing records only): the hook locks on mount, heartbeats/resumes while
+    // the form is open and releases on close — unless we saved, in which case the save's sessionId
+    // releases it server-side. Another user already holding it shows the warning modal and closes.
+    const { markSaved } = useSectionLock({
+        patientId,
+        resourceNavigationCode: CONCURRENT_CODE,
+        sectionReferenceId: hospitalizationRecord?.id || null,
+        versionId: hospitalizationRecord?.versionId ?? 0,
+        enabled: isEditMode,
+        onLockDenied: () => onClose(false),
+    });
+
     const { control, handleSubmit, watch, formState: { errors, isDirty } } = useForm({
         resolver: zodResolver(hospitalizationSchema),
         defaultValues: buildDefaultValues(hospitalizationRecord),
@@ -98,6 +125,10 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
     });
     const admittedDate = watch('admittedDate');
     const dischargeDisposition = watch('dischargeDisposition');
+    const notesValue = watch('notes');
+    // Upper bound = TODAY IN THE USER'S timezone (legacy utility.loggedInUserDate()), not the
+    // browser's "today" — a browser a day ahead/behind would allow or block the wrong date.
+    const userToday = userNow().format('MM-DD-YYYY');
     const [dob, setDob] = useState('');
     // Patient DOB → lower bound for admitted/discharged dates (legacy data-min).
     useEffect(() => {
@@ -252,10 +283,14 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
         }
     };
 
-    const handleCancel = () => {
-        if (window.confirm('Are you sure about to exit hospitalization form?'))
-            onClose(false);
+    // Legacy back-arrow guard (backButtonProps) vs the Cancel button's own popover — different
+    // wording in the legacy, so keep both.
+    const confirmAndClose = async (title, text) => {
+        const confirmed = await swalConfirm.fire({ title, text, confirmButtonText: 'YES', cancelButtonText: 'NO' });
+        if (confirmed.isConfirmed) onClose(false);
     };
+    const handleBack = () => confirmAndClose('Exit Hospitalization Form', 'Are you sure about to exit hospitalization form?');
+    const handleCancel = () => confirmAndClose('Cancel Hospitalization Form', 'Are you sure about cancel hospitalization form?');
 
     const onSubmit = async (form) => {
         setSaveError(null);
@@ -273,6 +308,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
             const response = await savePatientHospitalization(payload);
             const outcome = getSaveOutcome(response, 'Failed to update hospitalization details. Please try again.');
             if (outcome.ok) {
+                markSaved(); // the save released the lock server-side — skip the unlock on unmount
                 onClose(true);
                 return;
             }
@@ -293,7 +329,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
       <form id={fieldId('pc_patient_hospitalization_add_edit_form')} autoComplete="off" className="care-plan-data-entry" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="row">
           <div className="d-flex align-items-center gap-1">
-            <button type="button" className="btn btn-link p-0 text-dark" id={fieldId('pch_add_edit_back_button')} onClick={handleCancel} aria-label="Back to hospitalization list">
+            <button type="button" className="btn btn-link p-0 text-dark" id={fieldId('pch_add_edit_back_button')} onClick={handleBack} aria-label="Back to hospitalization list">
               <LegacyIcon icon="mdi-arrow-left" className="input-icon-left-align fs-4"/>
             </button>
             <div>
@@ -316,7 +352,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
               <div className="col-12 col-sm-6 col-md-3">
                 <div className="form-group">
                   <label htmlFor={fieldId('pch_patient_chart_hospitalization_admitted_date')}>Admitted Date <span className="mandatory text-danger">*</span></label>
-                  <Controller name="admittedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_admitted_date')} value={field.value} onChange={(value) => { field.onChange(value); setDateRangeError(''); }} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={dob || undefined} maxDate="today"/>)}/>
+                  <Controller name="admittedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_admitted_date')} value={field.value} onChange={(value) => { field.onChange(value); setDateRangeError(''); }} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={dob || undefined} maxDate={userToday}/>)}/>
                   <FieldError message={errors.admittedDate?.message}/>
                   {dateRangeError && <div className="small text-danger mt-1">{dateRangeError}</div>}
                 </div>
@@ -324,7 +360,7 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
               <div className="col-12 col-sm-6 col-md-3">
                 <div className="form-group">
                   <label htmlFor={fieldId('pch_patient_chart_hospitalization_discharged_date')}>Discharged Date</label>
-                  <Controller name="dischargedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_discharged_date')} value={field.value} onChange={field.onChange} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={admittedDate || dob || undefined} maxDate="today"/>)}/>
+                  <Controller name="dischargedDate" control={control} render={({ field }) => (<FlatpickrDateTimeInput id={fieldId('pch_patient_chart_hospitalization_discharged_date')} value={field.value} onChange={field.onChange} enableTime={false} dateFormat="m-d-Y" placeholder="MM-DD-YYYY" minDate={admittedDate || dob || undefined} maxDate={userToday}/>)}/>
                 </div>
               </div>
               <div className="col-12 col-sm-6 col-md-3">
@@ -417,8 +453,11 @@ const PatientHospitalizationAddEdit = ({ patientId, hospitalizationRecord, onClo
             <div className="row m-0 p-0">
               <div className="form-group">
                 <label htmlFor={fieldId('pch_patient_chart_hospitalization_notes')}>Notes <span className="mandatory text-danger">*</span></label>
-                <Controller name="notes" control={control} render={({ field }) => (<textarea id={fieldId('pch_patient_chart_hospitalization_notes')} className="form-control length-indication" {...field}/>)}/>
-                <FieldError message={errors.notes?.message}/>
+                <Controller name="notes" control={control} render={({ field }) => (<textarea id={fieldId('pch_patient_chart_hospitalization_notes')} className="form-control length-indication" maxLength={NOTES_MAX} {...field}/>)}/>
+                <div className="d-flex justify-content-between">
+                  <FieldError message={errors.notes?.message}/>
+                  <label className="text-muted small mb-0 ms-auto">({(notesValue || '').length}/{NOTES_MAX})</label>
+                </div>
               </div>
             </div>
             {saveError && (<div className="row m-0 p-0">

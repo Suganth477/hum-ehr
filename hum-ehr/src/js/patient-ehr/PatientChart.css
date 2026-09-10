@@ -53,13 +53,37 @@
     animation: pd-shimmer 1.4s infinite linear;
 }
 
-/* Patient Demographics Custom Element Selectors */
+/* Patient Demographics Custom Element Selectors — mirrors the current
+   `pc-patient-demographics` block in the legacy ehr-theme-style.css: each detail is a
+   stacked label/value pair, the inline icons are hidden, and the strip takes 90% of the
+   bar with the action menu on the right. */
 .patient-demographics-container-node .pd-patient-demographics-main-container {
     display: flex;
     justify-content: space-between;
     box-shadow: 0px 0 5px var(--app-color14);
     padding: 10px 20px;
     align-items: center;
+    /* Anchor for the "+N More" panel, which is rendered outside the clipping strip. */
+    position: relative;
+}
+
+.patient-demographics-container-node .pd-patient-profile-picture {
+    padding: 0px 8px;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-data-label {
+    color: #8A8A8A;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    font-size: var(--app-font12);
+}
+
+.patient-demographics-container-node .pd-patient-demographics-data-value {
+    font-style: normal;
+    font-weight: 600;
+    color: #49454F !important;
+    line-height: normal;
 }
 
 .patient-demographics-container-node .pd-patient-demographics-details {
@@ -72,19 +96,21 @@
 .patient-demographics-container-node .pd-patient-demographics-list {
     display: flex;
     flex-wrap: wrap;
-    width: 80%;
+    width: 90%;
 }
 
 .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item {
     border-right: 2px solid var(--app-color13);
-    padding: 0px 10px;
+    padding: 0px 12px !important;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-icon {
-    font-size: var(--app-font24);
+    font-size: var(--app-font18);
     padding: 0px 5px;
+    display: none;
 }
 
 .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data {
@@ -95,6 +121,191 @@
 .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
     font-weight: bold !important;
     color: var(--app-color6);
+}
+
+/* Active-alert highlight on the DSI trigger (legacy .alert-message). */
+.patient-demographics-container-node .patient-chart-dsi-alert-list-btn.alert-message {
+    color: var(--app-color31) !important;
+}
+
+.patient-demographics-container-node .patient-chart-dsi-alert-list-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Action menu rows (legacy renders icon + label inside each <li>). */
+.patient-demographics-container-node .pd-patient-action-items {
+    min-width: 200px;
+}
+
+.patient-demographics-container-node .pd-patient-action-items li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.patient-demographics-container-node .pd-patient-action-items li:hover {
+    background-color: var(--app-color13);
+}
+
+/* ---- Single-line strip + "+N More" overflow ---------------------------------
+   The bar NEVER wraps to a second line at any width. `useOverflowCount` measures how
+   many cells fit and the rest move into the More panel, so the bar keeps its height
+   from desktop down to ~320px. These rules live HERE (not in styles/responsive.css)
+   because this stylesheet ships in the lazily loaded patient-chart chunk and is
+   injected after it — see RESPONSIVE.md ("Load order").
+   ---------------------------------------------------------------------------- */
+.patient-demographics-container-node .pd-patient-demographics-main-container {
+    flex-wrap: nowrap;
+}
+
+.patient-demographics-container-node .pd-patient-demographics-details {
+    flex-wrap: nowrap;
+    min-width: 0;
+    gap: 8px;
+}
+
+/* flex-basis 0 (not `auto`) so clientWidth reports the space the strip was allotted
+   rather than the width of its content — that is what the measuring hook reads. */
+.patient-demographics-container-node .pd-patient-demographics-list {
+    flex: 1 1 0%;
+    width: auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    align-items: center;
+}
+
+/* Cells are measured, never squeezed. */
+.patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* A very long patient name is the one value allowed to ellipsis, so it can't push
+   every other cell into the More panel on a narrow screen. */
+.patient-demographics-container-node .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
+    display: block;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Off-layout copy of every cell, used only for width measurement. */
+.patient-demographics-container-node .pd-measure-row {
+    position: absolute;
+    top: -9999px;
+    left: 0;
+    width: max-content;
+    visibility: hidden;
+    pointer-events: none;
+    overflow: visible;
+}
+
+/* ---- "+N More" toggle + panel ---- */
+.patient-demographics-container-node .pd-patient-demographics-more {
+    position: relative;
+    flex-shrink: 0;
+    padding-left: 12px;
+}
+
+.patient-demographics-container-node .pd-more-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 84px;
+    padding: 3px 8px;
+    border: 1px solid var(--app-color13);
+    border-radius: var(--app-border-radius20);
+    background-color: var(--app-color16);
+    color: var(--app-color2);
+    font-size: var(--app-font12);
+    font-weight: 600;
+    line-height: normal;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.patient-demographics-container-node .pd-more-toggle:hover,
+.patient-demographics-container-node .pd-more-toggle[aria-expanded="true"] {
+    border-color: var(--app-color2);
+}
+
+/* Anchored to .pd-patient-demographics-main-container (position: relative) rather than
+   to the toggle, so the clipping strip can't hide it. */
+.patient-demographics-container-node .pd-more-panel {
+    position: absolute;
+    top: calc(100% - 4px);
+    right: 16px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 220px;
+    max-width: 320px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 12px;
+    border: 1px solid var(--app-color13);
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0px 4px 12px var(--app-color14);
+}
+
+/* Inside the panel the cells stack: no dividers, no fixed height, values may wrap.
+   These repeat the label/value box because the panel sits OUTSIDE
+   `.pd-patient-demographics-list`, so the strip's descendant rules don't reach it. */
+.patient-demographics-container-node .pd-more-panel .pd-patient-demographics-list-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-right: 0px;
+    padding: 0px !important;
+    white-space: normal;
+    width: 100%;
+}
+
+.patient-demographics-container-node .pd-more-panel .pd-patient-demographics-data {
+    font-size: var(--app-font14);
+    color: var(--app-color11);
+}
+
+.patient-demographics-container-node .pd-more-panel .pd-patient-demographics-icon {
+    display: none;
+}
+
+.patient-demographics-container-node .pd-more-panel .pd-patient-demographics-data,
+.patient-demographics-container-node .pd-more-panel .pd-patient-demographics-data-value {
+    overflow-wrap: anywhere;
+}
+
+.patient-demographics-container-node .pd-more-panel .pd-patient-demographics-data.patient-name {
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+}
+
+/* Tighter chrome on phones — the strip layout itself is width-independent. */
+@media (max-width: 767.98px) {
+    .patient-demographics-container-node .pd-patient-demographics-main-container {
+        padding: 8px 10px;
+    }
+
+    .patient-demographics-container-node .pd-patient-profile-picture {
+        padding: 0px;
+    }
+
+    .patient-demographics-container-node .pd-patient-demographics-list .pd-patient-demographics-list-item {
+        padding: 0px 8px !important;
+    }
+
+    .patient-demographics-container-node .pd-patient-demographics-list-item .pd-patient-demographics-data.patient-name {
+        max-width: 150px;
+    }
 }
 
 /* Patient Chart Side Menu Custom Element Selectors */
@@ -187,7 +398,9 @@
 .patient-chart-search-input-icon-container {
     width: 470px;
     position: relative;
-    margin-left: 470px;
+    /* The patient-list header now centres the search box between the Active/Deactivated
+       toggle and the Filter button, so the fixed left offset is gone (legacy commented
+       out `margin-left: 470px` in active-patient.jsp for the same reason). */
 }
 
 .patient-chart-header-search-input-group {

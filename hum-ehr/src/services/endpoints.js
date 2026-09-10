@@ -20,12 +20,15 @@ const ENDPOINTS = {
 	patient: {
 		details: '/patient/details',
 		activeList: '/patient/list/all',
-		// Lightweight name typeahead (legacy apiUtility.fetchActivePatientList):
-		// POST form { patientName } -> [{ patientId, patientName, dob, ... }].
-		// Distinct from `activeList`, which is the DataTables patient grid.
 		activeLookup: '/active/patients/list',
+		deactivatedList: '/user/list',
 		ccdDownload: '/patient/ccd/download',
 		activeCount: '/patient/active/count/',
+	},
+	// DSI (Decision Support Intervention) alerts — legacy api.utility.js
+	// API_END_POINT_URL.patientDsiAlertsList.
+	dsi: {
+		alertsSearch: '/intervention/alerts/search',
 	},
 	allergy: {
 		list: (recordType = 'active') => `/allergies/${recordType}`,
