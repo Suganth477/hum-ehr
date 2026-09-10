@@ -20,8 +20,16 @@ const ENDPOINTS = {
 	patient: {
 		details: '/patient/details',
 		activeList: '/patient/list/all',
+		// Deactivated patients come from the user list (userRole CMSPATIENT, status N) —
+		// legacy api.utility.js API_END_POINT_URL.deactivatedPatientsList.
+		deactivatedList: '/user/list',
 		ccdDownload: '/patient/ccd/download',
 		activeCount: '/patient/active/count/',
+	},
+	// DSI (Decision Support Intervention) alerts — legacy api.utility.js
+	// API_END_POINT_URL.patientDsiAlertsList.
+	dsi: {
+		alertsSearch: '/intervention/alerts/search',
 	},
 	allergy: {
 		list: (recordType = 'active') => `/allergies/${recordType}`,

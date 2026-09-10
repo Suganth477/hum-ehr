@@ -31,10 +31,12 @@ import {
     faCircleInfo, faCloudArrowUp, faEllipsis, faEnvelope, faTriangleExclamation, faFilter,
     faHandDots, faHouse, faMagnifyingGlass, faMessage, faPen, faPencil, faPeopleArrows, faPhone,
     faCircleQuestion, faRotate, faXmark, faTrash, faTrashCan, faUser,
+    faShareNodes, faFileImport, faFileExport, faPaperPlane, faFileCircleCheck, faCircleDown,
+    faUserSlash, faArrowUpRightFromSquare, faWandMagicSparkles,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     faFilePowerpoint, faFileCode, faFileZipper, faFilePdf, faFileWord, faFileExcel, faFileImage,
-    faFileLines,
+    faFileLines, faEye as faEyeRegular, faCalendarPlus as faCalendarPlusRegular,
 } from '@fortawesome/free-regular-svg-icons';
 
 // Original class -> Material Design path (24x24 viewBox).
@@ -91,6 +93,18 @@ const FA_DEFS = {
     'fa-user': faUser, 'fa-file-powerpoint': faFilePowerpoint, 'fa-file-code': faFileCode,
     'fa-file-archive': faFileZipper, 'fa-file-pdf': faFilePdf, 'fa-file-word': faFileWord,
     'fa-file-excel': faFileExcel, 'fa-file-image': faFileImage, 'fa-file-lines': faFileLines,
+    // Patient-list action menu (legacy active.patient.js _displayAllPossibleActionIcons).
+    // `fa-regular` variants keep the original outline glyph.
+    'fa-eye': faEyeRegular, 'fa-calendar-plus': faCalendarPlusRegular,
+    'fa-share-nodes': faShareNodes, 'fa-file-import': faFileImport, 'fa-file-export': faFileExport,
+    'fa-paper-plane': faPaperPlane, 'fa-circle-down': faCircleDown, 'fa-user-slash': faUserSlash,
+    // `fa-file-certificate` is FontAwesome Pro-only (absent from the free kit this
+    // app ships, so it never rendered originally) — nearest free equivalent.
+    'fa-file-certificate': faFileCircleCheck,
+    // Patient demographics bar (legacy patient.chart.js PatientDemographics).
+    // `fa-sparkles` is Pro-only; `fa-wand-magic-sparkles` is the free equivalent.
+    'fa-sparkles': faWandMagicSparkles,
+    'fa-arrow-up-right-from-square': faArrowUpRightFromSquare,
 };
 
 /** Resolves an original icon class to a `{ viewBox, d }` renderable, or null. */
