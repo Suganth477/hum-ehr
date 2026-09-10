@@ -85,6 +85,75 @@ correct specificity, scope it under a `body.<state>` class and/or add
    so its grid is authoritative. (Allergy's `col-md-4` was unaffected because it
    has no plain `col-12`.)
 
+## Load order — which stylesheet may own a breakpoint
+
+`App.jsx` imports `App.css` then `responsive.css`. A **component** stylesheet
+imported by a lazily loaded screen (e.g. `PatientChart.css`) is injected when its
+chunk loads, i.e. **after** `responsive.css` — so at equal specificity the
+component always wins, and it even beats an `!important` written in
+`responsive.css` if its own base rule is `!important` too.
+
+Therefore:
+
+| Rule targets | Put its breakpoints in |
+| --- | --- |
+| Eagerly loaded shell (`App.css` classes/ids — header, quick-access nav, side nav, offcanvas, body container) | `responsive.css` |
+| Classes owned by a lazily loaded component's own stylesheet | **that component's CSS**, next to its base rules |
+
+Leave a one-line pointer in the other file so the pair stays discoverable — see
+the note in `responsive.css`'s `< lg` block and the header comment on
+`PatientChart.css`'s media queries.
+
+## Container patterns (the two reference implementations)
+
+### 1. Overflow row — scroll, never wrap
+
+For a horizontal bar whose content can outgrow the width (tab strips, icon
+clusters, toolbars). Wrapping makes a fixed-height bar spill over the content
+below it, which is exactly how the legacy quick-access nav broke.
+Reference: `#application_quick_access_nav_container` in `responsive.css`.
+
+- Desktop: unchanged.
+- `< lg`: `flex-wrap: nowrap !important` on the bar, `min-width: 0` on the
+  growing side (the #1 overflow fix, above), `flex-shrink: 0` on the pinned side.
+  Give the growing side `overflow-x: auto` and its items `flex-shrink: 0` so the
+  strip scrolls instead of squashing labels to nothing. Compact the pinned side
+  (smaller icon font, tighter margins) to buy the growing side room.
+- `< md`: when one row can no longer hold both, **stack into two full-width rows**
+  — primary nav on top, actions underneath, each independently scrollable. Also
+  release any fixed height (`height: inherit` → `height: auto !important`) or the
+  second row is clipped. Prefer this over `display: none`: hiding a bar of
+  actions removes working features (the Message Center chat lives in this one).
+
+### 2. Detail strip — one line at every width, overflow into "+N More"
+
+For a dense record header of label/value cells (patient demographics, and any
+"summary strip" above a record). The bar **never wraps to a second line** — its
+height is identical at 320px and 2560px; cells that don't fit collapse behind a
+"+N More" toggle, the pattern every other web app uses for a crowded toolbar.
+Reference: `.patient-demographics-container-node` in `PatientChart.css` +
+`src/hooks/useOverflowCount.js`.
+
+- `useOverflowCount(items.length, { reserve })` measures how many cells fit and
+  returns `visibleCount`. Render `items.slice(0, visibleCount)` in the strip,
+  the rest in the More panel, and **all** of them in a visually-hidden measure
+  row (`position:absolute; top:-9999px; visibility:hidden; width:max-content`) —
+  cells inside the panel have no width to measure.
+- The measured strip needs `flex: 1 1 0%; min-width: 0; flex-wrap: nowrap;
+  overflow: hidden`. Basis `0` (not `auto`) makes `clientWidth` report the space
+  the strip was *allotted*, so the observer can't feed its own content back in.
+- **Render the panel OUTSIDE the strip**, anchored to the bar
+  (`position: relative` on the bar, absolute panel). Inside it, the strip's
+  `overflow: hidden` clips the panel away completely.
+- A panel outside the strip also drops every
+  `.strip .cell` descendant rule — restate the cell's box (flex column, padding,
+  font) under `.panel .cell` or labels and values collapse onto one line.
+- Cap the one identifying value (`text-overflow: ellipsis`) so a long name can't
+  push every other cell into the panel.
+- Attach the observer with a **callback ref**, never `useRef` — a component that
+  renders a skeleton first mounts with the ref null, the effect runs against
+  nothing, and the strip then never reacts to resize.
+
 ## Checklist for a new / migrated screen
 
 - [ ] Test at 360px, 768px, 1280px.

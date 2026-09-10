@@ -53,9 +53,11 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 			</div>
 
 			<div id="application_quick_access_nav_container_2">
+				{/* The patient-list filter now opens from the inline "Filter" pill in the list
+				    header; legacy keeps this shortcut in the layout but marks it `hide`. */}
 				<div className={`list-filter-access-icon ${activeTab === 'patient_list' ? '' : 'd-none'}`}>
 					<ul className="list-unstyled m-0 me-1 hh-ehr-color1">
-						<li className="app-quick-access-icon-list" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+						<li className="app-quick-access-icon-list filter-shortcut-trigger hide" data-bs-toggle="offcanvas" data-bs-target="#patient_list_filter_offcanvas" aria-controls="patient_list_filter_offcanvas">
 							<LegacyIcon icon="mdi-filter-variant" />
 						</li>
 					</ul>

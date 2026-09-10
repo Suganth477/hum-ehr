@@ -11,15 +11,36 @@
     animation: apl-shimmer 1.4s infinite linear;
 }
 
+/* Tab strip behaves like an editor tab bar: one line only, and when the open
+   patient tabs outgrow the width the strip scrolls horizontally instead of
+   wrapping onto a second row. */
 #application_quick_access_nav_container_1 .patient-list-nav-tabs {
     display: flex;
     align-items: flex-start;
     height: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
+/* A 3px track so the scrollbar doesn't eat into the 36px row. */
+#application_quick_access_nav_container_1 .patient-list-nav-tabs::-webkit-scrollbar {
+    height: 3px;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs::-webkit-scrollbar-thumb {
+    background: var(--app-color15);
+    border-radius: var(--app-border-radius10);
+}
+
+/* Tabs size to their content and never shrink — no % width, so a tab does not
+   rescale with the viewport and its label can't be squeezed onto two lines. */
 #application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item {
     height: 100%;
-    width: 9%;
+    width: auto;
+    flex: 0 0 auto;
 }
 
 #application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-item.dropdown-menu-list-group {
@@ -63,6 +84,21 @@
     color: var(--app-color9);
     justify-content: space-between;
     width: 100%;
+    /* Content-width tabs leave no slack, so space the label from the badge / close icon. */
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/* "Patient List" is a fixed label — it must stay on one line (a % width used to
+   break it onto two: "Patient" / "List"). The badge keeps its size. */
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-list-label,
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .badge {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+#application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-list-nav-item-close-icon {
+    flex-shrink: 0;
 }
 
 #application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .badge {
@@ -70,8 +106,12 @@
     background-color: #fff !important; 
 }
 
+/* The patient name is the only elastic part of a tab. It carries Bootstrap's
+   `text-truncate` in the markup (overflow/ellipsis/nowrap), which needs a width
+   bound to bite — this max-width is it, so a long name ellipsises instead of
+   stretching the tab or wrapping. */
 #application_quick_access_nav_container_1 .patient-list-nav-tabs .patient-list-nav-link .patient-name:not(.patient-list-label) {
-    max-width: 70px;
+    max-width: 140px;
     display: inline-block;
     color: var(--app-color9);
 }
@@ -111,4 +151,158 @@
 
 .custom-pointer {
     cursor: pointer !important;
+}
+/* ============ Patient list header (legacy active-patient.jsp <style>) ============ */
+
+/* Every header control shares one height so the toggle, search box, Filter pill and
+   Create-New-Patient button line up. */
+.patient-chart-header-main-container input,
+.patient-chart-header-main-container select,
+.patient-chart-header-main-container button,
+.patient-chart-header-main-container .ehr-patient-filter-icon,
+.patient-chart-header-main-container .active-history-toggle-group-list {
+    height: 40px !important;
+}
+
+.active-deactivate-patient-tab {
+    padding: 12px !important;
+}
+
+/* Search box (legacy active-patient.jsp). These rules also live in PatientChart.css for
+   the chart's own search fields, but that stylesheet ships with the lazily loaded chart
+   bundle — the list route needs its own copy. */
+.patient-chart-header-search-input-group {
+    flex-grow: 1;
+}
+
+.patient-chart-search-input-icon-container {
+    width: 470px;
+    position: relative;
+}
+
+.patient-chart-search-input-icon-container .input-icon,
+.patient-chart-search-input-icon-container .mdi-close {
+    color: var(--app-color21);
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    right: 20px;
+    margin: 0px;
+}
+
+#patient_chart_patient_list_search_input {
+    background-color: var(--app-color16);
+    border: none;
+    border-radius: var(--app-border-radius20);
+    font-size: var(--app-font16) !important;
+}
+
+/* Searchable-column select, rendered as a pill inside the right edge of the search box. */
+#search_patients_by_column {
+    display: flex;
+    padding: 6px;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    border-radius: 20px;
+    padding-left: 8px;
+    background: #E6FDFF;
+    color: #089BAB;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 150%; /* 18px */
+}
+
+.patient-chart-header-main-container #search_patients_by_column > option {
+    color: #000;
+    background-color: #fff;
+}
+
+/* The column pill overlays the right edge of the input (as in legacy), so keep the
+   typed text clear of it. */
+#patient_chart_patient_list_search_input {
+    padding-right: 140px;
+}
+
+/* Filter pill (legacy inline styles on .ehr-patient-filter-icon). */
+.ehr-patient-filter-icon {
+    cursor: pointer;
+    border: 1px solid #D7DDE3;
+    border-radius: 8px;
+    padding: 2px 4px;
+}
+
+.ehr-orders-filters-applied-badge {
+    background-color: #FFECEC;
+    color: #D82F2F;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Legacy renders the patient name as plain dark body text with a pointer cursor
+   (a div.table-data.active-patient-name-link), not as a blue anchor. */
+.active-patient-name-link.btn-link {
+    color: var(--app-color20);
+    cursor: pointer;
+    text-align: left;
+    vertical-align: baseline;
+}
+
+.active-patient-name-link.btn-link:hover,
+.active-patient-name-link.btn-link:focus {
+    color: var(--app-color2);
+    box-shadow: none;
+}
+
+/* Legacy cell rhythm: taller rows than the PrimeReact theme's 8px default. */
+.active-patient-table .p-datatable-thead > tr > th,
+.active-patient-table .p-datatable-tbody > tr > td {
+    padding: 13px 8px;
+}
+
+/* Row action menu — legacy sets min-width inline with !important. */
+.patient-action-items .action-icon-dropdown-menu-list {
+    min-width: 200px !important;
+}
+
+/* Legacy DataTables footer: rows-per-page + "Showing x to y of n entries" on the left,
+   page links on the right. */
+.active-patient-table .p-paginator {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.active-patient-table .p-paginator .p-paginator-current {
+    margin-right: auto;
+}
+
+/* Reset / Apply pinned to the bottom corners of the filter panel while the body scrolls */
+.patient-list-filter-offcanvas-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.patient-list-filter-offcanvas-container .patient-list-filter-sticky-footer {
+    position: sticky;
+    bottom: 0px;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    box-shadow: 0px -2px 6px var(--app-color36);
+    z-index: 2;
+    border-top: 0.8px solid #E5E7EB;
+    background: #F9FAFB;
+}
+
+.patient-list-filter-offcanvas-container .patient-list-filter-sticky-footer .btn {
+    min-width: 90px;
 }

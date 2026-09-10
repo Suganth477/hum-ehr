@@ -50,7 +50,12 @@ const readMemory = () => {
 };
 const App = () => {
     const [loading, setLoading] = useState(true);
-    const hasLoggedIn = useRef(false);
+    // Holds the in-flight dev login so StrictMode's second effect pass awaits the same
+    // request instead of falling through. With a plain `hasLoggedIn` boolean the second
+    // pass returned early and cleared `loading`, so the shell rendered (and its lookups
+    // fired) before the token existed — the first 401 then wiped the cookie and bounced
+    // the app to /logout on every cold load.
+    const loginRequest = useRef(null);
     const dispatch = useAppDispatch();
     const [openTabs, setOpenTabs] = useState([]);
     const [activeTab, setActiveTab] = useState('patient_list');
@@ -66,7 +71,7 @@ const App = () => {
                 setActiveTab(currentlyActive.patientId);
         };
         const initializeSession = async () => {
-            if (getAuthToken() || hasLoggedIn.current) {
+            if (getAuthToken()) {
                 restorePatientTabs();
                 setLoading(false);
                 return;
@@ -80,13 +85,13 @@ const App = () => {
                 setLoading(false);
                 return;
             }
-            hasLoggedIn.current = true;
+            loginRequest.current = loginRequest.current || apiPost('/login-web', {
+                username: devUsername,
+                password: devPassword,
+                isWebLogin: 'Y',
+            });
             try {
-                const loginResponse = await apiPost('/login-web', {
-                    username: devUsername,
-                    password: devPassword,
-                    isWebLogin: 'Y',
-                });
+                const loginResponse = await loginRequest.current;
                 storeAuthToken(loginResponse?.data?.token);
                 dispatch(setCredentials({ user: loginResponse?.data?.user, token: loginResponse?.data?.token }));
                 restorePatientTabs();
