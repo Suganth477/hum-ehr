@@ -1,5 +1,13 @@
 import ENDPOINTS from './endpoints';
 import { apiPost } from './apiClient';
+import {
+	getCarePlanChangeLogSessionId,
+	getCurrentSessionChangeLogMessagesForSection,
+} from './changeLogService';
+import patientCache from '../utils/patientCache';
+
+// The allergies section files its audit trail under the "ALLERGY" change-log section.
+const CHANGE_LOG_SECTION = 'ALLERGY';
 export const normalizeResponseList = (response) => {
 	if (!response)
 		return [];
@@ -31,14 +39,18 @@ export const fetchPatientAllergies = async ({ patientId, recordType = 'active', 
 export const savePatientAllergy = (payload) => apiPost(ENDPOINTS.allergy.save, payload);
 export const deletePatientAllergy = (payload) => apiPost(ENDPOINTS.allergy.invalid, payload);
 export const recoverPatientAllergy = (payload) => apiPost(ENDPOINTS.allergy.recover, payload);
+// Delete/recover payload (legacy deletePatientAllergyRecordParam): the change-log message is
+// accumulated across the session + grouped under logId, matching the ALLERGY save. careplanId
+// falls back to the cached patient details so it's never null.
 const buildStatusChangePayload = (activeFlag, { patientId, allergyRecord, changeLogNotes = '' }) => ({
 	activeFlag,
 	patientId,
-	careplanId: allergyRecord?.careplanId ?? null,
+	careplanId: allergyRecord?.careplanId ?? patientCache.get(`${patientId}_details`)?.carePlanId ?? null,
 	allergyId: allergyRecord?.allergyId,
 	lastEffectiveDate: allergyRecord?.lastEffectiveDate ?? null,
+	logId: getCarePlanChangeLogSessionId(CHANGE_LOG_SECTION, patientId),
 	PatientLogMessageUserInput: changeLogNotes,
-	PatientLogMessage: changeLogNotes,
+	PatientLogMessage: getCurrentSessionChangeLogMessagesForSection(CHANGE_LOG_SECTION, changeLogNotes, allergyRecord?.allergyId, patientId),
 });
 export const buildDeletePayload = (args) => buildStatusChangePayload('Y', args);
 export const buildRecoverPayload = (args) => buildStatusChangePayload('N', args);

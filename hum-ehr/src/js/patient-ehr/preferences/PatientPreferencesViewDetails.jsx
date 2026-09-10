@@ -1,12 +1,24 @@
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 import {
-    PREFERENCES_DESC_MAP, fetchPreferenceAttachmentFile, fetchLinkedAdvanceDirectiveDocs,
+    PREFERENCES_DESC_MAP, PREFERENCES_CONCURRENT_CODE, fetchPreferenceAttachmentFile,
+    fetchLinkedAdvanceDirectiveDocs, fetchPreferencesList, savePreference, buildPreferenceDeletePayload,
 } from '../../../services/preferencesService';
+import { checkItIsNewRecordOrEditRecord } from '../../../services/sessionLockService';
 import '../../../components/common/ContentLoader.css';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import DetailField from '../../../components/common/DetailField';
 import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
+import AdvanceDirectiveDeleteModal from './AdvanceDirectiveDeleteModal';
+
+const swalTheme = Swal.mixin({
+    customClass: { popup: 'pp-swal-popup', title: 'pp-swal-title', confirmButton: 'pp-swal-confirm', cancelButton: 'pp-swal-cancel' },
+    buttonsStyling: false,
+    showCancelButton: true,
+    reverseButtons: false,
+    allowOutsideClick: false,
+});
 
 const NOTES_MAX = 200;
 
@@ -34,10 +46,12 @@ const openBase64 = (base64, fileName, fileFormat) => {
  * Date & Time, Recorded Date & Time and the deleted-reason row. Edit is available on active,
  * non-deleted records.
  */
-const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lookups, onEdit }) => {
+const PatientPreferencesViewDetails = ({ patientId, recordType, preferencesType, record, lookups, treatmentLookups, onEdit, onDeleted }) => {
     const [expanded, setExpanded] = useState(false);
     const [linkedDocs, setLinkedDocs] = useState({}); // adId → { open, files, loading }
-    const { notifyError } = useNotify();
+    const [adModal, setAdModal] = useState({ open: false, linked: [] });
+    const [deleting, setDeleting] = useState(false);
+    const { notifyError, notifySuccess } = useNotify();
 
     if (!record)
         return (<div className="preferences-details-main-container show-details-main-container list-wrapper my-5" style={{ padding: '30px 20px', textAlign: 'center' }}>
@@ -53,6 +67,40 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
     const notesText = notesTooLong && !expanded ? notes.slice(0, NOTES_MAX) : (notes || '-');
     const isDeleted = record.invalidFlag === 'Y';
     const canEdit = recordType === 'active';
+    const canDelete = recordType === 'active' && !isDeleted;
+
+    // Soft-delete under a DELETE concurrency lock (legacy deletePreferenceRecord). deletePreferenceCode
+    // is set only when the user chose, in the Advance-Directive prompt, to also inactivate linked TPs.
+    const performDelete = async (deletePreferenceCode) => {
+        setDeleting(true);
+        try {
+            const lock = await checkItIsNewRecordOrEditRecord(patientId, PREFERENCES_CONCURRENT_CODE[preferencesType], record.id, record.versionId ?? 0, 'DELETE');
+            if (lock?.status !== 'success') return; // another user holds the lock — warning modal shown
+            const response = await savePreference(preferencesType, buildPreferenceDeletePayload(record, deletePreferenceCode));
+            if (response?.status !== 'success') { notifyError(response?.message || `Failed to delete ${PREFERENCES_DESC_MAP[preferencesType]}. Please try again.`); return; }
+            notifySuccess(`${PREFERENCES_DESC_MAP[preferencesType]} deleted successfully.`);
+            onDeleted?.();
+        } catch (error) {
+            console.error('Failed to delete preference.', error);
+            notifyError(error?.message || `Failed to delete ${PREFERENCES_DESC_MAP[preferencesType]}. Please try again.`);
+        } finally { setDeleting(false); }
+    };
+
+    // Legacy handleDeletePreferencesIconClick → confirmDeletePreference: confirm first; for an
+    // advance directive with active linked treatment preferences, prompt whether to inactivate them too.
+    const handleDelete = async () => {
+        const typeText = (PREFERENCES_DESC_MAP[preferencesType] || 'Preferences').replace(/s$/, '');
+        const confirm = await swalTheme.fire({ title: `Delete ${typeText}`, text: `Are you sure about deleting the ${typeText.toLowerCase()}?`, confirmButtonText: 'YES', cancelButtonText: 'NO' });
+        if (!confirm.isConfirmed) return;
+        if (preferencesType === 'advance-directives') {
+            try {
+                const { records } = await fetchPreferencesList({ patientId, recordType: 'active', preferencesType: 'treatment-preferences', advanceDirectiveId: record.id });
+                if (records && records.length) { setAdModal({ open: true, linked: records }); return; }
+            }
+            catch (error) { console.error('Failed to check linked treatment preferences.', error); }
+        }
+        performDelete(null);
+    };
 
     const viewAttachment = async (att) => {
         const inline = att.fileData || att.file || att.encodedData || att.data;
@@ -81,14 +129,20 @@ const PatientPreferencesViewDetails = ({ recordType, preferencesType, record, lo
 
     return (<div className="preferences-details-main-container show-details-main-container">
       <div className="row mx-3 my-3 mb-3">
-        <div className="col-md-11 view-preferences-name fw-bold patient-chart-list-selected-item-title text-capitalize">
+        <div className="col-md-10 view-preferences-name fw-bold patient-chart-list-selected-item-title text-capitalize">
           {title}
           {isDeleted && <DeletedRecordBadge inline/>}
         </div>
-        <div className="col-md-1 d-flex justify-content-end gap-2 preferences-action-container">
+        <div className="col-md-2 d-flex justify-content-end gap-2 preferences-action-container preferences-action-icons">
           {canEdit && !isDeleted && <LegacyIcon icon="mdi-pencil" className="edit-preferences-icon" role="button" title={`Edit ${PREFERENCES_DESC_MAP[preferencesType] || 'Preference'}`} onClick={() => onEdit(record)}/>}
+          {canDelete && <LegacyIcon icon="mdi-delete" className={`delete-preferences-icon${deleting ? ' disabled' : ''}`} role="button" title={`Delete ${PREFERENCES_DESC_MAP[preferencesType] || 'Preference'}`} onClick={deleting ? undefined : handleDelete}/>}
         </div>
       </div>
+
+      <AdvanceDirectiveDeleteModal visible={adModal.open} titleLabel={title} actionText="Delete" confirmLabel="Delete" confirmVariant="danger"
+        linkedPreferences={adModal.linked} treatmentLookups={treatmentLookups}
+        onHide={() => setAdModal({ open: false, linked: [] })}
+        onConfirm={(code) => { setAdModal({ open: false, linked: [] }); performDelete(code); }}/>
 
       <div className="show-details-data-container custom-scrollbar">
         <div className="row mx-3 my-4">

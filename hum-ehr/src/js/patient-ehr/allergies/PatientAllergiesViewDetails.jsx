@@ -1,5 +1,12 @@
 import Swal from 'sweetalert2';
 import { buildDeletePayload, buildRecoverPayload, deletePatientAllergy, recoverPatientAllergy } from '../../../services/allergyService';
+import { checkItIsNewRecordOrEditRecord } from '../../../services/sessionLockService';
+import { triggerPatientDsiRefresh } from '../../../services/patientService';
+import {
+    checkAndSetRecordIdInCurrentSessionForLog,
+    getRecordIdMessageInCurrentSessionForLog,
+    setCarePlanLogSessionId,
+} from '../../../services/changeLogService';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import DetailField from '../../../components/common/DetailField';
@@ -47,8 +54,17 @@ const PatientAllergiesViewDetails = ({ patientId, record, recordType, onEdit, on
     const handleDelete = async () => {
         const confirm = await swalTheme.fire({ title: 'Delete Allergy Record', text: 'Are you sure about deleting the allergy record?', confirmButtonText: 'YES', cancelButtonText: 'NO' });
         if (!confirm.isConfirmed) return;
+        // Legacy keys the delete change-log message off the allergy TYPE, reusing/rewriting any
+        // message already tracked for this record in the session.
+        const changeLogNotes = getRecordIdMessageInCurrentSessionForLog('ALLERGY', record.allergyId, { name: record.allergyType }, patientId, 'DELETE');
         try {
-            await deletePatientAllergy(buildDeletePayload({ patientId, allergyRecord: record, changeLogNotes: `An existing allergy "${record.allergyType}" has been deleted` }));
+            // Concurrency check before deleting (legacy locks with action "DELETE").
+            const lock = await checkItIsNewRecordOrEditRecord(patientId, 'ALLERGY', record.allergyId, record.versionId ?? 0, 'DELETE');
+            if (lock?.status !== 'success') return; // the warning modal was shown
+            const response = await deletePatientAllergy(buildDeletePayload({ patientId, allergyRecord: record, changeLogNotes }));
+            setCarePlanLogSessionId('ALLERGY', response?.logId, patientId);
+            checkAndSetRecordIdInCurrentSessionForLog('ALLERGY', record.allergyId, changeLogNotes, 'OLD', patientId);
+            triggerPatientDsiRefresh(patientId); // a deleted drug allergy can clear a DSI alert
             notifySuccess('Allergy record deleted.');
             onDeleted?.();
         } catch (error) {
@@ -59,8 +75,12 @@ const PatientAllergiesViewDetails = ({ patientId, record, recordType, onEdit, on
     const handleRecover = async () => {
         const confirm = await swalTheme.fire({ title: 'Recover Allergy Record', text: 'Are you sure about recovering this allergy record?', confirmButtonText: 'YES', cancelButtonText: 'NO' });
         if (!confirm.isConfirmed) return;
+        const changeLogNotes = `An existing allergy "${record.allergyType}" has been recovered`;
         try {
-            await recoverPatientAllergy(buildRecoverPayload({ patientId, allergyRecord: record, changeLogNotes: `An existing allergy "${record.allergyType}" has been recovered` }));
+            const response = await recoverPatientAllergy(buildRecoverPayload({ patientId, allergyRecord: record, changeLogNotes }));
+            setCarePlanLogSessionId('ALLERGY', response?.logId, patientId);
+            checkAndSetRecordIdInCurrentSessionForLog('ALLERGY', record.allergyId, changeLogNotes, 'OLD', patientId);
+            triggerPatientDsiRefresh(patientId);
             notifySuccess('Allergy record recovered.');
             onDeleted?.();
         } catch (error) {

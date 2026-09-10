@@ -6,10 +6,12 @@ import { LegacyIcon } from '../../../components/common/CustomIcons';
 import { useNotify } from '../../../context/NotificationContext';
 import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
 
-const relativeTime = (value) => {
+// Legacy list shows the DATE only (MM-DD-YYYY, no time, no relative): effective date in the
+// Active view, last effective date in History (constructPreferencesList).
+const dateOnly = (value) => {
     if (!value) return '';
     const parsed = moment(value, ['MM-DD-YYYY hh:mm A', 'MM-DD-YYYY', moment.ISO_8601], true);
-    return parsed.isValid() ? parsed.fromNow() : value;
+    return parsed.isValid() ? parsed.format('MM-DD-YYYY') : value;
 };
 
 /**
@@ -68,7 +70,7 @@ const PatientPreferencesList = ({ patientId, recordType, preferencesType, lookup
         return (<div key={record.id} className={`row each-preferences-detail-container pc-list-each-details-container ${isActive ? 'active' : ''} m-1 p-1`} data-id={record.id} onClick={() => onSelect(record)}>
             <div className="col-md-9 preferences-name pe-0 text-capitalize" title={title !== sliced ? title : undefined}>{sliced}{record.invalidFlag === 'Y' && <DeletedRecordBadge />}</div>
             <div className="col-md-3 pe-0">
-              <div className="preferences-date pc-list-each-details-date-container">{record.effectiveDate ? relativeTime(record.effectiveDate) : ''}</div>
+              <div className="preferences-date pc-list-each-details-date-container">{dateOnly(recordType === 'active' ? record.effectiveDate : record.lastEffectiveDate)}</div>
             </div>
           </div>);
       })}
