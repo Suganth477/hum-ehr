@@ -92,7 +92,7 @@
 }
 
 /* "Deleted Record" pill for invalidated patient-chart rows (legacy .ehr-deleted-records). */
-.ehr-deleted-records {
+.ehr-deleted-records { 
    color: #EF4444;
    background-color: #EF444415;
    padding: 2px 8px;
