@@ -1,19 +1,50 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import MessageCenterChat from './MessageCenterChat';
 import InAppMail from './InAppMail';
+import DirectAddress from './DirectAddress';
+import { LegacyIcon } from '../../components/common/CustomIcons';
+import { DIRECT_ADDRESS_LIST_KEY, hasDirectAddressConfigured } from './directAddressHelpers';
+import { fetchUserDirectAddressList } from '../../services/directAddressService';
 import { getLoggedInUser } from '../../services/authService';
+import { useLayout } from '../../context/LayoutContext';
+import { isChatHiddenRole } from '../../constants/roles';
 import './MessageCenter.css';
-
-// Legacy: Super Admin / Care Admin roles see only In-App Mail (chat hidden).
-const CHAT_HIDDEN_ROLES = ['CMSSUPEADM', 'CMSCLINADM'];
 
 /**
  * Message Center shell (legacy ehr-message-center.jsp + EhrTextMessageCenterSideMenu):
- * left icon menu toggles between Message Center Chat and In-App Mail.
+ * left icon menu toggles between Message Center Chat, In-App Mail and — when the
+ * user has at least one direct address configured — the Direct Inbox.
  */
 const MessageCenter = () => {
-    const hideChat = useMemo(() => CHAT_HIDDEN_ROLES.includes(getLoggedInUser()?.roleCode), []);
+    const hideChat = useMemo(() => isChatHiddenRole(getLoggedInUser()?.roleCode), []);
     const [activeModule, setActiveModule] = useState(hideChat ? 'INAPPMAIL' : 'INAPPCHAT');
+    const { setChartView } = useLayout();
+
+    // The Message Center runs full-width with the application side nav collapsed —
+    // legacy did this from EhrTextMessageCenter.connectedCallback via
+    // utility.showHideSideNavigationMenuIconOnLoading(). Doing it in the shell (not
+    // in the chat tab, as legacy did) means it also applies to In-App Mail and the
+    // Direct Inbox. Leaving the screen restores the default layout; the header
+    // menu button can still bring the rail back while here.
+    useEffect(() => {
+        setChartView(true);
+        return () => setChartView(false);
+    }, [setChartView]);
+
+    // Legacy loads the direct-address list up front and only renders the Direct
+    // Inbox item when the user has a physician address or at least one facility one.
+    const { data: directAddressData } = useQuery({
+        queryKey: DIRECT_ADDRESS_LIST_KEY,
+        queryFn: fetchUserDirectAddressList,
+    });
+    const showDirectAddress = hasDirectAddressConfigured(directAddressData?.data);
+
+    // A mailbox that disappears (config change) must not leave a dead tab selected.
+    useEffect(() => {
+        if (!showDirectAddress && activeModule === 'DIRECTADDRESS')
+            setActiveModule(hideChat ? 'INAPPMAIL' : 'INAPPCHAT');
+    }, [showDirectAddress, activeModule, hideChat]);
 
     return (<div id="eum_ehr_message_center_communication_main_container" className="container-fluid tab-content hh-ehr-bg-color9 p-0 mc-main-container">
       <div className="mc-communication-container" id="eum_ehr_message_center_communication_container">
@@ -43,11 +74,21 @@ const MessageCenter = () => {
                 <span className="mc-menu-desc">In App Mail</span>
               </button>
             </li>
+            {showDirectAddress && (
+              <li className="mc-menu-list-item nav-item" role="presentation">
+                <button type="button" className={`nav-link ${activeModule === 'DIRECTADDRESS' ? 'active' : ''}`} role="tab"
+                  aria-selected={activeModule === 'DIRECTADDRESS'} onClick={() => setActiveModule('DIRECTADDRESS')}>
+                  <span><LegacyIcon icon="fa-paper-plane" className="mc-menu-glyph" /></span>
+                  <span className="mc-menu-desc">Direct Inbox</span>
+                </button>
+              </li>
+            )}
           </ul>
         </div>
         <div className="mc-communication-body">
           {activeModule === 'INAPPCHAT' && !hideChat && <MessageCenterChat/>}
           {activeModule === 'INAPPMAIL' && <InAppMail/>}
+          {activeModule === 'DIRECTADDRESS' && showDirectAddress && <DirectAddress/>}
         </div>
       </div>
     </div>);

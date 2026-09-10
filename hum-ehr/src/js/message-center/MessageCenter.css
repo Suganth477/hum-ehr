@@ -424,3 +424,6 @@
     cursor: pointer;
 }
 .mc-newchat-user:hover { background: #f2f4f7; }
+
+/* Direct Inbox side-menu glyph — LegacyIcon renders at 1em, so size by font-size. */
+.mc-menu-glyph { font-size: 18px; }

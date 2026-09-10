@@ -30,11 +30,12 @@ import {
     faPersonWalkingArrowLoopLeft, faAddressCard, faArrowRight, faBan, faBook, faCircleExclamation,
     faCircleInfo, faCloudArrowUp, faEllipsis, faEnvelope, faTriangleExclamation, faFilter,
     faHandDots, faHouse, faMagnifyingGlass, faMessage, faPen, faPencil, faPeopleArrows, faPhone,
-    faCircleQuestion, faRotate, faXmark, faTrash, faTrashCan, faUser,
+    faCircleQuestion, faRotate, faXmark, faTrash, faTrashCan, faUser, faReply, faBoxArchive,
+    faAngleLeft, faAngleRight, faHospital, faUserPlus, faArrowLeft, faCircle, faPaperclip,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     faFilePowerpoint, faFileCode, faFileZipper, faFilePdf, faFileWord, faFileExcel, faFileImage,
-    faFileLines,
+    faFileLines, faFile, faPaperPlane,
 } from '@fortawesome/free-regular-svg-icons';
 
 // Original class -> Material Design path (24x24 viewBox).
@@ -91,6 +92,12 @@ const FA_DEFS = {
     'fa-user': faUser, 'fa-file-powerpoint': faFilePowerpoint, 'fa-file-code': faFileCode,
     'fa-file-archive': faFileZipper, 'fa-file-pdf': faFilePdf, 'fa-file-word': faFileWord,
     'fa-file-excel': faFileExcel, 'fa-file-image': faFileImage, 'fa-file-lines': faFileLines,
+    // Direct Address (Direct Secure Messaging) — the exact glyphs the legacy
+    // message-center template used.
+    'fa-reply': faReply, 'fa-box-archive': faBoxArchive, 'fa-paper-plane': faPaperPlane,
+    'fa-angle-left': faAngleLeft, 'fa-angle-right': faAngleRight, 'fa-hospital': faHospital,
+    'fa-user-plus': faUserPlus, 'fa-arrow-left': faArrowLeft, 'fa-circle': faCircle, 'fa-file': faFile,
+    'fa-paperclip': faPaperclip,
 };
 
 /** Resolves an original icon class to a `{ viewBox, d }` renderable, or null. */

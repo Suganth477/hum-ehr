@@ -1,0 +1,484 @@
+/* Direct Address (Direct Secure Messaging) — mailbox picker, section list,
+   conversation reader and composer. Colours/metrics are lifted from the legacy
+   <template id="ehr_direct_message_main_template_id"> and its siblings in
+   ehr-message-center-template.jsp. */
+
+.eda-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding: 10px 14px;
+    background: #fff;
+    color: #212529;
+}
+
+.eda-nodata {
+    padding: 100px 0;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-align: center;
+    color: #777;
+}
+
+/* ---- mailbox picker (legacy .eda-ehr-direct-address-list-dropdown-*) ---- */
+.eda-direct-address-list-dropdown { padding: 8px 0; }
+.eda-ehr-direct-address-list-dropdown-container { padding: 0; }
+.eda-ehr-direct-address-list-dropdown { display: inline-block; }
+
+.eda-ehr-direct-address-list-dropdown-button,
+.eda-ehr-direct-address-list-dropdown-button.show,
+.eda-ehr-direct-address-list-dropdown-button:active,
+.eda-ehr-direct-address-list-dropdown-button:focus,
+.eda-ehr-direct-address-list-dropdown-button:hover {
+    background-color: rgba(250, 250, 250, 1);
+    border-radius: 8px;
+    border: 1px solid rgba(215, 221, 227, 1);
+    color: rgba(51, 51, 51, 1);
+    font-weight: 700;
+    padding: 12px 15px;
+}
+.eda-direct-address-id-icon { color: #5A5A5C; }
+.eda-ehr-direct-address-list-dropdown-menu .dropdown-item { display: flex; align-items: center; white-space: nowrap; }
+
+/* ---- section tabs + head ---- */
+.eda-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.eda-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.eda-section-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    border-radius: 12px;
+    background: #f2f4f7;
+    border-top: 1px solid #f2f4f7;
+}
+.eda-section-tab {
+    border: 0;
+    background: none;
+    color: #667085;
+    font-size: 14px;
+    padding: 6px 20px;
+    border-radius: 8px;
+}
+.eda-section-tab.active {
+    background: #fff;
+    color: #189faa;
+    box-shadow: 0 1px 3px 0 rgba(16, 24, 40, 0.1), 0 1px 2px 0 rgba(16, 24, 40, 0.06);
+}
+.eda-section-count {
+    margin-left: 5px;
+    border: 1px solid rgba(34, 184, 207, 1);
+    color: rgba(34, 184, 207, 1);
+    background-color: rgba(244, 255, 254, 1);
+}
+
+.eda-back-to-list {
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    background: none;
+    font-weight: 600;
+    font-size: 16px;
+    color: #212529;
+}
+
+.eda-list-head-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 1 50%;
+    justify-content: flex-end;
+}
+.eda-search-wrap { position: relative; flex: 1 1 auto; max-width: 320px; }
+.eda-search-input { padding-right: 30px; }
+.eda-search-icon {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    color: #667085;
+    pointer-events: none;
+}
+.eda-compose-btn { white-space: nowrap; border-radius: 8px; }
+
+/* ---- message list ---- */
+.eda-list-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.eda-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #bebec5;
+}
+.eda-row-first { border-top: 1px solid #bebec5; }
+.eda-row-unread { background-color: rgba(242, 252, 253, 1); }
+
+.eda-col-icon {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    width: 6%;
+    flex: 0 0 6%;
+}
+.eda-unread-dot { color: #189faa; font-size: 8px; }
+.eda-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: rgba(236, 236, 240, 1);
+    color: rgba(113, 113, 130, 1);
+    flex: 0 0 auto;
+}
+
+.eda-col-party {
+    width: 15%;
+    flex: 0 0 15%;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 4px;
+}
+
+.eda-col-preview {
+    width: 55%;
+    flex: 1 1 55%;
+    min-width: 0;
+    cursor: pointer;
+}
+.eda-preview-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: rgba(113, 113, 130, 1);
+}
+.eda-preview-text .fw-bold { color: rgba(10, 10, 10, 1); }
+.eda-outbound-status { overflow: hidden; color: rgba(0, 153, 102, 1); font-size: 0.85rem; }
+.eda-status-error { color: rgba(212, 24, 61, 1); }
+
+.eda-col-patient {
+    width: 15%;
+    flex: 0 0 15%;
+    display: flex;
+    justify-content: center;
+}
+.eda-patient-link {
+    display: inline-block;
+    padding: 4px 6px;
+    border: 1px solid rgb(181, 180, 180);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.eda-patient-linked {
+    background-color: rgba(242, 242, 242, 1);
+    color: rgba(3, 2, 19, 1);
+    cursor: pointer;
+}
+
+.eda-col-meta {
+    width: 10%;
+    flex: 0 0 10%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-size: 0.85rem;
+}
+.eda-clip-icon { color: #667085; }
+
+/* ---- pagination ---- */
+.eda-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    padding: 8px 2px;
+}
+.eda-page-btn { padding: 0; border: 0; background: transparent; }
+.eda-page-btn .pi { font-size: 18px; }
+.eda-page-btn:disabled { cursor: not-allowed; opacity: 0.4; }
+.eda-page-count { white-space: nowrap; }
+
+/* ---- conversation reader ---- */
+.eda-conversation {
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 1px solid rgba(215, 221, 227, 1);
+    border-radius: 12px;
+}
+.eda-conversation-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.eda-message { padding: 8px 12px; }
+.eda-message + .eda-message { border-top: 1px solid rgba(0, 0, 0, 0.1); }
+
+.eda-message-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.eda-message-parties { display: flex; flex-direction: column; min-width: 0; }
+.eda-message-parties span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eda-message-date { margin-left: auto; white-space: nowrap; font-size: 0.85rem; }
+
+.eda-message-subject { padding: 10px 0 4px; font-weight: 700; color: #6c757d; }
+.eda-message-body { padding: 4px 0; white-space: pre-line; }
+
+.eda-message-patient { padding: 8px 0; color: var(--app-color2, #189faa); cursor: pointer; font-weight: 500; }
+.eda-message-patient-name { font-weight: 600; font-size: 16px; }
+.eda-open-chart { color: #37474f; }
+
+.eda-message-status {
+    display: inline-block;
+    margin: 6px 0;
+    padding: 6px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.eda-message-attachments { padding: 8px 0; border-top: 1px solid #bebec5; margin-top: 8px; }
+.eda-attachments-title { font-weight: 700; padding: 6px 0; }
+.eda-attachments-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.eda-attachment-chip {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid rgba(215, 221, 227, 1);
+    border-radius: 5px;
+    cursor: pointer;
+}
+.eda-attachment-icon { color: rgba(76, 211, 222, 1); }
+.eda-attachment-download { color: #667085; }
+
+.eda-message-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    padding-top: 10px;
+    margin-top: 8px;
+    border-top: 1px solid #bebec5;
+}
+.eda-message-action {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    border: 0;
+    background: none;
+    color: rgba(113, 113, 130, 1);
+}
+.eda-action-label { font-size: 0.8rem; }
+.eda-action-glyph { font-size: 20px; }
+
+.eda-inline-compose { border-top: 1px solid #bebec5; margin-top: 8px; }
+
+/* ---- composer ---- */
+.eda-compose-host { flex: 1 1 auto; min-height: 0; overflow: auto; }
+
+.eda-compose { padding-bottom: 8px; }
+.eda-compose-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #e7e7e7;
+    padding: 10px;
+    font-weight: bold;
+}
+.eda-compose-body { padding: 4px 0; }
+
+.eda-compose-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 8px;
+    padding: 6px 4px;
+}
+.eda-compose-label { flex: 0 0 90px; padding-top: 4px; }
+.eda-compose-field {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    border-bottom: 1px solid #8080802e;
+    padding-bottom: 2px;
+}
+.eda-plain-input { border: 0; outline: none; padding: 4px 0; background: transparent; }
+/* The recipient row is a react-select control, which draws its own border — drop
+   the shared field underline so the two do not double up. */
+.eda-compose-field.eda-recipient-field { border-bottom: 0; padding-bottom: 0; display: block; }
+
+.eda-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid grey;
+    border-radius: 50px;
+    padding: 2px 8px 2px 4px;
+    height: 30px;
+    max-width: 100%;
+}
+.eda-tag-static { border-style: dashed; }
+.eda-tag-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50px;
+    background: #b2aeae7a;
+    color: #000;
+    text-transform: uppercase;
+    flex: 0 0 auto;
+}
+.eda-tag-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+.eda-external-recipient { position: relative; flex: 0 0 auto; }
+.eda-external-btn { border-radius: 8px; white-space: nowrap; }
+.eda-external-menu {
+    position: absolute;
+    z-index: 30;
+    right: 0;
+    top: calc(100% + 4px);
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: #fff;
+    border: 1px solid #d7dde3;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.12);
+    white-space: nowrap;
+}
+.eda-external-menu-item { display: block; width: 100%; padding: 6px 14px; border: 0; background: none; text-align: left; }
+.eda-external-menu-item:hover { background: #f2f4f7; }
+
+.eda-compose-message-area {
+    margin: 6px 8px;
+    padding: 8px;
+    border: 1px solid #8080802e;
+    min-height: 40vh;
+    overflow-y: auto;
+}
+.eda-compose-message {
+    width: 100%;
+    min-height: 120px;
+    border: 0;
+    outline: none;
+    resize: vertical;
+    word-wrap: break-word;
+}
+
+.eda-link-patient { padding-top: 6px; }
+.eda-link-patient-btn {
+    background-color: rgba(250, 250, 250, 1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: rgba(10, 10, 10, 1);
+    border-radius: 8px;
+}
+.eda-patient-search { display: flex; align-items: flex-start; }
+.eda-patient-search-input { flex: 1 1 320px; max-width: 320px; }
+.eda-recipient-select { flex: 1 1 auto; min-width: 240px; }
+.eda-patient-search-input { max-width: 320px; }
+.eda-linked-patient { display: inline-flex; align-items: center; }
+.eda-linked-patient-name { color: var(--app-color2, #189faa); }
+.eda-linked-patient-change { color: var(--app-color2, #189faa); font-weight: 700; text-decoration: underline; cursor: pointer; }
+.eda-linked-patient-remove { color: red; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+.eda-compose-files { padding-top: 10px; }
+.eda-compose-file {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    background: #8080803d;
+    padding: 5px 10px;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+.eda-compose-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: blue; }
+.eda-compose-file-size { font-weight: 400; }
+.eda-compose-file-remove { margin-left: auto; border: 0; background: none; color: grey; }
+
+.eda-field-error { color: #ef0000; font-size: 0.85rem; padding: 2px 8px 2px 98px; }
+
+.eda-compose-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 8px;
+    padding: 8px 4px;
+}
+.eda-compose-footer-spacer { flex: 1 1 auto; }
+.eda-send-btn { border-radius: 8px; }
+.eda-icon-btn {
+    border: 0;
+    background: transparent;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 1.2rem;
+}
+.eda-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.eda-discard-btn { color: #d4183d; }
+
+@media (max-width: 991.98px) {
+    .eda-list-head { flex-wrap: wrap; }
+    .eda-list-head-right { flex: 1 1 100%; justify-content: flex-start; }
+    .eda-col-party, .eda-col-patient, .eda-col-meta { display: none; }
+    .eda-col-preview { flex: 1 1 auto; width: auto; }
+    .eda-compose-label { flex-basis: 60px; }
+    .eda-field-error { padding-left: 68px; }
+}
+
+/* SweetAlert2 confirmations for this surface. Its own classes (not another
+   module's) so the composer never depends on In-App Mail CSS being loaded;
+   the container z-index lives in App.css because the composer also renders
+   inline inside the conversation reader. */
+.eda-swal-popup { border-radius: 8px; }
+.eda-swal-title { font-size: 1.15rem; }
+.eda-swal-confirm, .eda-swal-cancel {
+    border: 0;
+    border-radius: 4px;
+    padding: 6px 18px;
+    margin: 0 6px;
+    font-size: 0.95rem;
+}
+.eda-swal-confirm { background: #337ab7; color: #fff; }
+.eda-swal-cancel { background: #e2e6ea; color: #212529; }

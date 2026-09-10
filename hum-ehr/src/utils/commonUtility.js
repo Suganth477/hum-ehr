@@ -76,16 +76,17 @@ export const constructDeleteIcons = (element, id, invalidFlag) => `
         <span class="${element}-delete-details delete-icon ${invalidFlag === 'Y' ? 'd-none' : ''} " data-id="${id}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Delete Social History">${legacyIconHtml('mdi-delete')}</span>
     </div>
   `;
-/** Decodes a Base64 string into an object URL. */
-export const base64ToBlobUrl = (base64Data, contentType) => {
+/** Decodes a Base64 string (raw or data-URL) into a Blob. */
+export const base64ToBlob = (base64Data, contentType) => {
     const base64 = base64Data.split(',')[1] || base64Data;
     const byteChars = atob(base64);
     const byteNumbers = new Array(byteChars.length);
     for (let i = 0; i < byteChars.length; i += 1)
         byteNumbers[i] = byteChars.charCodeAt(i);
-    const blob = new Blob([new Uint8Array(byteNumbers)], { type: contentType });
-    return window.URL.createObjectURL(blob);
+    return new Blob([new Uint8Array(byteNumbers)], { type: contentType });
 };
+/** Decodes a Base64 string into an object URL. */
+export const base64ToBlobUrl = (base64Data, contentType) => window.URL.createObjectURL(base64ToBlob(base64Data, contentType));
 /** Reads a File into a base64 data URL. */
 export const convertUploadFileInputBase64Format = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader();

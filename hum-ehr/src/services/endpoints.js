@@ -20,6 +20,10 @@ const ENDPOINTS = {
 	patient: {
 		details: '/patient/details',
 		activeList: '/patient/list/all',
+		// Lightweight name typeahead (legacy apiUtility.fetchActivePatientList):
+		// POST form { patientName } -> [{ patientId, patientName, dob, ... }].
+		// Distinct from `activeList`, which is the DataTables patient grid.
+		activeLookup: '/active/patients/list',
 		ccdDownload: '/patient/ccd/download',
 		activeCount: '/patient/active/count/',
 	},
@@ -218,6 +222,22 @@ const ENDPOINTS = {
 		statusChange: '/business/message/status-update',   // POST json: { statusCode, statusFlag, messageDetailsIdList }
 		count: '/inAppMail/count',                         // POST json (null body): per-folder unread counts
 		eventValidation: '/inAppMail/event/validation',    // GET ?patientId=&eventCode= (patient-scoped mail)
+	},
+	// Direct Address — Direct Secure Messaging (DIRECT protocol) inbox. A third
+	// Message Center surface next to Chat and In-App Mail: messages are exchanged
+	// with EXTERNAL direct addresses (provider / organization), not internal users.
+	// Legacy source: hum-js/message-center/ehr.message.center.js (EhrDirectAdress*)
+	// + api.utility.js "Direct Address APIs" block.
+	directAddress: {
+		list: '/direct/address',                    // GET ?id={userId}: the user's physician + facility direct addresses
+		messageList: '/direct/message/list',        // POST json: section list (DataTables-style paging)
+		send: '/direct/message/send',               // POST multipart: send / save-draft (data + attachments + cdaFiles)
+		conversation: '/direct/message/details',    // GET ?parentMessageId=: full thread
+		attachmentFile: '/direct/message/file',     // GET ?attachmentId=: single attachment download
+		statusUpdate: '/direct/status/update',      // POST json: { directMessageIdList, isArchived, isRead }
+		recipientLookup: '/direct/recipient/search',// GET ?search=: external direct-address typeahead
+		sectionCount: '/direct/message/count',      // GET ?directAddressId=: per-section counts
+		draftDelete: '/direct/message/draft/delete',// POST ?messageId=: discard a draft
 	},
 };
 export default ENDPOINTS;

@@ -1,8 +1,25 @@
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { LegacyIcon, HeartPulseIcon, DevicesIcon, ChartMultipleIcon, ListBoxIcon } from './common/CustomIcons';
 import CtcHeaderChat from '../js/message-center/CtcHeaderChat';
+import { getLoggedInUser } from '../services/authService';
+import { isChatHiddenRole } from '../constants/roles';
+
+/**
+ * Routes the patient tab strip belongs to. Legacy renders
+ * `#application_quick_access_nav_container_1` as an EMPTY div in `ehr-layout.jsp`
+ * and injects the strip only on the patient-list page; the strip switches between
+ * the patient list and the open patient charts, which both live under /patients.
+ */
+const PATIENT_LIST_ROUTES = ['/patients'];
 
 const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
+	const { pathname } = useLocation();
+	const isPatientListScreen = PATIENT_LIST_ROUTES.includes(pathname);
+	// Legacy `ehr-layout.jsp` wraps the header chat icon (ehr-chat.jsp) in
+	// `if (!SUPER_ADMIN && !CARE_ADMIN)` — the same roles the Message Center hides
+	// its chat tab from. Preserve that permission branch.
+	const showHeaderChat = !isChatHiddenRole(getLoggedInUser()?.roleCode);
 	const handleTabClickEvent = (section, tabId, e) => {
 		// The filter-icon visibility is rendered declaratively from `activeTab`
 		// (see the `list-filter-access-icon` block below), so no DOM toggle is
@@ -35,7 +52,7 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 	return (<header className="navbar p-0 hh-ehr-bg-color4" id="application_quick_access_side_nav_container">
 		<div id="application_quick_access_nav_container" className="container-fluid p-0">
 			<div id="application_quick_access_nav_container_1">
-				<ul className="nav nav-pills patient-list-nav-tabs" role="tablist" id="patient_list_nav_tabs">
+				{isPatientListScreen && (<ul className="nav nav-pills patient-list-nav-tabs" role="tablist" id="patient_list_nav_tabs">
 					<li className={`nav-item patient-list-nav-item ${activeTab === 'patient_list' ? 'active' : ''}`} data-section="patient_list" role="presentation">
 						<button id="pills_patient_list_tab" className={`nav-link patient-list-nav-link rounded-top ${activeTab === 'patient_list' ? 'active' : ''}`} type="button" role="tab" onClick={(e) => handleTabClickEvent('patient_list', 'patient_list', e)} aria-controls="patient_list_container" aria-selected={activeTab === 'patient_list'}>
 							<span className="patient-name patient-list-label">Patient List </span>
@@ -49,11 +66,14 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 							<LegacyIcon icon="mdi-close" className="patient-list-nav-item-close-icon" role="button" tabIndex={0} aria-label={`Close ${tab.patientName} tab`} onClick={(ev) => onCloseTab(tab.patientId, ev)} onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onCloseTab(tab.patientId, ev); } }} />
 						</button>
 					</li>))}
-				</ul>
+				</ul>)}
 			</div>
 
 			<div id="application_quick_access_nav_container_2">
-				<div className={`list-filter-access-icon ${activeTab === 'patient_list' ? '' : 'd-none'}`}>
+				{/* Legacy ships `.list-filter-access-icon` with `d-none` (and `hide` on the
+				    item) and reveals it only on the patient-list page — so it stays hidden
+				    on a patient chart AND on every other screen (Message Center, Dashboard). */}
+				<div className={`list-filter-access-icon ${isPatientListScreen && activeTab === 'patient_list' ? '' : 'd-none'}`}>
 					<ul className="list-unstyled m-0 me-1 hh-ehr-color1">
 						<li className="app-quick-access-icon-list" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
 							<LegacyIcon icon="mdi-filter-variant" />
@@ -62,7 +82,7 @@ const QuickAccessNav = ({ openTabs, activeTab, setActiveTab, onCloseTab }) => {
 				</div>
 				<div className="app-quick-access-icon-section hh-ehr-bg-color5 hh-ehr-color1">
 					<ul>
-						<li className="app-quick-access-icon-list"><CtcHeaderChat /></li>
+						{showHeaderChat && <li className="app-quick-access-icon-list"><CtcHeaderChat /></li>}
 						<li className="app-quick-access-icon-list"><LegacyIcon icon="mdi-cog" className="ehr-user-import-ccd-configuration-icon" /></li>
 						<li className="app-quick-access-icon-list"><LegacyIcon icon="mdi-calendar-plus-outline" /></li>
 						<li className="app-quick-access-icon-list"><HeartPulseIcon /></li>

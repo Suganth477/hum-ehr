@@ -138,6 +138,19 @@ const App = () => {
             setActiveTab('patient_list');
         }
     };
+    // Opening a chart from outside the patient list (Message Center → Direct
+    // Address links a message to a patient). Legacy hard-navigated to
+    // /ehr/patients after writing sessionStorage; here the tab opens in place.
+    useEffect(() => {
+        const onOpenRequest = (event) => {
+            const { patientId, patientName, genderCode } = event.detail || {};
+            if (!patientId)
+                return;
+            handleOpenPatientWorkspace(patientId, patientName, genderCode);
+        };
+        window.addEventListener('hum-ehr:openPatientTab', onOpenRequest);
+        return () => window.removeEventListener('hum-ehr:openPatientTab', onOpenRequest);
+    }, []);
     // Patient deactivation / deceased save (Patient Profile) closes the
     // workspace tab and returns to the list, mirroring the legacy flow.
     useEffect(() => {

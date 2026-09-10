@@ -234,6 +234,11 @@
 .pp-swal-container {
    z-index: 20000 !important;
 }
+/* Same reason for the Direct Address composer: it renders standalone AND inline
+   inside the conversation reader, so its confirm popup's z-index must be global. */
+.eda-swal-container {
+   z-index: 20000 !important;
+}
 .border-radius-button.cancel, .btn-border-outline-cancel-btn {
    background-color: var(--app-color) !important;
    color: var(--app-color4);
