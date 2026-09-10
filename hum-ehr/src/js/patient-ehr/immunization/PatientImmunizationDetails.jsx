@@ -3,14 +3,9 @@ import { buildImmunizationDeletePayload, deleteImmunization } from '../../../ser
 import { getFormattedIcdCode } from '../../../utils/commonUtility';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
-
-// Labelled value cell. `cap` capitalizes, `strike` applies the marked-as-error styling.
-const Field = ({ label, value, className = 'col-md-3', cap, strike, children }) => (
-    <div className={className}>
-      <div className="label">{label}</div>
-      <div className={`fw-bold vaccine-delete-record-common-class ${cap ? 'text-capitalize' : ''} ${strike ? 'error-in' : ''}`}>{children ?? (value || '-')}</div>
-    </div>
-);
+import DetailField from '../../../components/common/DetailField';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
+import RecordActionIcons from '../../../components/common/RecordActionIcons';
 
 const PatientImmunizationDetails = ({ patientId, recordType, record, onEdit, onDeleted }) => {
     const [deleting, setDeleting] = useState(false);
@@ -57,70 +52,69 @@ const PatientImmunizationDetails = ({ patientId, recordType, record, onEdit, onD
       <div className="row mx-3 my-4 mb-4 immunizatin-vaccine-details-header">
         <div className="col-md-11 vaccine-name fw-bold patient-chart-list-selected-item-title text-capitalize">
           {record.vaccineName || '-'}
-          {isDeleted && <span className="ehr-deleted-records ms-2">Deleted Record</span>}
+          {isDeleted && <DeletedRecordBadge inline/>}
         </div>
-        <div className="col-md-1 d-flex gap-2 immunization-action-container justify-content-end">
-          <LegacyIcon icon="mdi-pencil" className="vaccine-edit-device-icon" role="button" title="Edit Vaccine" onClick={() => onEdit(record)}/>
-          {!isDeleted && <LegacyIcon icon="mdi-delete" className={`vaccine-delete-device-icon ${deleting ? 'disabled' : ''}`} role="button" title="Delete Vaccine" onClick={deleting ? undefined : handleDelete}/>}
+        <div className="col-md-1 immunization-action-container">
+          <RecordActionIcons recordType={recordType} isDeleted={isDeleted} moduleTitle="Vaccine" onEdit={() => onEdit(record)} onDelete={handleDelete} editClass="vaccine-edit-device-icon" deleteClass="vaccine-delete-device-icon" busy={deleting}/>
         </div>
       </div>
 
       <div className="immunization-vaccine-details-container custom-scrollbar">
         <div className="row mx-3 my-4">
-          <Field label="Vaccine" value={record.vaccineName} cap strike={isDeleted}/>
-          <Field label="Status" value={record.vaccineStatusCodeDesc} strike={isDeleted}/>
-          <Field label="Status Reason" value={record.vaccineStatusReasonDesc} strike={isDeleted}/>
-          <Field label="Recorded By" value={record.recordedUserName} cap strike={isDeleted}/>
+          <DetailField label="Vaccine" value={record.vaccineName} strike={isDeleted}/>
+          <DetailField label="Status" value={record.vaccineStatusCodeDesc} cap={false} strike={isDeleted}/>
+          <DetailField label="Status Reason" value={record.vaccineStatusReasonDesc} cap={false} strike={isDeleted}/>
+          <DetailField label="Recorded By" value={record.recordedUserName} strike={isDeleted}/>
         </div>
 
         <div className="row mx-3 my-4">
-          <Field label="Recorded Date &amp; Time" value={record.recordedDate} cap strike={isDeleted}/>
-          <Field label="Administered on Date &amp; Time" value={record.administeredDate} strike={isDeleted}/>
-          <Field label="Administered By" value={record.administeredBy} cap strike={isDeleted}/>
-          <Field label="Where the Vaccine was Administered / Location" value={record.vaccineAdministeredLocation} strike={isDeleted}/>
-        </div>
-
-        {!notDone && (<div className="row mx-3 my-4 vaccine-status-reason-hide-container">
-          <Field label="Route of Administration" value={record.route} cap strike={isDeleted}/>
-          <Field label="Body Site" value={record.site} cap strike={isDeleted}/>
-        </div>)}
-
-        <div className="row mx-3 my-4">
-          <Field label="Dose Number" value={record.doseNumber} cap strike={isDeleted}/>
-          <Field label="Dose Form" value={record.doseForm} cap strike={isDeleted}/>
-          <Field label="Dose &amp; Unit" value={record.doseWithUnit} strike={isDeleted}/>
+          <DetailField label="Recorded Date &amp; Time" value={record.recordedDate} strike={isDeleted}/>
+          <DetailField label="Administered on Date &amp; Time" value={record.administeredDate} cap={false} strike={isDeleted}/>
+          <DetailField label="Administered By" value={record.administeredBy} strike={isDeleted}/>
+          <DetailField label="Where the Vaccine was Administered / Location" value={record.vaccineAdministeredLocation} cap={false} strike={isDeleted}/>
         </div>
 
         {!notDone && (<div className="row mx-3 my-4 vaccine-status-reason-hide-container">
-          <Field label="Lot Number" value={record.lotNumber} strike={isDeleted}/>
-          <Field label="Name Of Manufacturer" value={record.manufacturerName} cap strike={isDeleted}/>
+          <DetailField label="Route of Administration" value={record.route} strike={isDeleted}/>
+          <DetailField label="Body Site" value={record.site} strike={isDeleted}/>
         </div>)}
 
         <div className="row mx-3 my-4">
-          <Field className="col-md-12" label="Targeted Indication/Diagnosis" cap strike={isDeleted}>
+          <DetailField label="Dose Number" value={record.doseNumber} strike={isDeleted}/>
+          <DetailField label="Dose Form" value={record.doseForm} strike={isDeleted}/>
+          <DetailField label="Dose &amp; Unit" value={record.doseWithUnit} cap={false} strike={isDeleted}/>
+        </div>
+
+        {!notDone && (<div className="row mx-3 my-4 vaccine-status-reason-hide-container">
+          <DetailField label="Lot Number" value={record.lotNumber} cap={false} strike={isDeleted}/>
+          <DetailField label="Name Of Manufacturer" value={record.manufacturerName} strike={isDeleted}/>
+        </div>)}
+
+        <div className="row mx-3 my-4">
+          <DetailField col="col-md-12" label="Targeted Indication/Diagnosis" strike={isDeleted}>
             {targetedDiagnosis.length
               ? targetedDiagnosis.map((d, i) => (<div key={i} className="targeted-diagnosis-item mt-2">{getFormattedIcdCode(d.icdCode)} - {d.icdDescription}</div>))
               : '-'}
-          </Field>
+          </DetailField>
         </div>
 
         {!notDone && (<div className="row mx-3 my-4 vaccine-status-reason-hide-container">
-          <Field label="Date Printed On VIS" value={record.visPrintedDate} cap strike={isDeleted}/>
-          <Field label="Date VIS Given to Patient /Parent / Guardian" value={record.visGivenToPatientDate} strike={isDeleted}/>
-          <Field label="Expiration Date &amp; Time" value={record.expirationDate} strike={isDeleted}/>
+          <DetailField label="Date Printed On VIS" value={record.visPrintedDate} strike={isDeleted}/>
+          <DetailField label="Date VIS Given to Patient /Parent / Guardian" value={record.visGivenToPatientDate} cap={false} strike={isDeleted}/>
+          <DetailField label="Expiration Date &amp; Time" value={record.expirationDate} cap={false} strike={isDeleted}/>
         </div>)}
 
         <div className="row mx-3 my-4">
-          <Field label="Program Eligibility" value={record.programEligibilityDesc} cap strike={isDeleted}/>
-          <Field label="Funding Source" value={record.fundingSourceDesc} strike={isDeleted}/>
+          <DetailField label="Program Eligibility" value={record.programEligibilityDesc} strike={isDeleted}/>
+          <DetailField label="Funding Source" value={record.fundingSourceDesc} cap={false} strike={isDeleted}/>
         </div>
 
         <div className="row mx-3 my-4">
-          <Field label="Vaccination Reason" value={record.vaccineReason} strike={isDeleted}/>
+          <DetailField label="Vaccination Reason" value={record.vaccineReason} cap={false} strike={isDeleted}/>
         </div>
 
         <div className="row mx-3 my-4">
-          <Field className="col-md-12" label="Notes" value={record.notes} strike={isDeleted}/>
+          <DetailField col="col-md-12" label="Notes" value={record.notes} cap={false} strike={isDeleted}/>
         </div>
       </div>
     </div>);

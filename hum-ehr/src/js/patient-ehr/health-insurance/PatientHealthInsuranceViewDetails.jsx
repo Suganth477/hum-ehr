@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { deletePatientHealthInsurance } from '../../../services/healthInsuranceService';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
+import DetailField from '../../../components/common/DetailField';
 
 const formatUsAddress = (line1, line2, city, state, zip) =>
     [line1, line2, city, state, zip].map((part) => (part || '').toString().trim()).filter(Boolean).join(', ') || '-';
 
-const Field = ({ label, value }) => (<div className="col-md-3">
-    <div className="label">{label}</div>
-    <div className="fw-bold text-capitalize">{value || '-'}</div>
-  </div>);
+const Field = ({ label, value }) => (<DetailField col="col-md-3" label={label} value={value}/>);
 
 const PatientHealthInsuranceViewDetails = ({ patientId, record, recordType, isMedicarePatient, onEdit, onDeleted }) => {
     const [showMore, setShowMore] = useState(false);

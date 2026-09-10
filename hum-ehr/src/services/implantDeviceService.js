@@ -1,6 +1,6 @@
 import ENDPOINTS from './endpoints';
 import { apiGet, apiPost, apiPostForm } from './apiClient';
-import moment from '../utils/dayjs';
+import moment, { userNow } from '../utils/dayjs';
 
 /**
  * Implantable-device data layer. Mirrors patient.implantable.device.js + api.utility.js:
@@ -83,7 +83,7 @@ export const fetchImplantSurgicalList = (patientId) =>
  * exactly like the legacy save. `form` carries the resolved lookup ids alongside typed values.
  */
 export const buildImplantDeviceSavePayload = ({ patientId, form, overrideDuplicate = false }) => {
-	const now = moment();
+	const now = userNow();
 	const withUserTime = (d) => (d ? moment(d, 'MM-DD-YYYY').set({ hour: now.hours(), minute: now.minutes(), second: now.seconds() }).format('MM-DD-YYYY hh:mm A') : '');
 	const withNoonTime = (d) => (d ? moment(d, 'MM-DD-YYYY').set({ hour: 12, minute: 59, second: 0 }).format('MM-DD-YYYY hh:mm A') : '');
 	const explanting = !!form.explantFlag;
@@ -131,7 +131,7 @@ export const buildImplantDeviceSavePayload = ({ patientId, form, overrideDuplica
 
 // Mirrors PatientImplantableDeviceExplantation.getExplantReuestParam.
 export const buildImplantDeviceExplantPayload = ({ patientId, deviceId, explantDate, reasonForExplant }) => {
-	const now = moment();
+	const now = userNow();
 	const explantDateAndTime = explantDate
 		? moment(explantDate, 'MM-DD-YYYY').set({ hour: now.hours(), minute: now.minutes(), second: now.seconds() }).format('MM-DD-YYYY hh:mm A')
 		: '';

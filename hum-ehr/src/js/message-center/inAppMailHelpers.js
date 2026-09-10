@@ -1,4 +1,4 @@
-import moment from '../../utils/dayjs';
+import moment, { userNow } from '../../utils/dayjs';
 import { getLoggedInUser } from '../../services/authService';
 import { attachmentTypeForFormat } from './messageCenterHelpers';
 
@@ -139,7 +139,7 @@ export const subjectSnippet = (subjectName = '', mainMessage = '', mailCount = 0
 export const formatListDate = (dateAndTime) => {
     if (!dateAndTime)
         return '';
-    const today = moment().format(FMT.MDY);
+    const today = userNow().format(FMT.MDY);
     const created = moment(dateAndTime, FMT.MDY_12H).format(FMT.MDY);
     if (today === created)
         return moment(dateAndTime, FMT.MDY_12H).format(FMT._12H);

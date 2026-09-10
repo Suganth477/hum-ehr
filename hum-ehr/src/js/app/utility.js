@@ -6,6 +6,7 @@
 // useUtilities.js
 import { useState, useCallback } from 'react';
 import moment from 'moment-timezone';
+import { userNow } from '../../utils/dayjs';
 import { Toast } from 'bootstrap/dist/js/bootstrap.bundle.min';
 import axios from 'axios';
 import Cookies from "js-cookie";
@@ -270,7 +271,7 @@ const useUtilities = () => {
     }, []);
     const ageCalculator = useCallback((dob) => {
         try {
-            return moment().diff(moment(dob, dateTimeFormats.MDY), "years");
+            return userNow().diff(moment(dob, dateTimeFormats.MDY), "years");
         }
         catch (e) {
             failureMessage("Failed to calculate the age.");

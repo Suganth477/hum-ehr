@@ -45,7 +45,7 @@ const PatientSurgicalHistoryViewDetails = ({ patientId, record, onEdit, onDelete
 
     return (<div className="surgical-history-details-main-container show-details-main-container">
       <div className="d-flex justify-content-between align-items-center mb-3 mx-3">
-        <div><span className="pcps-suh-record-info-name-title text-capitalize">{record.surgeryName}</span>{invalid && <DeletedRecordBadge />}</div>
+        <div><span className="pcps-suh-record-info-name-title text-capitalize">{record.surgeryName}</span>{invalid && <DeletedRecordBadge inline/>}</div>
         {!invalid && (<div className="d-flex gap-3 justify-content-end">
           <button type="button" className="pcps-record-action-btn" title="Edit" onClick={() => onEdit(record)}><LegacyIcon icon="fa-pencil"/> Edit</button>
           <button type="button" className="pcps-record-action-btn" title="Delete" onClick={handleDelete}><LegacyIcon icon="fa-trash-can"/></button>

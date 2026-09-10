@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
 import { deletePatientHospitalization, fetchPatientHospitalizations } from '../../../services/hospitalizationService';
+import { checkItIsNewRecordOrEditRecord } from '../../../services/sessionLockService';
+import { subscribeSectionRefresh, sectionRefreshKey } from '../../../utils/sectionRefreshBus';
 import { SkeletonList } from '../../../components/common/ContentLoader';
 import { useNotify } from '../../../context/NotificationContext';
 import { HospitalIcon, LegacyIcon } from '../../../components/common/CustomIcons';
 import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
+
+// Hospitalization records lock under the CARE-STATUS resource code (type HOSP).
+const CONCURRENT_CODE = 'CARE-STATUS';
+// Legacy debounces the hospital-name search at 1000ms (its own searchWithDebounce setTimeout).
+const SEARCH_DEBOUNCE_MS = 1000;
+
+const swalConfirm = Swal.mixin({
+    customClass: { container: 'pp-swal-container', popup: 'pa-swal-popup', title: 'pa-swal-title', confirmButton: 'pa-swal-confirm', cancelButton: 'pa-swal-cancel' },
+    buttonsStyling: false, showCancelButton: true, reverseButtons: true, allowOutsideClick: false, allowEscapeKey: false,
+});
 
 // Legacy getHospitalizationIcon / getHospitalizationActiveIcon.
 const HospitalizationIcon = ({ active }) => (active ? (<div className="p-2 rounded-circle hospitalization-record-icon active">
@@ -30,20 +43,33 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
         }
     }, [patientId, notifyError]);
 
-    // Legacy debounces the hospital-name search (1s); mirror with a short delay.
     useEffect(() => {
         const term = (searchTerm || '').trim();
-        const timer = window.setTimeout(() => { loadList(term); }, 400);
+        const timer = window.setTimeout(() => { loadList(term); }, SEARCH_DEBOUNCE_MS);
         return () => window.clearTimeout(timer);
     }, [searchTerm, refreshKey, loadList]);
 
+    // The session-lock warning modal's "Refresh" publishes here so a stale list reloads.
+    useEffect(() => subscribeSectionRefresh(sectionRefreshKey(CONCURRENT_CODE, patientId), () => {
+        loadList((searchTerm || '').trim());
+    }), [patientId, loadList, searchTerm]);
+
     const handleDelete = async (record) => {
-        if (!window.confirm('Are you sure about deleting the hospitalization record?'))
-            return;
+        // Legacy deleteHospitalizationProps text.
+        const confirmed = await swalConfirm.fire({
+            title: 'Delete Hospitalization',
+            text: 'Are you sure about deleting the Hospitalization?',
+            confirmButtonText: 'YES',
+            cancelButtonText: 'NO',
+        });
+        if (!confirmed.isConfirmed) return;
         try {
+            // Concurrency check before deleting (legacy locks with action "DELETE").
+            const lock = await checkItIsNewRecordOrEditRecord(patientId, CONCURRENT_CODE, record.id, record.versionId ?? 0, 'DELETE');
+            if (lock?.status !== 'success') return; // another user holds it — warning modal shown
             const response = await deletePatientHospitalization({ patientId, id: record.id });
             if (!response || response.status === 'success') {
-                notifySuccess('Hospitalization record marked as error successfully.');
+                notifySuccess('Hospitalization record deleted successfully.');
                 loadList((searchTerm || '').trim());
             }
             else {
@@ -143,7 +169,7 @@ const PatientHospitalizationList = ({ patientId, searchTerm, onSearchChange, sho
               })}
             </div>) : (<div className="list-wrapper mt-2" style={{ border: '2px solid #ddd', padding: '30px 20px', textAlign: 'center' }}>
               <div className="nodata"><LegacyIcon icon="mdi-information-outline" style={{ fontSize: 40, verticalAlign: 'sub' }}/>
-                <span style={{ fontSize: 20 }}> Patient doesn't any Hospitalization Record. </span>
+                <span style={{ fontSize: 20 }}> Patient doesn't have any Hospitalization Record. </span>
               </div>
             </div>)}
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import Select from 'react-select';
 import { savePatientGoal, saveSdohGoal } from '../../../services/goalService';
 import { fetchPatientDetails } from '../../../services/patientService';
@@ -60,7 +60,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
     const [dob, setDob] = useState('');
     const [dirty, setDirty] = useState(false);
     // Start/Completed/Recorded dates: floor at patient DOB, cap at now (legacy data-min/max).
-    const dateMax = isSdoh ? moment().format('MM-DD-YYYY hh:mm A') : moment().format('MM-DD-YYYY');
+    const dateMax = isSdoh ? userNow().format('MM-DD-YYYY hh:mm A') : userNow().format('MM-DD-YYYY');
     useEffect(() => {
         let ignore = false;
         (async () => {
@@ -140,7 +140,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
 
     // Initialize (add: recorded date defaults to now; edit: populate from the saved record).
     useEffect(() => {
-        const now = isSdoh ? moment().format('MM-DD-YYYY hh:mm A') : moment().format('MM-DD-YYYY');
+        const now = isSdoh ? userNow().format('MM-DD-YYYY hh:mm A') : userNow().format('MM-DD-YYYY');
         if (!isEdit) {
             setForm({ ...createDefaultForm(), recordedDate: now });
             setFrequencyOptions([]);
@@ -274,7 +274,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
     };
 
     const buildSdohPayload = () => {
-        const lastEffective = form.status === 'ENTERED_ERR' ? moment().format('MM-DD-YYYY hh:mm A') : (form.completedDate || null);
+        const lastEffective = form.status === 'ENTERED_ERR' ? userNow().format('MM-DD-YYYY hh:mm A') : (form.completedDate || null);
         return {
             id: form.id || null,
             patientId: parseInt(patientId, 10),
@@ -288,7 +288,7 @@ const PatientGoalsAddEdit = ({ patientId, goalType, goal, referenceData, onClose
         };
     };
     const buildPatientPayload = (changeLogMessage) => {
-        const lastEffective = form.status === 'ENTERED_ERR' ? moment().format('MM-DD-YYYY') : (form.completedDate || '');
+        const lastEffective = form.status === 'ENTERED_ERR' ? userNow().format('MM-DD-YYYY') : (form.completedDate || '');
         const numeric1 = form.conditionOneType === 'NUMERIC';
         const numeric2 = form.conditionTwoType === 'NUMERIC';
         return {

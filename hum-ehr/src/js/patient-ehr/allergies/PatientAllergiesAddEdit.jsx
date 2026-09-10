@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import Select from 'react-select';
-import AsyncSelect from 'react-select/async';
 import { Dialog } from 'primereact/dialog';
 import Swal from 'sweetalert2';
 import { savePatientAllergy } from '../../../services/allergyService';
@@ -12,9 +10,22 @@ import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import PatientAllergiesReactions from './PatientAllergiesReactions';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import FormStatusFooter from '../../../components/common/FormStatusFooter';
-import { fetchPatientDetails } from '../../../services/patientService';
+import LookupAsyncSelect from '../../../components/common/LookupAsyncSelect';
+import CommonSelect from '../../../components/common/CommonSelect';
+import { fetchPatientDetails, triggerPatientDsiRefresh } from '../../../services/patientService';
+import { useSectionLock } from '../../../hooks/useSectionLock';
+import { getUserSessionId } from '../../../services/sessionLockService';
+import {
+	checkAndSetRecordIdInCurrentSessionForLog,
+	getCarePlanChangeLogSessionId,
+	getCurrentSessionChangeLogMessagesForSection,
+	getRecordIdMessageInCurrentSessionForLog,
+	setCarePlanLogSessionId,
+} from '../../../services/changeLogService';
 import patientCache from '../../../utils/patientCache';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
+// Change-log section for the allergies screen (legacy uses "ALLERGY").
+const CHANGE_LOG_SECTION = 'ALLERGY';
 import { useNotify } from '../../../context/NotificationContext';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 
@@ -77,9 +88,9 @@ const allergySchema = z
             if (!subTypeTrimmed) {
                 // field is empty — required message
                 ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['allergySubType'], message: 'Allergy Subtype is required.' });
-            } else if (subTypeTrimmed.length < 3) {
-                // typed something but too short
-                ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['allergySubType'], message: 'Minimum 3 characters.' });
+            } else if (subTypeTrimmed.length < LOOKUP_MIN_CHARS) {
+                // typed something but too short — same threshold the lookup search uses
+                ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['allergySubType'], message: `Minimum ${LOOKUP_MIN_CHARS} characters.` });
             } else if (!data.allergySubTypeId) {
                 // typed ≥3 chars but never selected from the lookup list (allowOnlyLookupData)
                 ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['allergySubType'], message: 'Please select Allergy Subtype from the search list.' });
@@ -131,7 +142,7 @@ const toFlatpickrDateTimeValue = (value) => {
     return `${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${date.getFullYear()} ${pad(hours)}:${minutes} ${period}`;
 };
 
-const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
+const nowDateTime = () => userNow().format('MM-DD-YYYY hh:mm A');
 const buildDefaultValues = (allergyRecord) => {
     if (!allergyRecord?.allergyId) {
         return {
@@ -179,6 +190,18 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
 
     const isEditMode = !!allergyRecord?.allergyId;
     const isRecoverMode = actionType === 'recover';
+
+    // Concurrency lock (existing records only): locks the record on mount, heartbeats/resumes
+    // while the form is open, releases on close — unless we saved (the save releases it via
+    // sessionId). Another user already holding it shows the warning modal and closes this form.
+    const { markSaved } = useSectionLock({
+        patientId,
+        resourceNavigationCode: 'ALLERGY',
+        sectionReferenceId: allergyRecord?.allergyId || null,
+        versionId: allergyRecord?.versionId ?? 0,
+        enabled: isEditMode,
+        onLockDenied: () => onClose(false),
+    });
 
     const { control, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm({
         resolver: zodResolver(allergySchema),
@@ -228,6 +251,18 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
     // Field ID helper — per-patient so multiple open charts don't collide.
     const fieldId = (base) => `${base}_${patientId}`;
 
+    // Allergy-subtype lookup (legacy conceptCategory "ALST"). LookupAsyncSelect owns the
+    // 3-character gate, debounce and error handling; this is just the fetch + option mapping.
+    const loadAllergySubTypeOptions = useCallback(
+        (searchTerm) => fetchAllergyLookup({ conceptCategory: 'ALST', searchParameter: searchTerm })
+            .then((res) => (res?.status === 'success' ? res.data || [] : []).map((item) => ({
+                value: String(item.id),
+                label: item.conceptName || item.value || item.description || '',
+                code: item.code,
+            }))),
+        [],
+    );
+
     useEffect(() => {
         reset(buildDefaultValues(allergyRecord));
         setReactionsList(allergyRecord?.reactionMapping || []);
@@ -253,10 +288,14 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
         }
     }, [clinicalStatus, setValue]);
 
-    const buildSavePayload = (data) => ({
+    // changeLogMessage is auto-generated from the allergy TYPE (legacy constructAllergyChangeLogMessage);
+    // the service fields mirror the legacy patientAllergiesaveParam (logId / careplanLogMessage /
+    // careplanLogMessageUserInput / sessionId). careplanId falls back to the cached patient details so
+    // a NEW allergy isn't saved careplan-less (which would hide it from the careplan-scoped list).
+    const buildSavePayload = (data, changeLogMessage) => ({
         activeFlag: recordType === 'history' ? 'N' : 'Y',
         patientId,
-        careplanId: allergyRecord?.careplanId || null,
+        careplanId: allergyRecord?.careplanId ?? patientCache.get(`${patientId}_details`)?.carePlanId ?? null,
         allergyId: allergyRecord?.allergyId || null,
         allergyType: data.allergyType,
         allergySubType: isNKALocked ? null : data.allergySubType,
@@ -271,16 +310,29 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
         allergyClinicalstatus: isNKALocked ? CLINICAL_STATUS.ACTIVE : data.clinicalStatus || null,
         reactionMapping: isNKALocked ? [] : reactionsList,
         allergyReactions: isNKALocked ? [] : reactionsList,
-        PatientLogMessageUserInput: '',
-        PatientLogMessage: '',
+        logId: getCarePlanChangeLogSessionId(CHANGE_LOG_SECTION, patientId),
+        careplanLogMessageUserInput: changeLogMessage,
+        careplanLogMessage: getCurrentSessionChangeLogMessagesForSection(CHANGE_LOG_SECTION, changeLogMessage, allergyRecord?.allergyId, patientId),
+        sessionId: getUserSessionId(),
         actionType,
     });
 
     const onValidSubmit = async (data) => {
         setSaving(true);
         try {
-            const response = await savePatientAllergy(buildSavePayload(data));
-            if (!response || response.status === 'success') onClose(true);
+            // Legacy keys the change-log message off the allergy TYPE description.
+            const allergyTypeDescription = lookups?.allergyTypes?.find((type) => String(type.code) === String(data.allergyType))?.description || data.allergyType;
+            const changeLogMessage = getRecordIdMessageInCurrentSessionForLog(CHANGE_LOG_SECTION, isEditMode ? allergyRecord.allergyId : null, { name: allergyTypeDescription }, patientId);
+            const response = await savePatientAllergy(buildSavePayload(data, changeLogMessage));
+            if (!response || response.status === 'success') {
+                // Track the session's change-log grouping so later ops append to one audit entry.
+                setCarePlanLogSessionId(CHANGE_LOG_SECTION, response?.logId, patientId);
+                checkAndSetRecordIdInCurrentSessionForLog(CHANGE_LOG_SECTION, response?.id, changeLogMessage, isEditMode ? 'OLD' : 'NEW', patientId);
+                // A new/changed allergy can raise a drug-allergy DSI alert (legacy fetchEhrPatientDsiAlertDetails).
+                triggerPatientDsiRefresh(patientId);
+                markSaved(); // the save released the lock server-side — skip the unlock on unmount
+                onClose(true);
+            }
             else notifyError(response.message || 'Failed to save allergy.');
         } catch (error) {
             console.error('Failed to save allergy.', error);
@@ -376,23 +428,14 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                             name="allergyType"
                             control={control}
                             render={({ field }) => (
-                                <Select
+                                <CommonSelect
                                     inputId={fieldId('pa_patient_allergy_type')}
                                     options={lookups.allergyTypes.map((type) => ({ value: type.code, label: type.description }))}
-                                    value={lookups.allergyTypes.map((t) => ({ value: t.code, label: t.description })).find((o) => o.value === field.value) || null}
-                                    onChange={(selected) => field.onChange(selected ? selected.value : '')}
+                                    value={field.value}
+                                    onChange={field.onChange}
                                     isDisabled={isEditMode}
-                                    isClearable
                                     placeholder="Select Type"
-                                    classNamePrefix="react-select"
-                                    styles={{
-                                        control: (base, state) => ({
-                                            ...base,
-                                            borderColor: errors.allergyType ? '#dc3545' : state.isFocused ? '#86b7fe' : '#ced4da',
-                                            boxShadow: errors.allergyType ? '0 0 0 0.25rem rgba(220,53,69,.25)' : state.isFocused ? '0 0 0 0.25rem rgba(13,110,253,.25)' : 'none',
-                                            '&:hover': { borderColor: errors.allergyType ? '#dc3545' : '#86b7fe' },
-                                        }),
-                                    }}
+                                    invalid={!!errors.allergyType}
                                 />
                             )}
                         />
@@ -407,47 +450,16 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                             name="allergySubType"
                             control={control}
                             render={({ field }) => (
-                                <AsyncSelect
+                                <LookupAsyncSelect
                                     inputId={fieldId('pa_patient_allergy_sub_type')}
-                                    cacheOptions
-                                    defaultOptions={false}
-                                    loadOptions={(inputValue) => {
-                                        if (inputValue.trim().length < LOOKUP_MIN_CHARS) return Promise.resolve([]);
-                                        return fetchAllergyLookup({ conceptCategory: 'ALST', searchParameter: inputValue.trim() })
-                                            .then((res) =>
-                                                (res?.status === 'success' ? res.data || [] : []).map((item) => ({
-                                                    value: item.id,
-                                                    label: item.conceptName || item.value || item.description || '',
-                                                    code: item.code,
-                                                }))
-                                            )
-                                            .catch(() => []);
-                                    }}
+                                    loadOptions={loadAllergySubTypeOptions}
                                     value={allergySubTypeId ? { value: allergySubTypeId, label: allergySubType } : null}
                                     onChange={(selected) => {
                                         field.onChange(selected ? selected.label : '');
                                         setValue('allergySubTypeId', selected ? String(selected.value) : '');
                                     }}
                                     isDisabled={isNKALocked}
-                                    isClearable
-                                    placeholder="Type at least 3 characters…"
-                                    noOptionsMessage={({ inputValue }) =>
-                                        inputValue.length < LOOKUP_MIN_CHARS
-                                            ? `Type at least ${LOOKUP_MIN_CHARS} characters to search`
-                                            : 'No results found'
-                                    }
-                                    loadingMessage={() => 'Searching…'}
-                                    classNamePrefix="react-select"
-                                    styles={{
-                                        control: (base, state) => ({
-                                            ...base,
-                                            borderColor: errors.allergySubType ? '#dc3545' : state.isFocused ? '#86b7fe' : '#ced4da',
-                                            boxShadow: errors.allergySubType
-                                                ? '0 0 0 0.25rem rgba(220,53,69,.25)'
-                                                : state.isFocused ? '0 0 0 0.25rem rgba(13,110,253,.25)' : 'none',
-                                            '&:hover': { borderColor: errors.allergySubType ? '#dc3545' : '#86b7fe' },
-                                        }),
-                                    }}
+                                    invalid={!!errors.allergySubType}
                                 />
                             )}
                         />
@@ -460,12 +472,14 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                             name="criticalityId"
                             control={control}
                             render={({ field }) => (
-                                <select {...field} id={fieldId('pa_patient_allergy_criticality')} className="form-select form-control" disabled={isNKALocked}>
-                                    <option value="">Select Criticality</option>
-                                    {lookups.criticalities.map((criticality) => (
-                                        <option key={criticality.id} value={criticality.id}>{criticality.conceptName}</option>
-                                    ))}
-                                </select>
+                                <CommonSelect
+                                    inputId={fieldId('pa_patient_allergy_criticality')}
+                                    options={lookups.criticalities.map((criticality) => ({ value: criticality.id, label: criticality.conceptName }))}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    isDisabled={isNKALocked}
+                                    placeholder="Select Criticality"
+                                />
                             )}
                         />
                     </div>
@@ -518,12 +532,16 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                             name="clinicalStatus"
                             control={control}
                             render={({ field }) => (
-                                <select {...field} id={fieldId('pa_patient_allergy_clinical_status')} className="form-select form-control pa-clinical-status" disabled={isNKALocked}>
-                                    <option value="">Select Status</option>
-                                    {lookups.clinicalStatuses.map((status) => (
-                                        <option key={status.code} value={status.code}>{status.description}</option>
-                                    ))}
-                                </select>
+                                <CommonSelect
+                                    inputId={fieldId('pa_patient_allergy_clinical_status')}
+                                    className="pa-clinical-status"
+                                    options={lookups.clinicalStatuses.map((status) => ({ value: status.code, label: status.description }))}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    isDisabled={isNKALocked}
+                                    placeholder="Select Status"
+                                    invalid={!!errors.clinicalStatus}
+                                />
                             )}
                         />
                         <FieldError message={errors.clinicalStatus?.message} />
@@ -535,12 +553,14 @@ const PatientAllergiesAddEdit = ({ patientId, allergyRecord, actionType, recordT
                             name="verificationStatus"
                             control={control}
                             render={({ field }) => (
-                                <select {...field} id={fieldId('pa_patient_allergy_verification_status')} className="form-select form-control" disabled={isNKALocked}>
-                                    <option value="">Select Verification Status</option>
-                                    {lookups.verificationStatuses.map((status) => (
-                                        <option key={status.code || status.id} value={status.code}>{status.conceptName || status.description}</option>
-                                    ))}
-                                </select>
+                                <CommonSelect
+                                    inputId={fieldId('pa_patient_allergy_verification_status')}
+                                    options={lookups.verificationStatuses.map((status) => ({ value: status.code, label: status.conceptName || status.description }))}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    isDisabled={isNKALocked}
+                                    placeholder="Select Verification Status"
+                                />
                             )}
                         />
                         {renderWarningMessages()}

@@ -11,6 +11,7 @@ import QuickAccessNav from './components/QuickAccessNav';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
 import { SkeletonTable } from './components/common/ContentLoader';
+import SessionLockWarningModal from './components/common/SessionLockWarningModal';
 import { LayoutProvider } from './context/LayoutProvider';
 import { NotificationProvider } from './context/NotificationProvider';
 import { useAppDispatch } from './store/hooks';
@@ -53,12 +54,9 @@ const readMemory = () => {
 };
 const App = () => {
     const [loading, setLoading] = useState(true);
-    // Holds the in-flight dev login so StrictMode's second effect pass awaits the same
-    // request instead of falling through. With a plain `hasLoggedIn` boolean the second
-    // pass returned early and cleared `loading`, so the shell rendered (and its lookups
-    // fired) before the token existed — the first 401 then wiped the cookie and bounced
-    // the app to /logout on every cold load.
-    const loginRequest = useRef(null);
+    // Holds the in-flight dev auto-login promise so React StrictMode's double-invoke
+    // of the init effect shares ONE login instead of the second run bailing out early.
+    const loginPromiseRef = useRef(null);
     const dispatch = useAppDispatch();
     const [openTabs, setOpenTabs] = useState([]);
     const [activeTab, setActiveTab] = useState('patient_list');
@@ -88,19 +86,26 @@ const App = () => {
                 setLoading(false);
                 return;
             }
-            loginRequest.current = loginRequest.current || apiPost('/login-web', {
-                username: devUsername,
-                password: devPassword,
-                isWebLogin: 'Y',
-            });
             try {
-                const loginResponse = await loginRequest.current;
+                // Share one login across StrictMode's two effect runs: the 2nd run awaits
+                // the SAME promise instead of returning early — so `loading` stays true
+                // (and the app stays unmounted) until the token is actually stored,
+                // preventing a tokenless first render → 401 → /logout.
+                if (!loginPromiseRef.current) {
+                    loginPromiseRef.current = apiPost('/login-web', {
+                        username: devUsername,
+                        password: devPassword,
+                        isWebLogin: 'Y',
+                    });
+                }
+                const loginResponse = await loginPromiseRef.current;
                 storeAuthToken(loginResponse?.data?.token);
                 dispatch(setCredentials({ user: loginResponse?.data?.user, token: loginResponse?.data?.token }));
                 restorePatientTabs();
             }
             catch (error) {
                 console.error('Login initialization error.', error);
+                loginPromiseRef.current = null; // let a later re-run retry
             }
             finally {
                 setLoading(false);
@@ -175,6 +180,8 @@ const App = () => {
     return (<NotificationProvider>
         <LayoutProvider>
             <PatientListFilterProvider>
+                {/* App-wide concurrency-lock warning modal (session lock / version change). */}
+                <SessionLockWarningModal />
                 <Routes>
                     <Route element={<AppLayout />}>
                         <Route path="/" element={<Navigate to="/patients" replace />} />

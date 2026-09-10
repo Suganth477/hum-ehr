@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { buildProblemDeletePayload, deletePatientProblem, fetchPatientProblems } from '../../../services/problemService';
+import { checkItIsNewRecordOrEditRecord } from '../../../services/sessionLockService';
+import { triggerPatientDsiRefresh } from '../../../services/patientService';
+import {
+    checkAndSetRecordIdInCurrentSessionForLog,
+    getRecordIdMessageInCurrentSessionForLog,
+    setCarePlanLogSessionId,
+} from '../../../services/changeLogService';
 import patientCache from '../../../utils/patientCache';
 import { DEBOUNCE_ALLERGY_LIST_MS } from '../../../constants/timing';
 import { SkeletonTable } from '../../../components/common/ContentLoader';
@@ -30,7 +37,7 @@ const SnomedCodeCell = ({ record }) => {
 const TypePill = ({ record }) => (record.diagnosisTypeDesc
     ? <span className="pp-patient-problem-type d-inline-block px-2">{record.diagnosisTypeDesc}</span>
     : <span>-</span>);
-const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, filterType, refreshKey, onEdit, onRecoverEdit, onRefresh, }) => {
+const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, filterType, refreshKey, onEdit, onRefresh, }) => {
     const [records, setRecords] = useState(null); // null = fetching (skeleton)
     const { notifyError, notifySuccess } = useNotify();
     const showCards = useIsTabletOrBelow();
@@ -58,13 +65,24 @@ const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, f
     const handleDelete = (record) => {
         if (!window.confirm('Are you sure about deleting the problem record?'))
             return;
-        const changeLogNotes = window.prompt('Enter change log message for deleting this problem record:') || '';
-        if (!changeLogNotes.trim())
-            return;
+        // Legacy auto-generates the delete change-log message from the diagnosis label
+        // ("<icd> - <description>") — the user is never prompted for it — reusing/rewriting
+        // any message already tracked for this record in the session.
+        const diagnosisName = `${record.icdCode || ''} - ${record.icdDescription || ''}`;
+        const changeLogNotes = getRecordIdMessageInCurrentSessionForLog('DIAGNOSIS', record.diagnosisId, { name: diagnosisName }, patientId, 'DELETE');
         (async () => {
             try {
-                await deletePatientProblem(buildProblemDeletePayload({ problemRecord: record, changeLogNotes }));
-                notifySuccess('Problem record deleted.');
+                // Concurrency check before deleting (legacy locks with action "DELETE").
+                const lock = await checkItIsNewRecordOrEditRecord(patientId, 'PROBLEM', record.diagnosisId, record.versionId ?? 0, 'DELETE');
+                if (lock?.status !== 'success')
+                    return; // the warning modal was shown
+                const response = await deletePatientProblem(buildProblemDeletePayload({ patientId, problemRecord: record, changeLogNotes }));
+                // Track the session's change-log grouping so later ops append to one audit entry.
+                setCarePlanLogSessionId('DIAGNOSIS', response?.logId, patientId);
+                checkAndSetRecordIdInCurrentSessionForLog('DIAGNOSIS', record.diagnosisId, changeLogNotes, 'OLD', patientId);
+                // Item 2 — a deleted problem can clear a drug-disease alert; re-evaluate DSI.
+                triggerPatientDsiRefresh(patientId);
+                notifySuccess('Problem record deleted successfully.');
                 onRefresh?.();
             }
             catch (error) {
@@ -78,22 +96,17 @@ const PatientProblemsList = ({ patientId, recordType, showDeleted, searchTerm, f
     if (!records.length)
         return <NoProblemData recordType={recordType} showDeleted={showDeleted}/>;
     const isDeletedRow = (record) => recordType === 'history' && record.invalidFlag === 'Y';
-    // Actions consolidated into a kebab (⋮) dropdown, matching the enhanced legacy
-    // screen (separate edit/delete icons → action-icon dropdown menu).
+    // Kebab (⋮) dropdown mirroring legacy constructProblemActionIcons: Edit shows only on
+    // active (non-deleted) records; Delete is shown on every row — active, history, and
+    // deleted alike. The current legacy has no Recover action.
     const renderActions = (record) => {
-        let items = null;
-        if (recordType === 'active')
-            items = (<>
-                <li><div className="ehr-patient-documents-list-icons pp-edit-problem-details" onClick={() => onEdit?.(record)}><span><LegacyIcon icon="fa-pen" className="action-icon"/></span> Edit</div></li>
-                <li><div className="ehr-patient-documents-list-icons pp-delete-problem-details" onClick={() => handleDelete(record)}><span><LegacyIcon icon="fa-trash-can" className="action-icon"/></span> Delete</div></li>
-              </>);
-        else if (isDeletedRow(record))
-            items = (<li><div className="ehr-patient-documents-list-icons pp-edit-problem-details" onClick={() => onRecoverEdit?.(record)}><span><LegacyIcon icon="fa-rotate" className="action-icon"/></span> Recover</div></li>);
-        if (!items)
-            return null;
+        const showEdit = recordType === 'active' && record.invalidFlag !== 'Y';
         return (<div className="action-icon-dropdown-group ehr-problem-action-items">
             <LegacyIcon icon="mdi-dots-vertical" className="action-group-icon" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false"/>
-            <ul className="dropdown-menu action-icon-dropdown-menu-list problem-list-action-items" style={{ minWidth: 195 }}>{items}</ul>
+            <ul className="dropdown-menu action-icon-dropdown-menu-list problem-list-action-items" style={{ minWidth: 195 }}>
+              {showEdit && <li><div className="ehr-patient-documents-list-icons pp-edit-problem-details" onClick={() => onEdit?.(record)}><span><LegacyIcon icon="fa-pen" className="action-icon"/></span> Edit</div></li>}
+              <li><div className="ehr-patient-documents-list-icons pp-delete-problem-details" onClick={() => handleDelete(record)}><span><LegacyIcon icon="fa-trash-can" className="action-icon"/></span> Delete</div></li>
+            </ul>
           </div>);
     };
     if (showCards) {

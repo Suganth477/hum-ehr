@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
 import { buildProblemSavePayload, savePatientProblem } from '../../../services/problemService';
 import { fetchProblemSnomedForIcd } from '../../../services/lookupService';
 import { getFormattedIcdCode } from '../../../utils/commonUtility';
@@ -7,10 +8,29 @@ import ProblemIcdLookupInput from './ProblemIcdLookupInput';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
 import FormStatusFooter from '../../../components/common/FormStatusFooter';
-import { fetchPatientDetails } from '../../../services/patientService';
+import CommonSelect from '../../../components/common/CommonSelect';
+import { fetchPatientDetails, triggerPatientDsiRefresh } from '../../../services/patientService';
+import { useSectionLock } from '../../../hooks/useSectionLock';
+import {
+	checkAndSetRecordIdInCurrentSessionForLog,
+	getRecordIdMessageInCurrentSessionForLog,
+	setCarePlanLogSessionId,
+} from '../../../services/changeLogService';
 import patientCache from '../../../utils/patientCache';
-import moment from '../../../utils/dayjs';
-const nowDateTime = () => moment().format('MM-DD-YYYY hh:mm A');
+import moment, { userNow } from '../../../utils/dayjs';
+// Change-log section for the problems screen (legacy uses "DIAGNOSIS").
+const CHANGE_LOG_SECTION = 'DIAGNOSIS';
+// Current date/time in the LOGGED-IN USER's timezone (not the browser clock) — the backend
+// treats recordedDate/dates as wall-clock in that zone, so a browser-clock default would
+// save the record in the user's future and hide it from date-scoped list queries.
+const nowDateTime = () => userNow().format('MM-DD-YYYY hh:mm A');
+// Themed confirmation (legacy utility.initJqueryPopUpConfirmationWithSelector). Reuses the
+// shared pa-swal-* classes; the container sits above the PrimeReact modal (z-index in CSS).
+const swalConfirm = Swal.mixin({
+    customClass: { container: 'pp-swal-container', popup: 'pa-swal-popup', title: 'pa-swal-title', confirmButton: 'pa-swal-confirm', cancelButton: 'pa-swal-cancel' },
+    // reverseButtons: NO (cancel) on the left, YES (confirm) on the right — matching the legacy popup.
+    buttonsStyling: false, showCancelButton: true, reverseButtons: true, allowOutsideClick: false, allowEscapeKey: false,
+});
 const createDefaultForm = () => ({
     icdCode: '',
     icdDescription: '',
@@ -24,7 +44,6 @@ const createDefaultForm = () => ({
     recordedDate: nowDateTime(),
     endDate: '',
     notes: '',
-    changeLogNotes: '',
 });
 // Status classification by description keyword — the legacy code keys off the
 // humcode response *order*; matching the human-readable label is more robust
@@ -45,10 +64,21 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
     const [saveError, setSaveError] = useState(null);
     const [dob, setDob] = useState('');
     const [dirty, setDirty] = useState(false);
-    const clinicalDefaultedRef = useRef(false);
     const now = nowDateTime();
     const isEditMode = !!problemRecord?.diagnosisId;
     const isRecoverMode = actionType === 'recover';
+    // Concurrency lock (existing records only): the hook locks the record on mount,
+    // heartbeats/resumes while the form is open, and releases it on close — unless we
+    // saved, in which case the save releases it server-side. If another user already
+    // holds the lock, the shared warning modal is shown and we close this form.
+    const { markSaved } = useSectionLock({
+        patientId,
+        resourceNavigationCode: 'PROBLEM',
+        sectionReferenceId: problemRecord?.diagnosisId || null,
+        versionId: problemRecord?.versionId ?? 0,
+        enabled: isEditMode,
+        onLockDenied: () => onClose(false),
+    });
     const clinicalStatuses = useMemo(() => statusMetadata?.clinicalStatuses || [], [statusMetadata]);
     const verificationStatuses = useMemo(() => statusMetadata?.verificationStatuses || [], [statusMetadata]);
     const fieldId = (base) => `${base}_${patientId}`;
@@ -105,8 +135,11 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         }
         return true;
     };
-    const visibleClinical = clinicalStatuses.filter(isClinicalAllowed);
-    const visibleVerification = verificationStatuses.filter(isVerificationAllowed);
+    // Always keep the currently-selected option visible — the legacy hides the other
+    // options via `d-none` but never drops the selected value, so the <select> can still
+    // display it (e.g. Inactive stays shown after Verification → Refuted).
+    const visibleClinical = clinicalStatuses.filter((status) => status.code === form.clinicalStatus || isClinicalAllowed(status));
+    const visibleVerification = verificationStatuses.filter((status) => status.code === form.verificationStatus || isVerificationAllowed(status));
     // ---- warning message (the eight documented status combinations) ----
     const warningMessage = useMemo(() => {
         if (!form.clinicalStatus && verification.enteredError)
@@ -177,7 +210,6 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
             recordedDate: problemRecord.recordedDate || '',
             endDate: problemRecord.dateOfResolution || '',
             notes: problemRecord.notes || '',
-            changeLogNotes: '',
         });
         if (problemRecord.snomedCode)
             loadSnomedForIcd(icdCode, String(problemRecord.snomedCode), problemRecord.snomedDesc || '');
@@ -199,15 +231,34 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         })();
         return () => { ignore = true; };
     }, [patientId]);
-    // New record: default Clinical Status to the first (Active) status once the
-    // metadata loads, matching the legacy preselect of clinicalStatusCode[0].
+    // New record: default Clinical Status to the first (Active) status once the metadata
+    // loads, matching the legacy preselect of clinicalStatusCode[0]. Keyed off the form's
+    // own emptiness (not a one-shot ref) so it survives React StrictMode's double-mount —
+    // where the create-form effect re-clears the form — while still never overriding a
+    // value the user chose or intentionally cleared (those don't change this effect's deps).
     useEffect(() => {
-        if (isEditMode || clinicalDefaultedRef.current || !clinicalStatuses.length) return;
-        clinicalDefaultedRef.current = true;
+        if (isEditMode || !clinicalStatuses.length) return;
         setForm((previous) => (previous.clinicalStatus ? previous : { ...previous, clinicalStatus: clinicalStatuses[0].code }));
     }, [isEditMode, clinicalStatuses]);
     const handleIcdSelect = (item) => {
         setDirty(true);
+        // Clearing the ICD search resets everything derived from it (description, auto-picked
+        // type and the dependent SNOMED list), so a stale SNOMED code can't be saved.
+        if (!item) {
+            setForm((previous) => ({
+                ...previous,
+                icdCode: '',
+                icdDescription: '',
+                diagnosisType: '',
+                snomedCode: '',
+                snomedDescription: '',
+            }));
+            setSnomedOptions([]);
+            setSnomedLocked(false);
+            setNoSnomed(false);
+            clearFieldError('icdCode');
+            return;
+        }
         setForm((previous) => ({
             ...previous,
             icdCode: item.code,
@@ -220,9 +271,8 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         clearFieldError('diagnosisType');
         loadSnomedForIcd(item.code);
     };
-    const handleSnomedChange = (event) => {
+    const handleSnomedChange = (code) => {
         setDirty(true);
-        const code = event.target.value;
         const option = snomedOptions.find((item) => String(item.snomedId) === String(code));
         setForm((previous) => ({ ...previous, snomedCode: code, snomedDescription: option?.snomedDesc || '' }));
         clearFieldError('snomedCode');
@@ -256,8 +306,11 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
     };
     const validateForm = () => {
         const nextErrors = {};
+        // Legacy pp_patient_problem_icd_code: required → "ICD Code is required." The
+        // allowOnlyProblemLookupData rule ("select from the search list") is now structurally
+        // enforced — the lookup only yields a value when an option is actually picked.
         if (!form.icdCode || !form.icdDescription)
-            nextErrors.icdCode = 'Please select a problem from the ICD search list.';
+            nextErrors.icdCode = 'ICD Code is required.';
         if (!noSnomed && snomedOptions.length > 0 && !form.snomedCode)
             nextErrors.snomedCode = 'SNOMED Code is required.';
         if (!form.diagnosisType)
@@ -273,8 +326,6 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
             nextErrors.endDate = 'Date of Resolution must be on or after Date of Diagnosis.';
         if (form.notes && form.notes.trim().length < 2)
             nextErrors.notes = 'Minimum 2 characters.';
-        if (!form.changeLogNotes.trim())
-            nextErrors.changeLogNotes = 'Change log message is required.';
         return nextErrors;
     };
     const handleFormSubmit = async (event) => {
@@ -284,16 +335,51 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         setErrors(validationErrors);
         if (Object.keys(validationErrors).length)
             return;
+        // Legacy patient.chart.auto.save.js: once the form is valid, confirm before saving
+        // ("Save/Update Changes" → "Are you sure about to Save/Update Changes?").
+        const confirmed = await swalConfirm.fire({
+            title: `${isEditMode ? 'Update' : 'Save'} Changes`,
+            text: `Are you sure about to ${isEditMode ? 'Update' : 'Save'} Changes?`,
+            confirmButtonText: 'YES',
+            cancelButtonText: 'NO',
+        });
+        if (!confirmed.isConfirmed)
+            return;
         setSaving(true);
         try {
-            const response = await savePatientProblem(buildProblemSavePayload({ patientId, form, problemRecord }));
+            // Legacy constructProblemChangeLogMessage auto-fills the hidden change-log field
+            // from the diagnosis label ("<icd> - <description>"), reusing any message already
+            // tracked for this record in the session. Editing keys off the numeric diagnosisId
+            // ("An existing problem … modified"); a new record keys off the ICD code string
+            // ("A new problem … added").
+            const diagnosisName = `${form.icdCode} - ${form.icdDescription}`;
+            const recordIdForLog = isEditMode ? problemRecord?.diagnosisId : (form.icdCode || null);
+            const changeLogMessage = getRecordIdMessageInCurrentSessionForLog(CHANGE_LOG_SECTION, recordIdForLog, { name: diagnosisName }, patientId);
+            const response = await savePatientProblem(buildProblemSavePayload({ patientId, form, problemRecord, changeLogMessage }));
             // The save endpoint returns HTTP 200 even when it rejects the record:
             // only status === 'success' means saved. A 'warning'/'failure' body
             // (e.g. a duplicate problem) keeps the form open and the server message
             // is surfaced under the ICD search field, as the legacy form did.
             const outcome = getSaveOutcome(response, 'This problem could not be saved. Please review the details and try again.');
             if (outcome.ok) {
-                onClose(true);
+                // Record the session's change-log grouping (logId) + this record's message so a
+                // subsequent save/delete in the same session appends to one audit entry.
+                setCarePlanLogSessionId(CHANGE_LOG_SECTION, response?.logId, patientId);
+                checkAndSetRecordIdInCurrentSessionForLog(CHANGE_LOG_SECTION, response?.id, changeLogMessage, isEditMode ? 'OLD' : 'NEW', patientId);
+                // Item 2 — re-evaluate DSI alerts (a new/changed problem may raise a drug-disease alert).
+                triggerPatientDsiRefresh(patientId);
+                markSaved(); // the save released the lock server-side — skip the unlock on unmount
+                // Item 3 — when opened from a section's diagnosis picker, hand back the saved
+                // diagnosis so the parent auto-selects it (legacy constructNewSelectedDiagnosis).
+                onClose(true, {
+                    diagnosisId: response?.id ?? null,
+                    icdCode: form.icdCode,
+                    icdDescription: form.icdDescription,
+                    snomedCode: form.snomedCode || null,
+                    snomedDesc: form.snomedDescription || null,
+                    diagnosisType: form.diagnosisType,
+                    invalidFlag: 'N',
+                });
                 return;
             }
             setSaveError(outcome);
@@ -306,21 +392,15 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
             setSaving(false);
         }
     };
-    return (<div className="pp-problems-add-edit-main-container container-fluid animate-fade-in bg-white p-3 border rounded">
-      <div className="row mb-2 border-bottom pb-2">
-        <div className="d-flex align-items-center gap-2">
-          <button type="button" className="back-to-icon btn btn-link p-0 text-dark" onClick={() => onClose(false)} aria-label="Back to problems list">
-            <LegacyIcon icon="mdi-arrow-left" className="custom-pointer fs-4"/>
-          </button>
-          <span className="fw-bold">{isRecoverMode ? 'Recover Problem' : isEditMode ? 'Edit Problems' : 'Add Problems'}</span>
-        </div>
-      </div>
-
+    return (<div className="pp-problems-add-edit-main-container">
       <form id={fieldId('pp_patient_problem_add_edit_form')} className="care-plan-data-entry" onSubmit={handleFormSubmit} noValidate>
-        {/* Row 1 — identification (col-md-4: 3 per row on desktop, matching the allergy form). */}
+        <div className="pp-problem-form-body">
+        {/* Row 1 — identification: ICD search · SNOMED code · Type. */}
         <div className="row g-3">
           <div className="col-12 col-sm-6 col-md-4">
-            <ProblemIcdLookupInput id={fieldId('pp_patient_problem_icd_code')} label="Search By ICD Code (or) Description" required value={form.icdCode} disabled={isEditMode} placeholder="Type at least 3 characters" onChange={(value) => updateForm('icdCode', value)} onSelect={handleIcdSelect}/>
+            <ProblemIcdLookupInput id={fieldId('pp_patient_problem_icd_code')} label="Search By ICD Code (or) Description" required
+              code={form.icdCode} description={form.icdDescription} disabled={isEditMode} invalid={!!errors.icdCode}
+              placeholder="Type at least 3 characters…" onSelect={handleIcdSelect}/>
             {errors.icdCode && <div className="small text-danger mt-1">{errors.icdCode}</div>}
             {saveError && (<div className={`small mt-1 ${saveError.tone === 'warning' ? 'text-warning' : 'text-danger'}`} id={fieldId('pp_patient_problem_save_error')}>
                 <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{saveError.message}
@@ -328,43 +408,45 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
           </div>
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_snomed_code')}>SNOMED Code <span className="text-danger">*</span></label>
-            <select id={fieldId('pp_patient_problem_snomed_code')} className="form-select form-control" value={form.snomedCode} disabled={snomedLocked || noSnomed || !snomedOptions.length} onChange={handleSnomedChange}>
-              <option value="">Select SNOMED Code</option>
-              {snomedOptions.map((option) => <option key={option.snomedId} value={String(option.snomedId)}>{option.snomedId} - {option.snomedDesc}</option>)}
-            </select>
+            <CommonSelect inputId={fieldId('pp_patient_problem_snomed_code')} value={form.snomedCode} isDisabled={snomedLocked || noSnomed || !snomedOptions.length} placeholder="Select SNOMED Code" invalid={!!errors.snomedCode} onChange={handleSnomedChange} options={snomedOptions.map((option) => ({ value: String(option.snomedId), label: `${option.snomedId} - ${option.snomedDesc}` }))}/>
             {noSnomed && <div className="small text-warning mt-1">There is no SNOMED CT code linked to {form.icdCode}.</div>}
             {errors.snomedCode && <div className="small text-danger mt-1">{errors.snomedCode}</div>}
           </div>
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_type')}>Type <span className="text-danger">*</span></label>
-            <select id={fieldId('pp_patient_problem_type')} className="form-select form-control" value={form.diagnosisType} onChange={(event) => updateForm('diagnosisType', event.target.value)}>
-              <option value="">Select Diagnosis Type</option>
-              <option value="CHRO">Chronic</option>
-              <option value="ACUT">Acute</option>
-            </select>
+            <CommonSelect inputId={fieldId('pp_patient_problem_type')} value={form.diagnosisType} placeholder="Select Diagnosis Type" invalid={!!errors.diagnosisType} onChange={(value) => updateForm('diagnosisType', value)} options={[{ value: 'CHRO', label: 'Chronic' }, { value: 'ACUT', label: 'Acute' }]}/>
             {errors.diagnosisType && <div className="small text-danger mt-1">{errors.diagnosisType}</div>}
           </div>
         </div>
 
-        {/* Row 2 — clinical & verification status. */}
+        {/* Row 2 — read-only descriptions (col-8) beside the stacked Clinical / Verification
+            status (col-4), matching the legacy problem add/edit template layout. */}
         <div className="row g-3 mt-1">
-          <div className="col-12 col-sm-6 col-md-4">
-            <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_clinical_status')}>Clinical Status {clinicalRequired && <span className="text-danger">*</span>}</label>
-            <select id={fieldId('pp_patient_problem_clinical_status')} className="form-select form-control pp-clinical-status" value={form.clinicalStatus} onChange={(event) => handleClinicalStatusChange(event.target.value)}>
-              <option value="">Select Clinical Status</option>
-              {visibleClinical.map((status) => <option key={status.code} value={status.code}>{status.description}</option>)}
-            </select>
-            {errors.clinicalStatus && <div className="small text-danger mt-1">{errors.clinicalStatus}</div>}
+          <div className="col-12 col-md-8">
+            <div className="row g-3">
+              <div className="col-12 col-md-6">
+                <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_icd_description')}>ICD Description <span className="text-danger">*</span></label>
+                <textarea id={fieldId('pp_patient_problem_icd_description')} className="form-control" style={{ height: 115 }} value={form.icdCode && form.icdDescription ? `${form.icdCode} - ${form.icdDescription}` : form.icdDescription} disabled maxLength={5000}/>
+              </div>
+              <div className="col-12 col-md-6">
+                <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_snomed_description')}>Snomed Description</label>
+                <textarea id={fieldId('pp_patient_problem_snomed_description')} className="form-control" style={{ height: 115 }} value={form.snomedDescription} disabled maxLength={5000}/>
+              </div>
+            </div>
           </div>
-          <div className="col-12 col-sm-6 col-md-4">
-            <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_verification_status')}>Verification Status</label>
-            <select id={fieldId('pp_patient_problem_verification_status')} className="form-select form-control" value={form.verificationStatus} onChange={(event) => updateForm('verificationStatus', event.target.value)}>
-              <option value="">Select Verification Status</option>
-              {visibleVerification.map((status) => <option key={status.code} value={status.code}>{status.description}</option>)}
-            </select>
-            {warningMessage && (<div className={`small mt-1 ${warningMessage.tone === 'error' ? 'text-danger' : 'text-warning'}`}>
-                <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{warningMessage.text}
-              </div>)}
+          <div className="col-12 col-md-4">
+            <div className="mb-3">
+              <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_clinical_status')}>Clinical Status {clinicalRequired && <span className="text-danger">*</span>}</label>
+              <CommonSelect inputId={fieldId('pp_patient_problem_clinical_status')} className="pp-clinical-status" value={form.clinicalStatus} placeholder="Select Clinical Status" invalid={!!errors.clinicalStatus} onChange={handleClinicalStatusChange} options={visibleClinical.map((status) => ({ value: status.code, label: status.description }))}/>
+              {errors.clinicalStatus && <div className="small text-danger mt-1">{errors.clinicalStatus}</div>}
+            </div>
+            <div>
+              <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_verification_status')}>Verification Status</label>
+              <CommonSelect inputId={fieldId('pp_patient_problem_verification_status')} value={form.verificationStatus} placeholder="Select Verification Status" onChange={(value) => updateForm('verificationStatus', value)} options={visibleVerification.map((status) => ({ value: status.code, label: status.description }))}/>
+              {warningMessage && (<div className={`small mt-1 ${warningMessage.tone === 'error' ? 'text-danger' : 'text-warning'}`}>
+                  <LegacyIcon icon="fa-exclamation-triangle" className="me-1"/>{warningMessage.text}
+                </div>)}
+            </div>
           </div>
         </div>
 
@@ -372,46 +454,32 @@ const PatientProblemsAddEdit = ({ patientId, problemRecord, actionType, statusMe
         <div className="row g-3 mt-1">
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_diagnosis_date')}>Date of Diagnosis</label>
-            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_diagnosis_date')} value={form.diagnosisDate} onChange={(value) => updateForm('diagnosisDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" minDate={dob || undefined} maxDate={now}/>
+            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_diagnosis_date')} value={form.diagnosisDate} onChange={(value) => updateForm('diagnosisDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY HH:MM AM/PM" minDate={dob || undefined} maxDate={now}/>
             {errors.diagnosisDate && <div className="small text-danger mt-1">{errors.diagnosisDate}</div>}
           </div>
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_recorded_date')}>Recorded Date &amp; Time</label>
-            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_recorded_date')} value={form.recordedDate} onChange={(value) => updateForm('recordedDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" minDate={dob || undefined} maxDate={now}/>
+            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_recorded_date')} value={form.recordedDate} onChange={(value) => updateForm('recordedDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY HH:MM AM/PM" minDate={dob || undefined} maxDate={now}/>
           </div>
           <div className="col-12 col-sm-6 col-md-4">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_end_date')}>Date of Resolution {endDateEnabled && <span className="text-danger">*</span>}</label>
-            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_end_date')} value={form.endDate} onChange={(value) => updateForm('endDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY hh:mm AM/PM" disabled={!endDateEnabled} minDate={form.diagnosisDate || dob || undefined} maxDate={now}/>
+            <FlatpickrDateTimeInput id={fieldId('pp_patient_problem_end_date')} value={form.endDate} onChange={(value) => updateForm('endDate', value)} enableTime dateFormat="m-d-Y h:i K" placeholder="MM-DD-YYYY HH:MM AM/PM" disabled={!endDateEnabled} minDate={form.diagnosisDate || dob || undefined} maxDate={now}/>
             {errors.endDate && <div className="small text-danger mt-1">{errors.endDate}</div>}
           </div>
         </div>
 
-        {/* Row 3 — the read-only descriptions span wider. */}
-        <div className="row g-3 mt-1">
-          <div className="col-12 col-md-6">
-            <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_icd_description')}>ICD Description <span className="text-danger">*</span></label>
-            <textarea id={fieldId('pp_patient_problem_icd_description')} className="form-control" style={{ height: 90 }} value={form.icdCode && form.icdDescription ? `${form.icdCode} - ${form.icdDescription}` : form.icdDescription} disabled maxLength={5000}/>
-          </div>
-          <div className="col-12 col-md-6">
-            <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_snomed_description')}>SNOMED Description</label>
-            <textarea id={fieldId('pp_patient_problem_snomed_description')} className="form-control" style={{ height: 90 }} value={form.snomedDescription} disabled maxLength={5000}/>
-          </div>
-        </div>
-
+        {/* Row 4 — notes. */}
         <div className="row g-3 mt-1">
           <div className="col-12">
             <label className="form-label fw-bold" htmlFor={fieldId('pp_patient_problem_notes')}>Notes</label>
-            <textarea id={fieldId('pp_patient_problem_notes')} className="form-control" style={{ height: 90 }} value={form.notes} onChange={(event) => updateForm('notes', event.target.value)} maxLength={5000}/>
+            {/* Legacy collapses consecutive spaces as the user types (replace(/ +(?= )/g,'')). */}
+            <textarea id={fieldId('pp_patient_problem_notes')} className="form-control" style={{ height: 90 }} value={form.notes} onChange={(event) => updateForm('notes', event.target.value.replace(/ +(?= )/g, ''))} maxLength={5000}/>
             <div className="d-flex justify-content-between">
               {errors.notes ? <div className="small text-danger mt-1">{errors.notes}</div> : <span/>}
-              <div className="small text-muted mt-1">{form.notes.length}/5000</div>
+              <div className="small text-muted mt-1">({form.notes.length}/5000)</div>
             </div>
           </div>
-          <div className="col-12">
-            <label className="form-label fw-bold text-danger" htmlFor={fieldId('pp_patient_problem_change_log_message')}>Audit Change Log Message <span className="text-danger">*</span></label>
-            <input type="text" className="form-control border-danger" id={fieldId('pp_patient_problem_change_log_message')} value={form.changeLogNotes} onChange={(event) => updateForm('changeLogNotes', event.target.value)} placeholder="Reason required for clinical audit logs"/>
-            {errors.changeLogNotes && <div className="small text-danger mt-1">{errors.changeLogNotes}</div>}
-          </div>
+        </div>
         </div>
 
         <FormStatusFooter

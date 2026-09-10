@@ -214,12 +214,34 @@
 }
 
 .border-radius-button.save {
-   width: 76px;
+   min-width: 76px;
+}
+
+/* Session-lock (concurrency) warning modal — legacy active_session_warning_message_modal. */
+.pp-session-lock-warning-modal .p-dialog-header {
+   padding: 1rem 1.25rem;
+}
+.pp-session-lock-warning-modal .p-dialog-header .p-dialog-title {
+   font-size: 1.05rem;
+   font-weight: 600;
+}
+.pp-session-lock-warning-desc {
+   color: #37474F;
+   font-size: 0.95rem;
+   line-height: 1.5;
+}
+
+/* Save/Update confirmation popup (fired from PatientProblemsAddEdit) must sit above the
+   modal it confirms. Global because that form is also embedded inside the Procedure /
+   Surgical / Hospitalization dialogs, where PatientProblems.css isn't loaded — without
+   this the confirm popup renders BEHIND the nested dialog mask and can't be clicked. */
+.pp-swal-container {
+   z-index: 20000 !important;
 }
 .border-radius-button.cancel, .btn-border-outline-cancel-btn {
    background-color: var(--app-color) !important;
    color: var(--app-color4);
-   width: 76px;
+   min-width: 76px;
    border-radius: var(--app-border-radius8) !important;
    border-color: var(--app-color4);
    opacity: 1;

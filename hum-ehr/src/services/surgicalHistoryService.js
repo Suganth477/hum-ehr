@@ -1,4 +1,4 @@
-import moment from '../utils/dayjs';
+import { userNow } from '../utils/dayjs';
 import ENDPOINTS from './endpoints';
 import { apiGet, apiPost, apiPostForm } from './apiClient';
 import { buildDiagnosisListPayload } from './procedureService';
@@ -66,7 +66,7 @@ export const deleteSurgicalHistory = ({ patientId, careplanId, surgeryId, surger
  * files as { attachmentId } only.
  */
 export const buildSurgicalHistorySavePayload = ({ patientId, careplanId, form, diagnosisList, files }) => {
-	const nowTime = moment().format('hh:mm A');
+	const nowTime = userNow().format('hh:mm A');
 	const fileDetail = (files || []).map((f) => (f.attachmentId
 		? { attachmentId: parseInt(f.attachmentId, 10) }
 		: { fileName: f.fileName, attachmentSize: Number(f.displaySizeKb ?? f.attachmentSize), fileFormat: blobTypeFor(f.fileFormat), file: f.encoded || f.file }));

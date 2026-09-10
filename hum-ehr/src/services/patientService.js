@@ -1,14 +1,15 @@
 // @ts-check
 import ENDPOINTS from "./endpoints";
 import { apiPost, apiPostForm } from "./apiClient";
-import moment from "../utils/dayjs";
+import moment, { userNow } from "../utils/dayjs";
+import { publishSectionRefresh, sectionRefreshKey } from "../utils/sectionRefreshBus";
 
 /** Legacy utility.ageCalculator(dob) + "yrs" — whole years from the MM-DD-YYYY dob. */
 const computePatientAge = (dob, separator = "") => {
 	if (!dob) return "";
 	const parsed = moment(dob, "MM-DD-YYYY", true);
 	if (!parsed.isValid()) return "";
-	const years = moment().diff(parsed, "year");
+	const years = userNow().diff(parsed, "year");
 	return Number.isFinite(years) ? `${years}${separator}yrs` : "";
 };
 /**
@@ -204,6 +205,31 @@ export const downloadPatientCCD = (patientId) =>
 		{ patientId },
 		{ responseType: "blob" },
 	);
+/**
+ * Re-evaluate the patient's DSI (Decision Support Intervention) alerts.
+ * Legacy utility.fetchEhrPatientDsiAlertDetails: POST { patientId, productCode:'DSI' }.
+ */
+export const fetchEhrPatientDsiAlert = (patientId) =>
+	apiPost(ENDPOINTS.intervention.eventBased, { patientId, productCode: "DSI" });
+/**
+ * Fire the DSI re-evaluation after a clinical change (a saved/deleted problem can raise
+ * or clear a drug-disease alert) and, when it reports data, publish a "DSI" section
+ * refresh — mirroring the legacy trigger of PatientDemographicsDsiInformation. The
+ * patient-chart DSI display isn't migrated yet, so this is fire-and-forget today but
+ * keeps the server-side DSI state fresh (the patient-list DSI badge reads it) and lets a
+ * future DSI surface subscribe. Never throws — a DSI hiccup must not fail the save.
+ */
+export const triggerPatientDsiRefresh = async (patientId) => {
+	if (!patientId) return;
+	try {
+		const response = await fetchEhrPatientDsiAlert(patientId);
+		if (response?.status === "success" && response.data) {
+			publishSectionRefresh(sectionRefreshKey("DSI", patientId));
+		}
+	} catch (error) {
+		console.error("Failed to fetch the patient DSI alert details.", error);
+	}
+};
 const patientService = {
 	buildActivePatientListRequest,
 	resolveSearchColumn,
@@ -214,5 +240,7 @@ const patientService = {
 	fetchPatientDetails,
 	fetchPatientDsiAlerts,
 	downloadPatientCCD,
+	fetchEhrPatientDsiAlert,
+	triggerPatientDsiRefresh,
 };
 export default patientService;

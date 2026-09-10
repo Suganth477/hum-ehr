@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import { Dialog } from 'primereact/dialog';
 import {
     getPatientDetails, fetchCareGiversList, fetchCareGiverTypes, saveCareGiver, deleteCareGiver,
@@ -49,7 +49,7 @@ const PatientCareGivers = ({ patientId }) => {
         getPatientDetails(patientId).then((details) => setDob(details?.dateOfBirth || '')).catch(() => {});
     }, [patientId]);
 
-    const today = moment().format('MM-DD-YYYY');
+    const today = userNow().format('MM-DD-YYYY');
 
     const openDialog = async (record = null) => {
         try {
@@ -157,7 +157,7 @@ const PatientCareGivers = ({ patientId }) => {
         try {
             // Legacy activeFlag: 'N' when the last effective date & time is already past.
             let activeFlagStatus = 'Y';
-            if (form.lastEffectiveDate && moment(form.lastEffectiveDate, 'MM-DD-YYYY hh:mm A').isBefore(moment())) activeFlagStatus = 'N';
+            if (form.lastEffectiveDate && moment(form.lastEffectiveDate, 'MM-DD-YYYY hh:mm A').isBefore(userNow())) activeFlagStatus = 'N';
             const response = await saveCareGiver({
                 patientId,
                 careGiverId: form.careGiverId || '',

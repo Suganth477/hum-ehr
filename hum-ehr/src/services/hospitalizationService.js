@@ -1,6 +1,7 @@
-import moment from '../utils/dayjs';
+import { userNow } from '../utils/dayjs';
 import ENDPOINTS from './endpoints';
 import { apiGet, apiPost, apiPostForm } from './apiClient';
+import { getUserSessionId } from './sessionLockService';
 import { fetchHumCodeList, humCodeListToArray } from './lookupService';
 
 /**
@@ -67,11 +68,14 @@ export const buildHospitalizationSavePayload = ({ patientId, form, record, diagn
 	effectiveDate: toDateOnly(form.admittedDate),
 	lastEffectiveDate: toDateOnly(form.dischargedDate),
 	careNotes: form.notes,
-	// Legacy uses utility.getCurrentDateInUserTimeZone() (MM-DD-YYYY hh:mm A).
-	// TODO: thread the logged-in user's timezone through moment-timezone for exact parity.
-	recordedDate: moment().format('MM-DD-YYYY hh:mm A'),
+	// Legacy utility.getCurrentDateInUserTimeZone().format(MDY_12H) — the logged-in user's
+	// timezone, not the browser clock (userNow() reads the JWT `timezone` claim).
+	recordedDate: userNow().format('MM-DD-YYYY hh:mm A'),
 	invalidFlag: 'N',
 	dischargeDispositionOther: form.otherDischargeDisposition || '',
+	// Releases this record's section lock server-side on save (legacy
+	// getEhrPatientHospitalizationSaveRequestParam → activeSessionHandle.getUserSessionId()).
+	sessionId: getUserSessionId(),
 });
 
 // Mirrors PcEhrHospitalizationAddEdit careStatusUniqueCheck request body.

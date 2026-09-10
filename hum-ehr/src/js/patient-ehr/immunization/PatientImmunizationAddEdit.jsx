@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import { userNow } from '../../../utils/dayjs';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { buildImmunizationSavePayload, fetchVaccineSiteLookup, saveImmunization } from '../../../services/immunizationService';
@@ -137,7 +137,7 @@ const PatientImmunizationAddEdit = ({ patientId, record, reference, physicians, 
     };
 
     const dateProps = { enableTime: true, dateFormat: 'm-d-Y h:i K', placeholder: 'MM-DD-YYYY HH:MM AM/PM' };
-    const administeredMax = form.expirationDate || moment().add(1, 'year').format('MM-DD-YYYY');
+    const administeredMax = form.expirationDate || userNow().add(1, 'year').format('MM-DD-YYYY');
 
     return (<form className="care-plan-data-entry" id={`add_edit_patient_immunization_details_${patientId}`} autoComplete="off" onSubmit={handleSubmit} noValidate>
       <div className="row g-3">

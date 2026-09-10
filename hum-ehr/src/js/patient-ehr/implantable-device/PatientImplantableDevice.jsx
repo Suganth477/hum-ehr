@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import { Dialog } from 'primereact/dialog';
 import PatientImplantableDeviceList from './PatientImplantableDeviceList';
 import PatientImplantableDeviceDetails from './PatientImplantableDeviceDetails';
@@ -44,7 +44,7 @@ const PatientImplantableDevice = ({ patientId }) => {
     }, [refresh]);
 
     const openEdit = useCallback((record) => {
-        const status = record.explantDate && moment(record.explantDate).isSameOrBefore(moment()) ? 'Inactive' : 'Active';
+        const status = record.explantDate && moment(record.explantDate).isSameOrBefore(userNow()) ? 'Inactive' : 'Active';
         setDialog({ type: 'form', seed: { deviceData: record, implantableId: record.id, status } });
     }, []);
     const openExplant = useCallback((record) => setDialog({ type: 'explant', record }), []);

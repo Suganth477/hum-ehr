@@ -1,8 +1,9 @@
 import ENDPOINTS from './endpoints';
 import { apiGet, apiPost, apiPostForm } from './apiClient';
 import { getLoggedInUser } from './authService';
+import { getUserSessionId } from './sessionLockService';
 import { humCodeListToArray } from './lookupService';
-import moment from '../utils/dayjs';
+import { userNow } from '../utils/dayjs';
 
 /**
  * Patient Preferences data layer. Mirrors patient.chart.preferences.js + api.utility.js:
@@ -22,6 +23,13 @@ export const PREFERENCES_CATEGORY_MAP = {
 	'care-preferences': 'care',
 	'treatment-preferences': 'treatment',
 	'advance-directives': 'advance-directive',
+};
+// Per-category concurrency-lock resourceNavigationCode (legacy PREFERENCES_CONCURRENT_CODE).
+// Preferences lock EACH sub-section separately — unlike single-code sections (PROBLEM/ALLERGY).
+export const PREFERENCES_CONCURRENT_CODE = {
+	'care-preferences': 'CAREPREF',
+	'treatment-preferences': 'TREATPREF',
+	'advance-directives': 'DIRCTPREF',
 };
 const LOOKUP_MAPPING = { CARE: 'care-preferences', TREA: 'treatment-preferences', ADDI: 'advance-directives' };
 
@@ -83,7 +91,7 @@ export const buildPreferenceSavePayload = ({
 	preferencesId, patientId, preferencesType, code, title, effectiveDate, lastEffectiveDate,
 	recordedDate, notes, statusCode, attachment, advanceDirectiveIds, deletePreferenceCode,
 }) => {
-	const lastEffective = statusCode === 'ENTERED_ERR' ? moment().format('MM-DD-YYYY hh:mm A') : (lastEffectiveDate || null);
+	const lastEffective = statusCode === 'ENTERED_ERR' ? userNow().format('MM-DD-YYYY hh:mm A') : (lastEffectiveDate || null);
 	return {
 		id: preferencesId && preferencesId !== '0' ? parseInt(preferencesId, 10) : null,
 		patientId: parseInt(patientId, 10),
@@ -95,17 +103,32 @@ export const buildPreferenceSavePayload = ({
 		notes: notes || null,
 		statusCode: statusCode || null,
 		invalidFlag: 'N',
+		// Releases this record's section lock server-side on save (legacy patientEhrPreferencesSaveParam).
+		sessionId: getUserSessionId(),
 		attachment: attachment && attachment.length ? attachment : null,
 		...(preferencesType === 'treatment-preferences' && { advanceDirectiveIds: advanceDirectiveIds || [] }),
 		...(deletePreferenceCode && { deletePreferenceCode }),
 	};
 };
 
+/**
+ * Soft-delete payload (legacy deletePreferenceRecord): the full record with invalidFlag
+ * flipped to 'Y', plus the advance-directive deletePreferenceCode when the user chose to
+ * also inactivate linked treatment preferences. No sessionId here — the DELETE concurrency
+ * check (checkItIsNewRecordOrEditRecord ... 'DELETE') releases the lock separately.
+ */
+export const buildPreferenceDeletePayload = (record, deletePreferenceCode = null) => ({
+	...record,
+	invalidFlag: 'Y',
+	...(deletePreferenceCode && { deletePreferenceCode }),
+});
+
 const preferencesService = {
 	fetchPreferencesList,
 	fetchPreferenceLookups,
 	fetchPreferenceStatuses,
 	savePreference,
+	buildPreferenceDeletePayload,
 	fetchPreferenceAttachmentFile,
 	fetchLinkedAdvanceDirectiveDocs,
 	buildPreferenceSavePayload,

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import AsyncSelect from 'react-select/async';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchAllergyLookup } from '../../../services/lookupService';
-import { LOOKUP_MIN_CHARS } from '../../../constants/timing';
 import FlatpickrDateTimeInput from '../../../components/common/FlatpickrDateTimeInput';
+import LookupAsyncSelect from '../../../components/common/LookupAsyncSelect';
+import CommonSelect from '../../../components/common/CommonSelect';
 
 const EMPTY_FORM = {
     id: '',
@@ -31,17 +31,16 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
         });
     }, [editReaction]);
 
-    const loadReactionOptions = (inputValue) => {
-        if (!inputValue || inputValue.trim().length < LOOKUP_MIN_CHARS) return Promise.resolve([]);
-        return fetchAllergyLookup({ conceptCategory: 'ALRE', searchParameter: inputValue.trim() })
-            .then((res) => {
-                const items = res?.status === 'success' ? res.data || [] : [];
-                return items
-                    .filter((item) => !existingReactionIds.includes(String(item.id)) || String(item.id) === String(editReaction?.reactionId))
-                    .map((item) => ({ value: String(item.id), label: item.conceptName || item.value || '', code: item.code }));
-            })
-            .catch(() => []);
-    };
+    // Reaction lookup (legacy conceptCategory "ALRE"). LookupAsyncSelect owns the 3-character
+    // gate, debounce and error handling; already-added reactions are filtered out so the same
+    // reaction can't be attached twice (the one being edited stays selectable).
+    const loadReactionOptions = useCallback(
+        (searchTerm) => fetchAllergyLookup({ conceptCategory: 'ALRE', searchParameter: searchTerm })
+            .then((res) => (res?.status === 'success' ? res.data || [] : [])
+                .filter((item) => !existingReactionIds.includes(String(item.id)) || String(item.id) === String(editReaction?.reactionId))
+                .map((item) => ({ value: String(item.id), label: item.conceptName || item.value || '', code: item.code }))),
+        [existingReactionIds, editReaction],
+    );
 
     const validate = () => {
         const errs = {};
@@ -72,17 +71,6 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
         ? { value: rxForm.reactionId, label: rxForm.reactionText }
         : null;
 
-    const selectErrorStyles = (hasError) => ({
-        control: (base, state) => ({
-            ...base,
-            borderColor: hasError ? '#dc3545' : state.isFocused ? '#1D9CA6' : '#ced4da',
-            boxShadow: hasError
-                ? '0 0 0 0.2rem rgba(220,53,69,.25)'
-                : state.isFocused ? '0 0 0 0.2rem rgba(29,156,166,.2)' : 'none',
-            '&:hover': { borderColor: hasError ? '#dc3545' : '#1D9CA6' },
-        }),
-    });
-
     return (
         <form onSubmit={handleSave} noValidate>
             <div className="row g-3">
@@ -90,10 +78,8 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
                     <label className="form-label fw-bold" htmlFor={`pa_rx_reaction_${patientId}`}>
                         Reaction <span className="text-danger">*</span>
                     </label>
-                    <AsyncSelect
+                    <LookupAsyncSelect
                         inputId={`pa_rx_reaction_${patientId}`}
-                        cacheOptions
-                        defaultOptions={false}
                         loadOptions={loadReactionOptions}
                         value={reactionSelectValue}
                         onChange={(selected) => {
@@ -105,16 +91,7 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
                             clearError('reaction');
                         }}
                         isDisabled={!!editReaction?.id}
-                        isClearable
-                        placeholder="Type at least 3 characters, then choose from list"
-                        noOptionsMessage={({ inputValue }) =>
-                            !inputValue || inputValue.length < LOOKUP_MIN_CHARS
-                                ? `Type at least ${LOOKUP_MIN_CHARS} characters to search`
-                                : 'No results found'
-                        }
-                        loadingMessage={() => 'Searching…'}
-                        classNamePrefix="react-select"
-                        styles={selectErrorStyles(!!errors.reaction)}
+                        invalid={!!errors.reaction}
                     />
                     {errors.reaction && <div className="small text-danger mt-1">{errors.reaction}</div>}
                 </div>
@@ -123,17 +100,14 @@ const PatientAllergiesReactions = ({ patientId, lookups, existingReactionIds = [
                     <label className="form-label fw-bold" htmlFor={`pa_rx_severity_${patientId}`}>
                         Severity <span className="text-danger">*</span>
                     </label>
-                    <select
-                        id={`pa_rx_severity_${patientId}`}
-                        className={`form-select ${errors.severity ? 'is-invalid' : ''}`}
+                    <CommonSelect
+                        inputId={`pa_rx_severity_${patientId}`}
+                        options={lookups.severities.map((s) => ({ value: s.id, label: s.conceptName }))}
                         value={rxForm.severityId}
-                        onChange={(e) => { setRxForm((prev) => ({ ...prev, severityId: e.target.value })); clearError('severity'); }}
-                    >
-                        <option value="">Select Severity</option>
-                        {lookups.severities.map((s) => (
-                            <option key={s.id} value={s.id}>{s.conceptName}</option>
-                        ))}
-                    </select>
+                        onChange={(value) => { setRxForm((prev) => ({ ...prev, severityId: value })); clearError('severity'); }}
+                        placeholder="Select Severity"
+                        invalid={!!errors.severity}
+                    />
                     {errors.severity && <div className="small text-danger mt-1">{errors.severity}</div>}
                 </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import moment from '../utils/dayjs';
+import { userNow } from '../utils/dayjs';
 /**
  * Real-time clock that re-renders every second. Returns a `moment` object so
  * the caller can format it however it needs. Pass an IANA/legacy zone code
@@ -8,9 +8,9 @@ import moment from '../utils/dayjs';
  * rest of the tree does not re-render every second.
  */
 export const useSystemClock = (userTimeZone) => {
-    const [now, setNow] = useState(() => moment());
+    const [now, setNow] = useState(() => userNow());
     useEffect(() => {
-        const ticker = window.setInterval(() => setNow(moment()), 1000);
+        const ticker = window.setInterval(() => setNow(userNow()), 1000);
         return () => window.clearInterval(ticker);
     }, []);
     return userTimeZone ? now.clone().tz(userTimeZone) : now;

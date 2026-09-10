@@ -23,7 +23,7 @@ const FormStatusFooter = ({
 	const canSave = !saving && !disabled && (alwaysEnableSave || dirty);
 	return (
 		<div className="d-flex justify-content-between align-items-center w-100 form-add-edit-status-container custom-form-footer mt-4 border-top" style={{ backgroundColor: '#F9FAFB', padding: '12px 16px' }}>
-			<button type="button" className="btn btn-outline-secondary px-4 border-radius-button cancel ignore-auto-save bs-modal-cancel-btn" onClick={onCancel} disabled={saving}>
+			<button type="button" className="btn btn-primary border-radius-button cancel ignore-auto-save bs-modal-cancel-btn" onClick={onCancel} disabled={saving}>
 				{cancelLabel}
 			</button>
 			<div className="d-flex align-items-center gap-3">
@@ -33,7 +33,7 @@ const FormStatusFooter = ({
 						<span className="form-add-edit-status-desc small text-muted">Not Saved</span>
 					</div>
 				)}
-				<button type={saveType} onClick={saveType === 'button' ? onSave : undefined} className="btn btn-primary px-4 border-radius-button save bs-modal-save-btn" disabled={!canSave}>
+				<button type={saveType} onClick={saveType === 'button' ? onSave : undefined} className="btn btn-primary border-radius-button save bs-modal-save-btn" disabled={!canSave}>
 					{saving ? savingLabel : saveLabel}
 				</button>
 			</div>

@@ -1,4 +1,4 @@
-import moment from '../../utils/dayjs';
+import moment, { userNow } from '../../utils/dayjs';
 import { getLoggedInUser } from '../../services/authService';
 
 /** Legacy utility.dateTimeFormats used across the chat renderers. */
@@ -12,8 +12,8 @@ export const loggedInUserId = () => getLoggedInUser()?.userId;
  */
 export const dashboardLastMessageTime = (messageDateTime) => {
     if (!messageDateTime) return '';
-    const today = moment().format(FMT.MDY);
-    const yesterday = moment().subtract(1, 'day').format(FMT.MDY);
+    const today = userNow().format(FMT.MDY);
+    const yesterday = userNow().subtract(1, 'day').format(FMT.MDY);
     const created = moment(messageDateTime, FMT.MDY_12H).format(FMT.MDY);
     if (today === created) return moment(messageDateTime, FMT.MDY_12H).format(FMT._12H);
     if (yesterday === created) return 'Yesterday';
@@ -25,8 +25,8 @@ export const dashboardLastMessageTime = (messageDateTime) => {
  * Returns { timestamp (Today/Yesterday/date), time (hh:mm A) }.
  */
 export const appropriateMessageDate = (messageDateTime) => {
-    const today = moment().format(FMT.MDY);
-    const yesterday = moment().subtract(1, 'day').format(FMT.MDY);
+    const today = userNow().format(FMT.MDY);
+    const yesterday = userNow().subtract(1, 'day').format(FMT.MDY);
     const created = moment(messageDateTime, FMT.MDY_12H).format(FMT.MDY);
     const time = moment(messageDateTime, FMT.MDY_12H).format(FMT._12H);
     let timestamp;

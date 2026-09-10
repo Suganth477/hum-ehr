@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { deletePatientGoal, saveSdohGoal } from '../../../services/goalService';
 import { LegacyIcon } from '../../../components/common/CustomIcons';
-import { getFormattedIcdCode } from '../../../utils/commonUtility';
+import DetailField from '../../../components/common/DetailField';
+import DiagnosisListView from '../../../components/common/DiagnosisListView';
+import DeletedRecordBadge from '../../../components/common/DeletedRecordBadge';
+import RecordActionIcons from '../../../components/common/RecordActionIcons';
 import { useNotify } from '../../../context/NotificationContext';
 
 // Legacy goalRangeHtml
@@ -32,23 +35,6 @@ const goalFrequencyText = (goal) => {
     return '-';
 };
 
-// Legacy utility.renderDiagnosisListView — non-plan context filters out encounter (hevpdId) rows.
-const DiagnosisListView = ({ diagnosisList }) => {
-    const list = (diagnosisList || []).filter((item) => !item.hevpdId);
-    if (!list.length)
-        return '-';
-    return list.map((diagnosis, index) => {
-        const description = diagnosis.longDescription || diagnosis.icdDescription || diagnosis.icdCodeDescription || diagnosis.snomedCode || '';
-        return (<div key={index} className="pc-patient-nutrition-view-diagnosis-list my-2">
-            <div className="pc-patient-nutrition-view-diagnosis-container d-flex align-items-center gap-2">
-              <span>{index + 1})</span>
-              <div className="pc-patient-nutrition-view-diagnosis-icd-code" style={{ color: '#3C6691', fontWeight: 600 }}>{getFormattedIcdCode(diagnosis.icdCode)} - </div>
-              <div className="pc-patient-nutrition-view-diagnosis-description">{description}</div>
-            </div>
-          </div>);
-    });
-};
-
 const PatientGoalsViewDetails = ({ patientId, goal, goalType, recordType, onEdit, onDeleted }) => {
     const [deleting, setDeleting] = useState(false);
     const { notifyError, notifySuccess } = useNotify();
@@ -64,9 +50,8 @@ const PatientGoalsViewDetails = ({ patientId, goal, goalType, recordType, onEdit
     const goalName = goal.goalName || goal.sdohGoalCodeDescription || goal.description || '';
     const notes = goal.goalNotes || goal.notes || '-';
     const isDeleted = goal.invalidFlag === 'Y';
-    // Legacy: action container renders only when invalidFlag !== 'Y'; edit is dropped for history records.
-    const showEdit = recordType !== 'history' && !isDeleted;
-    const showDelete = !isDeleted;
+    const moduleTitle = isSdoh ? 'SDOH Goal' : 'Patient Goal';
+    const dateCol = `${isSdoh ? 'col-md-4' : 'col-md-3'} mb-3`;
 
     const startLabel = isSdoh ? 'Start Date & Time' : 'Start Date';
     const completedLabel = isSdoh ? 'Completed Date & Time' : 'End Date';
@@ -122,59 +107,25 @@ const PatientGoalsViewDetails = ({ patientId, goal, goalType, recordType, onEdit
       <div className="row mx-3 my-4 mb-4">
         <div className="col-md-11 view-goal-name fw-bold patient-chart-list-selected-item-title text-capitalize">
           {goalName}
-          {isDeleted && <span className="ehr-deleted-records ms-2">Deleted Record</span>}
+          {isDeleted && <DeletedRecordBadge inline/>}
         </div>
-        <div className="col-md-1 goals-action-container d-flex justify-content-end gap-2">
-          {showEdit && <LegacyIcon icon="mdi-pencil" className="edit-goals-icon" title={`Edit ${isSdoh ? 'SDOH Goal' : 'Patient Goal'}`} role="button" onClick={() => onEdit(goal)}/>}
-          {showDelete && <LegacyIcon icon="mdi-delete" className={`delete-goals-icon ${deleting ? 'disabled' : ''}`} title={`Delete ${isSdoh ? 'SDOH Goal' : 'Patient Goal'}`} role="button" onClick={deleting ? undefined : handleDelete}/>}
+        <div className="col-md-1 goals-action-container">
+          <RecordActionIcons recordType={recordType} isDeleted={isDeleted} moduleTitle={moduleTitle} onEdit={() => onEdit(goal)} onDelete={handleDelete} editClass="edit-goals-icon" deleteClass="delete-goals-icon" busy={deleting}/>
         </div>
       </div>
 
       <div className="row mx-3 my-4">
-        {!isSdoh && goal.numCondition1 && (<div className="col-md-3 mb-3">
-            <div className="label">Range</div>
-            <div className="view-goal-range fw-bold">{goalRangeText(goal)}</div>
-          </div>)}
-        {!isSdoh && goal.frequencyCode && (<div className="col-md-3 mb-3">
-            <div className="label">Frequency</div>
-            <div className="view-goal-frequency fw-bold">{goalFrequencyText(goal)}</div>
-          </div>)}
-        <div className={`${isSdoh ? 'col-md-4' : 'col-md-3'} mb-3`}>
-          <div className="label">{startLabel}</div>
-          <div className="view-goal-start-date fw-bold">{goal.effectiveDate || '-'}</div>
-        </div>
-        <div className={`${isSdoh ? 'col-md-4' : 'col-md-3'} mb-3`}>
-          <div className="label">{completedLabel}</div>
-          <div className="view-completion-date fw-bold">{goal.lastEffectiveDate || '-'}</div>
-        </div>
-        <div className={`${isSdoh ? 'col-md-4' : 'col-md-3'} mb-3`}>
-          <div className="label">Recorded Date &amp; Time</div>
-          <div className="view-goal-recorded-date-and-time fw-bold">{goal.recordedDate || goal.effectiveDate || '-'}</div>
-        </div>
-        {!isSdoh && (<div className="col-md-3 mb-3">
-            <div className="label">Allow Patient To Edit Goals In Mobile Application</div>
-            <div className="view-goal-allow-patient-to-edit fw-bold">{goal.isPatientEditable === 'Y' ? 'Yes' : 'No'}</div>
-          </div>)}
-        {!isSdoh && (<div className="col-md-3 mb-3">
-            <div className="label">Goal Set By</div>
-            <div className="view-goal-care-team-prescribed fw-bold">{goal.isCareTeamPrescribed === 'Y' ? 'Care Team' : 'Patient'}</div>
-          </div>)}
-        <div className={`${isSdoh ? 'col-md-4' : 'col-md-3'} mb-3`}>
-          <div className="label">Goal Status</div>
-          <div className="view-goal-status fw-bold">{goal.statusCodeDescription || goal.statusCodeDesc || '-'}</div>
-        </div>
-        <div className="col-md-6 mb-3">
-          <div className="label">Description</div>
-          <div className="view-goal-description fw-bold text-capitalize">{notes}</div>
-        </div>
-        <div className="col-md-6 mb-3">
-          <div className="label">Clinical Indication / Diagnosis</div>
-          <div className="view-goal-diagnosis fw-bold text-capitalize"><DiagnosisListView diagnosisList={goal.diagnosisList}/></div>
-        </div>
-        {isDeleted && recordType === 'history' && (<div className="col-md-6 mb-3 view-goal-deleted-reason-row">
-            <div className="label">Deleted Reason</div>
-            <div className="view-goal-deleted-reason fw-bold" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>{goal.deleteReason || '-'}</div>
-          </div>)}
+        {!isSdoh && goal.numCondition1 && <DetailField col="col-md-3 mb-3" label="Range" value={goalRangeText(goal)}/>}
+        {!isSdoh && goal.frequencyCode && <DetailField col="col-md-3 mb-3" label="Frequency" value={goalFrequencyText(goal)}/>}
+        <DetailField col={dateCol} label={startLabel} value={goal.effectiveDate}/>
+        <DetailField col={dateCol} label={completedLabel} value={goal.lastEffectiveDate}/>
+        <DetailField col={dateCol} label="Recorded Date & Time" value={goal.recordedDate || goal.effectiveDate}/>
+        {!isSdoh && <DetailField col="col-md-3 mb-3" label="Allow Patient To Edit Goals In Mobile Application" value={goal.isPatientEditable === 'Y' ? 'Yes' : 'No'}/>}
+        {!isSdoh && <DetailField col="col-md-3 mb-3" label="Goal Set By" value={goal.isCareTeamPrescribed === 'Y' ? 'Care Team' : 'Patient'}/>}
+        <DetailField col={dateCol} label="Goal Status" value={goal.statusCodeDescription || goal.statusCodeDesc}/>
+        <DetailField col="col-md-6 mb-3" label="Description" value={notes}/>
+        <DetailField col="col-md-6 mb-3" label="Clinical Indication / Diagnosis"><DiagnosisListView diagnosisList={goal.diagnosisList}/></DetailField>
+        {isDeleted && recordType === 'history' && <DetailField col="col-md-6 mb-3" label="Deleted Reason" value={goal.deleteReason} cap={false} valueStyle={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}/>}
       </div>
     </div>);
 };

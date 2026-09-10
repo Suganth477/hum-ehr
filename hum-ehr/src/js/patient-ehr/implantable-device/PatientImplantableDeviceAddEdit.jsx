@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import moment from '../../../utils/dayjs';
+import moment, { userNow } from '../../../utils/dayjs';
 import AsyncSelect from 'react-select/async';
 import {
     buildImplantDeviceSavePayload, saveImplantDevice,
@@ -18,7 +18,7 @@ const md = (d) => (d ? moment(d, 'MM-DD-YYYY', true) : null);
 
 const buildInitialForm = (seed) => {
     const dd = seed?.deviceData || {};
-    const explanted = dd.explantDate && moment(dd.explantDate).isSameOrBefore(moment());
+    const explanted = dd.explantDate && moment(dd.explantDate).isSameOrBefore(userNow());
     return {
         id: seed?.implantableId || dd.id || '',
         uniqueDeviceId: dd.uniqueDeviceId || 'Unknown',
@@ -81,10 +81,10 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
         return () => { ignore = true; };
     }, [patientId]);
 
-    const today = useMemo(() => moment().format('MM-DD-YYYY'), []);
+    const today = useMemo(() => userNow().format('MM-DD-YYYY'), []);
     // Interdependent date bounds (mirror the legacy datepicker min/max wiring; DOB is the floor).
     const expiryMin = form.manufacturedDate || dob || undefined;
-    const implantMax = (form.expiryDate && md(form.expiryDate)?.isSameOrBefore(moment(), 'day')) ? form.expiryDate : today;
+    const implantMax = (form.expiryDate && md(form.expiryDate)?.isSameOrBefore(userNow(), 'day')) ? form.expiryDate : today;
     const implantMin = form.manufacturedDate || dob || undefined;
     const explantMin = form.implantDate || dob || undefined;
 
@@ -103,10 +103,10 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
         const impl = md(form.implantDate);
         if (!form.implantDate) next.implantDate = 'Please enter the implantation date';
         else if (!impl?.isValid()) next.implantDate = 'Please enter a valid implantation date';
-        else if (impl.isAfter(moment(), 'day')) next.implantDate = 'Implantation date cannot be a future date.';
+        else if (impl.isAfter(userNow(), 'day')) next.implantDate = 'Implantation date cannot be a future date.';
         else if (form.manufacturedDate && impl.isBefore(md(form.manufacturedDate), 'day')) next.implantDate = 'Implantation date must be on/after the manufacture date.';
         else if (form.expiryDate && impl.isAfter(md(form.expiryDate), 'day')) next.implantDate = 'Implantation date must be on/before the expiration date.';
-        if (form.manufacturedDate && md(form.manufacturedDate)?.isAfter(moment(), 'day')) next.manufacturedDate = 'Manufacture date cannot be a future date.';
+        if (form.manufacturedDate && md(form.manufacturedDate)?.isAfter(userNow(), 'day')) next.manufacturedDate = 'Manufacture date cannot be a future date.';
         if (form.expiryDate && form.manufacturedDate && md(form.expiryDate)?.isBefore(md(form.manufacturedDate), 'day')) next.expiryDate = 'Expiration date must be later than the manufacture date.';
         if (form.bodySite.trim() && !form.bodySiteId) next.bodySite = 'Please select the body site from the list';
         if (form.explantFlag) {
@@ -114,7 +114,7 @@ const PatientImplantableDeviceAddEdit = ({ patientId, seed, onClose }) => {
             if (!form.explantDate) next.explantDate = 'Please enter the explantation date';
             else if (!exp?.isValid()) next.explantDate = 'Please enter valid explantation date';
             else if (form.implantDate && exp.isBefore(md(form.implantDate), 'day')) next.explantDate = 'Explantation date must be on/after the implantation date.';
-            else if (exp.isAfter(moment(), 'day')) next.explantDate = 'Explantation date cannot be a future date.';
+            else if (exp.isAfter(userNow(), 'day')) next.explantDate = 'Explantation date cannot be a future date.';
             else if (form.expiryDate && exp.isAfter(md(form.expiryDate), 'day')) next.explantDate = 'Explantation date cannot be after the device expiration date.';
             if (!form.reasonForExplant.trim()) next.reasonForExplant = 'Please enter the reason for explantation';
         }
